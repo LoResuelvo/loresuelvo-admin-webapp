@@ -1,13 +1,6 @@
 services:
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_APP_ENV: test
-        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-    image: loresuelvo-admin:test
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-matexore}/loresuelvo-admin-webapp:main
     container_name: loresuelvo-admin-test
     ports:
       - "3000:3000"
