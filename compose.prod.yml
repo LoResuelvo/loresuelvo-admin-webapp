@@ -1,6 +1,6 @@
 services:
   web:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-matexore}/loresuelvo-admin-webapp:main
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-loresuelvo}/loresuelvo-admin-webapp:${IMAGE_TAG:-main}
     container_name: loresuelvo-admin-prod
     ports:
       - "3000:3000"
