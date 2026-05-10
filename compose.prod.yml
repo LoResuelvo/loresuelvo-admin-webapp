@@ -1,11 +1,15 @@
 services:
-  web:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-loresuelvo}/loresuelvo-admin-webapp:${IMAGE_TAG:-main}
-    container_name: loresuelvo-admin-prod
-    ports:
-      - "3000:3000"
+  gestion:
+    image: ghcr.io/${GITHUB_REPOSITORY}:${IMAGE_TAG:-latest}
     env_file:
-      - .env.production
+      - .env
     environment:
       NODE_ENV: production
     restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true
+    name: app-network
