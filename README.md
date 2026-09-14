@@ -36,3 +36,10 @@ and server-only token configuration with independent administrator cookies.
 Real Auth0 login, callback, and MFA require manual end-to-end validation using the
 separate Admin Regular Web Application configured through `.env.example`.
 Never reuse client-webapp secrets.
+
+## Dependency security
+
+Next.js stays on the patched 15.x release line. Its scoped `postcss` override
+reuses the direct PostCSS dependency because Next 15.5.25 still pins vulnerable
+8.4.31. Keep this override until Next ships a patched PostCSS version; review it
+when upgrading Next. `package-lock.json` records the audited dependency graph.

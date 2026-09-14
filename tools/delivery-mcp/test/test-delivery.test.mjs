@@ -146,8 +146,14 @@ test("Feature completa y escenario concreto", async () => {
   assert.throws(() => validateScenarioName("Bad\nName"), /illegal control characters/);
 });
 
-test("Escenario @wip usa el perfil gestionado y exige ejecución real", async () => {
-  const repoRoot = findRepoRoot();
+test("Escenario @wip usa el perfil gestionado y exige ejecución real", async (t) => {
+  const repoRoot = await fs.mkdtemp(path.join(os.tmpdir(), "delivery-wip-profile-"));
+  t.after(() => fs.rm(repoRoot, { recursive: true, force: true }));
+  await fs.mkdir(path.join(repoRoot, "features"));
+  await fs.writeFile(
+    path.join(repoRoot, "features", "sample.feature"),
+    "Feature: Managed profile\n  @wip\n  Scenario: Pending behavior\n    When an action runs\n    Then it succeeds\n",
+  );
   let capturedCall = null;
 
   const mockExecute = async (options) => {
@@ -166,8 +172,8 @@ test("Escenario @wip usa el perfil gestionado y exige ejecución real", async ()
   const result = await testDelivery({
     repoRoot,
     mode: "scenario",
-    featureFile: "features/auth/login.feature",
-    scenarioName: "02-ADM Login con segundo factor",
+    featureFile: "features/sample.feature",
+    scenarioName: "Pending behavior",
     force: true,
     executeFn: mockExecute,
   });
@@ -175,7 +181,7 @@ test("Escenario @wip usa el perfil gestionado y exige ejecución real", async ()
   assert.strictEqual(result.status, "passed");
   assert.ok(capturedCall.args.includes("E2E_PROFILE=wip"));
   assert.ok(capturedCall.args.includes("E2E_REQUIRE_SCENARIO=1"));
-  assert.ok(capturedCall.args.includes("E2E_NAME=02-ADM Login con segundo factor"));
+  assert.ok(capturedCall.args.includes("E2E_NAME=Pending behavior"));
 });
 
 test("Scenario con cero escenarios ejecutados nunca devuelve verde", async () => {
