@@ -8,6 +8,7 @@ const accessSchema = z.object({ status: z.literal("ready"), profile: identitySch
 
 export async function queryAdminAccess(signal: AbortSignal): Promise<AdminAccess> {
   const response = await fetch(ROUTES.adminAccess, { cache: "no-store", credentials: "same-origin", signal });
+  if (response.status === 401) return { status: "unauthenticated" };
   if (!response.ok) return { status: "unavailable" };
   const result = accessSchema.safeParse(await response.json());
   if (!result.success || !isAdministrator(result.data.profile)) return { status: "unavailable" };

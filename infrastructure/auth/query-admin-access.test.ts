@@ -13,3 +13,7 @@ it("rejects invalid ready responses", async () => {
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ status: "ready", profile: {} })));
   await expect(queryAdminAccess(new AbortController().signal)).resolves.toEqual({ status: "unavailable" });
 });
+it("recognizes the authentication boundary without exposing error details", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ status: "unauthenticated", detail: "private" }, { status: 401 })));
+  await expect(queryAdminAccess(new AbortController().signal)).resolves.toEqual({ status: "unauthenticated" });
+});

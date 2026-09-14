@@ -16,3 +16,11 @@ it("does not expose exception details or protected content", async () => {
   expect(response.status).toBe(503);
   expect(await response.json()).toEqual({ status: "unavailable" });
 });
+it("returns a safe uncached authentication requirement", async () => {
+  const { AccessError } = await import("@/domain/auth/access-error");
+  verify.mockRejectedValue(new AccessError("unauthenticated"));
+  const response = await GET();
+  expect(response.status).toBe(401);
+  expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+  expect(await response.json()).toEqual({ status: "unauthenticated" });
+});

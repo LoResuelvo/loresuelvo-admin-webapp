@@ -32,7 +32,6 @@ Feature: Iniciar sesión como administrador
     Then veo mi nombre "Ana", apellido "Pérez" y correo "ana@example.com"
     And puedo acceder al área de administración
 
-  @wip
   Scenario: 05-ADM Acceso directo sin sesión activa
     Given que no tengo una sesión activa
     When entro directamente al área de administración

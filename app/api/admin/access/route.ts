@@ -1,3 +1,4 @@
+import { AccessError } from "@/domain/auth/access-error";
 import { verifyAdminAccess } from "@/application/auth/verify-admin-access";
 import { authSession } from "@/infrastructure/auth/auth-session";
 import { apiProfileRepository } from "@/infrastructure/repositories/api-profile-repository";
@@ -9,7 +10,10 @@ export async function GET(): Promise<Response> {
   try {
     const profile = await verifyAdminAccess(authSession, apiProfileRepository);
     return Response.json({ status: "ready", profile }, { headers });
-  } catch {
+  } catch (error: unknown) {
+    if (error instanceof AccessError && error.code === "unauthenticated") {
+      return Response.json({ status: "unauthenticated" }, { status: 401, headers });
+    }
     return Response.json({ status: "unavailable" }, { status: 503, headers });
   }
 }

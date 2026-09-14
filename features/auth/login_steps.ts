@@ -8,6 +8,10 @@ import { observeSignInRedirect } from "../support/login-navigation";
 
 Given("que no tengo una sesión activa", async function (this: CustomWorld) {
   await this.context.clearCookies();
+  this.page.on("request", request => {
+    if (request.isNavigationRequest() && request.frame() === this.page.mainFrame()) this.adminDocumentRequestCount += 1;
+  });
+  await this.page.route(new URL(ROUTES.adminAccess, this.appUrl).href, route => route.fulfill({ status: 401, contentType: "application/json", body: JSON.stringify({ status: "unauthenticated" }) }));
 });
 
 When("entro a la página de inicio", async function (this: CustomWorld) {
@@ -76,4 +80,18 @@ Then("veo mi nombre {string}, apellido {string} y correo {string}", async functi
 
 Then("puedo acceder al área de administración", async function (this: CustomWorld) {
   await this.page.getByRole("region", { name: "Área de administración" }).waitFor();
+});
+
+
+When("entro directamente al área de administración", async function (this: CustomWorld) {
+  await this.page.goto(new URL(ROUTES.admin, this.appUrl).href);
+});
+
+Then("se me ofrece iniciar sesión", async function (this: CustomWorld) {
+  await this.page.getByRole("button", { name: "Iniciar sesión", exact: true }).waitFor();
+});
+
+Then("no soy redirigido repetidamente", async function (this: CustomWorld) {
+  assert.equal(new URL(this.page.url()).pathname, ROUTES.admin);
+  assert.equal(this.adminDocumentRequestCount, 1);
 });
