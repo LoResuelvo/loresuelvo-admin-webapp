@@ -1,5 +1,6 @@
 import type { Auth0Client } from "@auth0/nextjs-auth0/server";
 import { InvalidStateError } from "@auth0/nextjs-auth0/errors";
+import { NextRequest } from "next/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 type ClientOptions = NonNullable<ConstructorParameters<typeof Auth0Client>[0]>;
@@ -15,12 +16,17 @@ describe("administrator authentication configuration", () => {
     vi.stubEnv("AUTH0_CLIENT_ID", "admin-client");
     vi.stubEnv("AUTH0_CLIENT_SECRET", "test-client-secret");
     vi.stubEnv("AUTH0_AUDIENCE", "https://api.example.com");
+    vi.stubEnv("AUTH0_CONNECTION", "admin-users");
     vi.stubEnv("AUTH0_SECRET", "a".repeat(64));
     const { getAuth0 } = await import("./auth0");
     getAuth0();
     expect(construct).toHaveBeenCalledWith(expect.objectContaining({
       appBaseUrl: "http://localhost:3000",
-      authorizationParameters: { audience: "https://api.example.com", scope: "openid profile email offline_access" },
+      authorizationParameters: {
+        audience: "https://api.example.com",
+        connection: "admin-users",
+        scope: "openid profile email offline_access",
+      },
       signInReturnToPath: "/admin",
       enableAccessTokenEndpoint: false,
       session: expect.objectContaining({ cookie: expect.objectContaining({ name: "__admin_session" }) }),
@@ -28,9 +34,35 @@ describe("administrator authentication configuration", () => {
     }));
   });
 
+  it("pins login requests to the configured administrator connection", async () => {
+    vi.stubEnv("AUTH0_CONNECTION", "admin-users");
+    const { enforceAdminConnection } = await import("./auth0");
+    const request = new NextRequest("https://admin.example.com/auth/login?connection=consumer-users&prompt=login");
+
+    const securedRequest = enforceAdminConnection(request);
+
+    expect(securedRequest.nextUrl.searchParams.get("connection")).toBe("admin-users");
+    expect(securedRequest.nextUrl.searchParams.get("prompt")).toBe("login");
+    expect(request.nextUrl.searchParams.get("connection")).toBe("consumer-users");
+  });
+
   it("rejects missing server configuration without including its values", async () => {
     vi.stubEnv("AUTH0_CLIENT_SECRET", "");
     const { getAuth0 } = await import("./auth0");
+    expect(() => getAuth0()).toThrow("Authentication is not configured");
+    expect(construct).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing administrator connection", async () => {
+    vi.stubEnv("APP_URL", "http://localhost:3000");
+    vi.stubEnv("AUTH0_DOMAIN", "admin.example.com");
+    vi.stubEnv("AUTH0_CLIENT_ID", "admin-client");
+    vi.stubEnv("AUTH0_CLIENT_SECRET", "test-client-secret");
+    vi.stubEnv("AUTH0_AUDIENCE", "https://api.example.com");
+    vi.stubEnv("AUTH0_CONNECTION", "");
+    vi.stubEnv("AUTH0_SECRET", "a".repeat(64));
+    const { getAuth0 } = await import("./auth0");
+
     expect(() => getAuth0()).toThrow("Authentication is not configured");
     expect(construct).not.toHaveBeenCalled();
   });
@@ -42,6 +74,7 @@ it("returns callback failures safely and keeps successful callbacks on the admin
   vi.stubEnv("AUTH0_CLIENT_ID", "admin-client");
   vi.stubEnv("AUTH0_CLIENT_SECRET", "test-client-secret");
   vi.stubEnv("AUTH0_AUDIENCE", "https://api.example.com");
+  vi.stubEnv("AUTH0_CONNECTION", "admin-users");
   vi.stubEnv("AUTH0_SECRET", "a".repeat(64));
   const { getAuth0 } = await import("./auth0");
   getAuth0();

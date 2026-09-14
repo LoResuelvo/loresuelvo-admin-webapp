@@ -1,9 +1,22 @@
 import "server-only";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { ROUTES } from "@/lib/routes";
 import { Auth0Client } from "@auth0/nextjs-auth0/server";
 
 let client: Auth0Client | undefined;
+
+function getAuth0Connection(): string {
+  const connection = process.env.AUTH0_CONNECTION;
+  if (!connection) throw new Error("Authentication is not configured");
+  return connection;
+}
+
+export function enforceAdminConnection(request: NextRequest): NextRequest {
+  if (request.nextUrl.pathname !== ROUTES.signIn) return request;
+  const url = request.nextUrl.clone();
+  url.searchParams.set("connection", getAuth0Connection());
+  return new NextRequest(url, request);
+}
 
 export function getAuth0(): Auth0Client {
   if (client) return client;
@@ -17,7 +30,11 @@ export function getAuth0(): Auth0Client {
     clientId: AUTH0_CLIENT_ID,
     clientSecret: AUTH0_CLIENT_SECRET,
     secret: AUTH0_SECRET,
-    authorizationParameters: { audience: AUTH0_AUDIENCE, scope: "openid profile email offline_access" },
+    authorizationParameters: {
+      audience: AUTH0_AUDIENCE,
+      connection: getAuth0Connection(),
+      scope: "openid profile email offline_access",
+    },
     signInReturnToPath: ROUTES.admin,
     onCallback: async (error) => {
       const destination = new URL(error ? ROUTES.home : ROUTES.admin, APP_URL);

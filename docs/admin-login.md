@@ -10,6 +10,7 @@ reutilizar secretos de la Web de clientes.
 | `APP_URL` | Origen público de Admin; se pasa explícitamente como `appBaseUrl` al SDK. HTTPS en producción. |
 | `API_URL` | Dirección de la API accesible desde el servidor Next, no desde el navegador. |
 | `AUTH0_DOMAIN` | Dominio del tenant que contiene la aplicación administrativa. |
+| `AUTH0_CONNECTION` | Nombre de la Database Connection dedicada a Admin; el servidor la fija en cada autorización. |
 | `AUTH0_CLIENT_ID` / `AUTH0_CLIENT_SECRET` | Credenciales de una Regular Web Application dedicada a Admin. |
 | `AUTH0_SECRET` | Secreto independiente para cifrar cookies; generar con `openssl rand -hex 32`. |
 | `AUTH0_AUDIENCE` | Identificador de la API en Auth0; no confundir con su dirección de red. |
@@ -18,6 +19,9 @@ El responsable del entorno debe configurar la RWA con callback
 `<APP_URL>/auth/callback` y logout permitido `<APP_URL>`, habilitar su política
 MFA y asegurar el provisionamiento del administrador en la API. La Web no crea
 perfiles ni convierte cuentas de clientes o prestadores en administradores.
+La conexión indicada por `AUTH0_CONNECTION` debe estar habilitada para esa RWA;
+Admin no depende de la conexión predeterminada del tenant y reemplaza cualquier
+intento de seleccionarla desde la URL de login.
 
 Se solicita `openid profile email offline_access`: habilitar **Allow Offline
 Access** en la API de Auth0 y el grant de Refresh Token para la RWA. El SDK
@@ -34,6 +38,8 @@ El flujo servidor a servidor hacia la API no requiere ampliar CORS del navegador
 - Sesión y transacciones usan cookies administrativas independientes. El endpoint
   público de access token del SDK está deshabilitado. Tokens y configuración
   privada no se serializan en props ni se registran en logs.
+- Cada autorización fija en el servidor la Database Connection administrativa;
+  parámetros de URL no pueden desviar el login hacia otro almacén de identidades.
 - Las respuestas de acceso son privadas y sin caché. Cada consulta verifica su
   propia sesión y perfil. El shell de `/admin` no contiene datos protegidos.
   Nuevas operaciones administrativas deberán aplicar autorización en servidor;

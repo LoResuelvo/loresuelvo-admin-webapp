@@ -5,22 +5,26 @@ import { middleware } from "@/middleware";
 import { ROUTES } from "@/lib/routes";
 import { translations } from "@/infrastructure/i18n/translations";
 
-const auth = vi.hoisted(() => ({ middleware: vi.fn(), getAuth0: vi.fn() }));
-vi.mock("./auth0", () => ({ getAuth0: auth.getAuth0 }));
+const auth = vi.hoisted(() => ({ enforceAdminConnection: vi.fn(), middleware: vi.fn(), getAuth0: vi.fn() }));
+vi.mock("./auth0", () => ({ enforceAdminConnection: auth.enforceAdminConnection, getAuth0: auth.getAuth0 }));
 
 beforeEach(() => {
   vi.resetAllMocks();
+  auth.enforceAdminConnection.mockImplementation((request: NextRequest) => request);
   auth.getAuth0.mockReturnValue({ middleware: auth.middleware });
 });
 
 describe("authentication middleware", () => {
   it("delegates the login request and preserves the SDK response", async () => {
     const request = new NextRequest(new URL(ROUTES.signIn, "https://admin.example.com"));
+    const securedRequest = new NextRequest(new URL(`${ROUTES.signIn}?connection=admin-users`, "https://admin.example.com"));
     const redirect = NextResponse.redirect("https://auth.example.com/authorize");
+    auth.enforceAdminConnection.mockReturnValue(securedRequest);
     auth.middleware.mockResolvedValue(redirect);
 
     expect(await middleware(request)).toBe(redirect);
-    expect(auth.middleware).toHaveBeenCalledExactlyOnceWith(request);
+    expect(auth.enforceAdminConnection).toHaveBeenCalledExactlyOnceWith(request);
+    expect(auth.middleware).toHaveBeenCalledExactlyOnceWith(securedRequest);
   });
 
   it("returns a safe unavailable response when the SDK fails", async () => {
