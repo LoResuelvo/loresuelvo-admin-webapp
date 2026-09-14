@@ -17,7 +17,7 @@ describe("administrator authentication configuration", () => {
     getAuth0();
     expect(construct).toHaveBeenCalledWith(expect.objectContaining({
       appBaseUrl: "http://localhost:3000",
-      authorizationParameters: { audience: "https://api.example.com", scope: "openid profile email" },
+      authorizationParameters: { audience: "https://api.example.com", scope: "openid profile email offline_access" },
       signInReturnToPath: "/admin",
       enableAccessTokenEndpoint: false,
       session: expect.objectContaining({ cookie: expect.objectContaining({ name: "__admin_session" }) }),

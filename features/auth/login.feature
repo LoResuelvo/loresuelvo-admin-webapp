@@ -46,7 +46,6 @@ Feature: Iniciar sesión como administrador
     When recargo la página
     Then vuelvo a acceder al área de administración con mi identidad verificada
 
-  @wip
   Scenario: 07-ADM Solicitar una nueva autenticación
     Given que mi autenticación dejó de ser válida
     When entro al área de administración

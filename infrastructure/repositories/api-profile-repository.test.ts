@@ -14,3 +14,10 @@ it.each([401, 404, 500])("rejects HTTP %i without response details", async statu
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("sensitive response", { status })));
   await expect(apiProfileRepository.getProfile("token")).rejects.not.toThrow("sensitive response");
 });
+it("requires a new authentication on unauthorized API access without retrying", async () => {
+  vi.stubEnv("API_URL", "https://api.example.com");
+  const fetcher = vi.fn().mockResolvedValue(new Response("private details", { status: 401 }));
+  vi.stubGlobal("fetch", fetcher);
+  await expect(apiProfileRepository.getProfile("token")).rejects.toMatchObject({ code: "sessionExpired", message: "sessionExpired" });
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});

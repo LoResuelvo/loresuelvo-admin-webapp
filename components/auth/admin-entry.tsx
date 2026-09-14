@@ -9,6 +9,7 @@ import { useAdminAccess } from "./use-admin-access";
 export function AdminEntry() {
   const access = useAdminAccess();
   if (access.status === "unauthenticated") return <LoginEntry />;
+  if (access.status === "sessionExpired") return <LoginEntry notice={translations.auth.sessionExpired} />;
   if (access.status === "pending") return <AccessLoading />;
   if (access.status === "ready") return <AdminWelcome profile={access.profile} />;
   return (

@@ -17,3 +17,12 @@ it("recognizes the authentication boundary without exposing error details", asyn
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ status: "unauthenticated", detail: "private" }, { status: 401 })));
   await expect(queryAdminAccess(new AbortController().signal)).resolves.toEqual({ status: "unauthenticated" });
 });
+
+it("preserves the safe expired-session result", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ status: "sessionExpired" }, { status: 401 })));
+  await expect(queryAdminAccess(new AbortController().signal)).resolves.toEqual({ status: "sessionExpired" });
+});
+it("rejects an incompatible unauthorized response", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ status: "ready" }, { status: 401 })));
+  await expect(queryAdminAccess(new AbortController().signal)).resolves.toEqual({ status: "unavailable" });
+});

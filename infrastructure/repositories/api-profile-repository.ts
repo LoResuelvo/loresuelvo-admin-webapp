@@ -12,7 +12,7 @@ export const apiProfileRepository: ProfileRepository = {
       cache: "no-store",
       signal: AbortSignal.timeout(10_000),
     });
-    if (!response.ok) throw new AccessError(response.status === 401 ? "unauthenticated" : "unavailable");
+    if (!response.ok) throw new AccessError(response.status === 401 ? "sessionExpired" : "unavailable");
     return mapProfile(await response.json());
   },
 };

@@ -37,6 +37,13 @@ Real Auth0 login, callback, and MFA require manual end-to-end validation using t
 separate Admin Regular Web Application configured through `.env.example`.
 Never reuse client-webapp secrets.
 
+The Admin request includes `offline_access`; enable **Allow Offline Access** for
+the Auth0 API and the Refresh Token grant for the Admin application. The server
+SDK owns token renewal and cookie updates; no refresh token is exposed to browser
+code. Missing or revoked refresh credentials require sign-in again, while
+configuration and temporary provider failures remain service errors.
+See [Auth0 refresh-token prerequisites](https://auth0.com/docs/secure/tokens/refresh-tokens/get-refresh-tokens).
+
 ## Dependency security
 
 Next.js stays on the patched 15.x release line. Its scoped `postcss` override

@@ -16,7 +16,7 @@ export function getAuth0(): Auth0Client {
     clientId: AUTH0_CLIENT_ID,
     clientSecret: AUTH0_CLIENT_SECRET,
     secret: AUTH0_SECRET,
-    authorizationParameters: { audience: AUTH0_AUDIENCE, scope: "openid profile email" },
+    authorizationParameters: { audience: AUTH0_AUDIENCE, scope: "openid profile email offline_access" },
     signInReturnToPath: ROUTES.admin,
     enableAccessTokenEndpoint: false,
     session: { cookie: { name: "__admin_session", sameSite: "lax" } },

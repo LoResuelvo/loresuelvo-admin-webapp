@@ -119,3 +119,17 @@ Then("vuelvo a acceder al área de administración con mi identidad verificada",
   await this.page.getByRole("banner").getByText("ana@example.com", { exact: true }).waitFor();
   assert.equal(this.adminAccessRequestCount, 2);
 });
+
+Given("que mi autenticación dejó de ser válida", async function (this: CustomWorld) {
+  this.page.on("request", request => {
+    if (request.isNavigationRequest() && request.frame() === this.page.mainFrame()) this.adminDocumentRequestCount += 1;
+  });
+  await this.page.route(new URL(ROUTES.adminAccess, this.appUrl).href, route => route.fulfill({
+    status: 401, contentType: "application/json", body: JSON.stringify({ status: "sessionExpired" }),
+  }));
+});
+
+Then("veo un mensaje que indica que debo iniciar sesión nuevamente", async function (this: CustomWorld) {
+  await this.page.getByRole("alert").getByText("Iniciá sesión nuevamente para continuar.").waitFor();
+  await this.page.getByRole("button", { name: "Iniciar sesión", exact: true }).waitFor();
+});

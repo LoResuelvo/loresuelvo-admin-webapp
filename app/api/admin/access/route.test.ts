@@ -24,3 +24,12 @@ it("returns a safe uncached authentication requirement", async () => {
   expect(response.headers.get("Cache-Control")).toBe("private, no-store");
   expect(await response.json()).toEqual({ status: "unauthenticated" });
 });
+
+it("distinguishes an invalid authentication from a missing session", async () => {
+  const { AccessError } = await import("@/domain/auth/access-error");
+  verify.mockRejectedValue(new AccessError("sessionExpired"));
+  const response = await GET();
+  expect(response.status).toBe(401);
+  expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+  expect(await response.json()).toEqual({ status: "sessionExpired" });
+});

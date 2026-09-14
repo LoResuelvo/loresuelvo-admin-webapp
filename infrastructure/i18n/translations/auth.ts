@@ -1,4 +1,5 @@
 export const authTranslations = {
+  sessionExpired: "Iniciá sesión nuevamente para continuar.",
   accessVerified: "Acceso verificado",
   welcomeDescription: "Ya estás en el espacio de administración de Lo Resuelvo.",
   administration: "Área de administración",
