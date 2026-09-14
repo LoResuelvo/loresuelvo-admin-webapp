@@ -25,7 +25,6 @@ Feature: Iniciar sesión como administrador
       | mi sesión    |
       | mi perfil    |
 
-  @wip
   Scenario: 04-ADM Inicio de sesión exitoso como administrador
     Given que inicié sesión exitosamente en Auth0
     And tengo una cuenta de administrador habilitada con nombre "Ana", apellido "Pérez" y correo "ana@example.com"

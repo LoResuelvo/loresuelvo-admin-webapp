@@ -1,4 +1,6 @@
 export const authTranslations = {
+  accessVerified: "Acceso verificado",
+  welcomeDescription: "Ya estás en el espacio de administración de Lo Resuelvo.",
   administration: "Área de administración",
   welcome: "Te damos la bienvenida.",
   accessUnavailable: "No se pudo verificar tu acceso. Intentá nuevamente más tarde.",

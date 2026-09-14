@@ -4,7 +4,7 @@ import { apiProfileRepository } from "./api-profile-repository";
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 it("requests only /me with a server token and no cache", async () => {
   vi.stubEnv("API_URL", "https://api.example.com");
-  const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({ id: 1, name: "Ana", surname: "Pérez", email: "ana@example.com", role: "admin" })));
+  const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({ id: 1, name: "Ana", surname: "Pérez", email: "ana@example.com", role: "admin", calendar_connection_status: "disconnected" })));
   vi.stubGlobal("fetch", fetcher);
   await apiProfileRepository.getProfile("server-token");
   expect(fetcher).toHaveBeenCalledWith("https://api.example.com/me", expect.objectContaining({ cache: "no-store", headers: { Authorization: "Bearer server-token", Accept: "application/json" }, signal: expect.any(AbortSignal) }));

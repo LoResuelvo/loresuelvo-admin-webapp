@@ -2,6 +2,7 @@ import { Given, When, Then } from "@cucumber/cucumber";
 import assert from "node:assert/strict";
 import { ROUTES } from "@/lib/routes";
 import { CustomWorld } from "../support/world";
+import { anAdminProfile, stubAdminAccess } from "../support/admin-access";
 import { observeSignInRedirect } from "../support/login-navigation";
 
 
@@ -58,4 +59,21 @@ Then("veo un mensaje que indica que se está verificando mi acceso", async funct
 
 Then("no veo contenido administrativo", async function (this: CustomWorld) {
   assert.equal(await this.page.getByRole("region", { name: "Área de administración" }).count(), 0);
+});
+
+Given("que inicié sesión exitosamente en Auth0", async function (this: CustomWorld) {
+  await this.context.clearCookies();
+});
+
+Given("tengo una cuenta de administrador habilitada con nombre {string}, apellido {string} y correo {string}", async function (this: CustomWorld, firstName: string, lastName: string, email: string) {
+  await stubAdminAccess(this, anAdminProfile({ firstName, lastName, email }));
+});
+
+Then("veo mi nombre {string}, apellido {string} y correo {string}", async function (this: CustomWorld, firstName: string, lastName: string, email: string) {
+  await this.page.getByRole("banner").getByText(`${firstName} ${lastName}`, { exact: true }).waitFor();
+  await this.page.getByRole("banner").getByText(email, { exact: true }).waitFor();
+});
+
+Then("puedo acceder al área de administración", async function (this: CustomWorld) {
+  await this.page.getByRole("region", { name: "Área de administración" }).waitFor();
 });
