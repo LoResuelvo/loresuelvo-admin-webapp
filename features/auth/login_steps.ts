@@ -2,7 +2,7 @@ import { Given, When, Then } from "@cucumber/cucumber";
 import assert from "node:assert/strict";
 import { ROUTES } from "@/lib/routes";
 import { CustomWorld } from "../support/world";
-import { anAdminProfile, stubAdminAccess } from "../support/admin-access";
+import { anAdminProfile, stubAdminAccess, stubRefreshedAdminAccess } from "../support/admin-access";
 import { observeSignInRedirect } from "../support/login-navigation";
 
 
@@ -94,4 +94,28 @@ Then("se me ofrece iniciar sesión", async function (this: CustomWorld) {
 Then("no soy redirigido repetidamente", async function (this: CustomWorld) {
   assert.equal(new URL(this.page.url()).pathname, ROUTES.admin);
   assert.equal(this.adminDocumentRequestCount, 1);
+});
+
+Given("que tengo una sesión activa", async function (this: CustomWorld) {
+  await this.context.clearCookies();
+});
+
+Given("tengo una cuenta de administrador habilitada en Lo Resuelvo", async function (this: CustomWorld) {
+  await stubRefreshedAdminAccess(this);
+});
+
+Given("estoy en el área de administración", async function (this: CustomWorld) {
+  await this.page.goto(new URL(ROUTES.admin, this.appUrl).href);
+  await this.page.getByRole("banner").getByText("Ana Pérez", { exact: true }).waitFor();
+});
+
+When("recargo la página", async function (this: CustomWorld) {
+  await this.page.reload();
+});
+
+Then("vuelvo a acceder al área de administración con mi identidad verificada", async function (this: CustomWorld) {
+  await this.page.getByRole("region", { name: "Área de administración" }).waitFor();
+  await this.page.getByRole("banner").getByText("Ana Pérez García", { exact: true }).waitFor();
+  await this.page.getByRole("banner").getByText("ana@example.com", { exact: true }).waitFor();
+  assert.equal(this.adminAccessRequestCount, 2);
 });

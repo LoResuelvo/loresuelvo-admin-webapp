@@ -19,3 +19,14 @@ it("aborts its request on unmount and ignores late completion", async () => {
   unmount();
   expect(signal.aborted).toBe(true);
 });
+it("starts a fresh verification instead of reusing identity after remount", async () => {
+  const profile = { id: 1, firstName: "Ana", lastName: "Pérez", email: "ana@example.com", role: "admin" };
+  query.mockResolvedValueOnce({ status: "ready", profile });
+  const first = renderHook(() => useAdminAccess());
+  await waitFor(() => expect(first.result.current.status).toBe("ready"));
+  first.unmount();
+  query.mockImplementationOnce(() => new Promise(() => {}));
+  const second = renderHook(() => useAdminAccess());
+  expect(second.result.current).toEqual({ status: "pending" });
+  expect(query).toHaveBeenCalledTimes(2);
+});

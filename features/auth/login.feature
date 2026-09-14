@@ -39,7 +39,6 @@ Feature: Iniciar sesión como administrador
     And no veo contenido administrativo
     And no soy redirigido repetidamente
 
-  @wip
   Scenario: 06-ADM Conservar el acceso al recargar
     Given que tengo una sesión activa
     And tengo una cuenta de administrador habilitada en Lo Resuelvo

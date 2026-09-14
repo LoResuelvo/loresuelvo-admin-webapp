@@ -13,3 +13,11 @@ export async function stubAdminAccess(world: CustomWorld, profile: AdminProfile)
     body: JSON.stringify({ status: "ready", profile }),
   }));
 }
+
+export async function stubRefreshedAdminAccess(world: CustomWorld): Promise<void> {
+  await world.page.route(new URL(ROUTES.adminAccess, world.appUrl).href, route => {
+    world.adminAccessRequestCount += 1;
+    const profile = anAdminProfile({ lastName: world.adminAccessRequestCount > 1 ? "Pérez García" : "Pérez" });
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "ready", profile }) });
+  });
+}
