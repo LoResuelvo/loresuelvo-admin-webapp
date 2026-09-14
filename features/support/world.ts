@@ -1,0 +1,115 @@
+import { setWorldConstructor, World, IWorldOptions } from "@cucumber/cucumber";
+import { Browser, BrowserContext, Page } from "playwright";
+import type { ApiStub, HttpMethod } from "../../infrastructure/api/types";
+import { addApiStub, getStubs, hasApiStub } from "./stubs-helper";
+import { MOCK_SESSION_COOKIE } from "../../infrastructure/auth/mock-adapter";
+import { AuthSession } from "../../infrastructure/auth/types";
+import { aSession } from "./factories";
+import { getTestAppUrl } from "./test-env";
+
+export const APP_URL = getTestAppUrl();
+
+export class CustomWorld extends World {
+  browser!: Browser;
+  context!: BrowserContext;
+  page!: Page;
+  appUrl: string = APP_URL;
+  calendarProfileRole?: string;
+  calendarConnectionStatus?: string;
+  calendarCallbackResult?: "success" | "cancelled";
+  calendarAuthorizationAttempts = 0;
+  selectedRole: string | null = null;
+  registeredFirstName?: string;
+  registeredLastName?: string;
+  registeredEmail?: string;
+  explicitAddressSet?: boolean;
+  activeConversationId: number = 1;
+  wsServer: import("playwright").WebSocketRoute | null = null;
+  audioWsServer: import("playwright").WebSocketRoute | null = null;
+  currentAttachedImages: string[] = [];
+  currentJobRequestAttachedImages: string[] = [];
+
+  constructor(options: IWorldOptions) {
+    super(options);
+  }
+
+  async getStubs(): Promise<ApiStub[]> {
+    return getStubs(this.page);
+  }
+
+  async addApiStub(stub: ApiStub): Promise<void> {
+    return addApiStub(this.page, stub);
+  }
+
+  async hasApiStub(method: HttpMethod, endpoint: string): Promise<boolean> {
+    return hasApiStub(this.page, method, endpoint);
+  }
+
+  // --- Fluent Stub Helpers ---
+
+  async stubGet(endpoint: string, body: unknown, status: number = 200): Promise<void> {
+    return this.addApiStub({ method: "GET", endpoint, status, body });
+  }
+
+  async stubPost(
+    endpoint: string,
+    status: number = 200,
+    body: unknown = {},
+    delayMs?: number,
+  ): Promise<void> {
+    return this.addApiStub({
+      method: "POST",
+      endpoint,
+      status,
+      body,
+      ...(delayMs !== undefined ? { delayMs } : {}),
+    });
+  }
+
+  async stubPatch(endpoint: string, status: number = 200, body: unknown = {}): Promise<void> {
+    return this.addApiStub({ method: "PATCH", endpoint, status, body });
+  }
+
+  async stubPut(endpoint: string, status: number = 200, body: unknown = {}): Promise<void> {
+    return this.addApiStub({ method: "PUT", endpoint, status, body });
+  }
+
+  async stubDelete(endpoint: string, status: number = 200, body: unknown = {}): Promise<void> {
+    return this.addApiStub({ method: "DELETE", endpoint, status, body });
+  }
+
+  // --- Auth Session Helpers ---
+
+  async setSession(
+    role: string = "admin",
+    userOverrides: Partial<AuthSession["user"]> = {}
+  ): Promise<void> {
+    this.calendarProfileRole = role;
+    const session = aSession(role, userOverrides);
+    await this.page.context().addCookies([
+      {
+        name: MOCK_SESSION_COOKIE,
+        value: encodeURIComponent(JSON.stringify(session)),
+        domain: "localhost",
+        path: "/",
+      },
+    ]);
+
+    if (session.user.firstName) {
+      await this.stubGet("/me", {
+        id: session.user.id,
+        name: session.user.firstName,
+        surname: session.user.lastName,
+        email: session.user.email,
+        role: session.user.role,
+      });
+    }
+  }
+}
+
+setWorldConstructor(CustomWorld);
+
+export const visibleTimeout = { state: "visible" as const, timeout: 10000 };
+export const attachedTimeout = { state: "attached" as const, timeout: 10000 };
+export const waitTimeout = { timeout: 10000 };
+export const attachedState = { state: "attached" as const };
