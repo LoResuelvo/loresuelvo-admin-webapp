@@ -43,3 +43,19 @@ Then("no puedo iniciar otra solicitud mientras se procesa la redirección", asyn
   assert.equal(this.signInDisabledDuringRedirect, true);
   assert.equal(this.signInRequestCount, 1);
 });
+
+Given(/^que todavía se está verificando (?:mi sesión|mi perfil)$/, async function (this: CustomWorld) {
+  await this.page.route(new URL(ROUTES.adminAccess, this.appUrl).href, () => {});
+});
+
+When("entro al área de administración", async function (this: CustomWorld) {
+  await this.page.goto(new URL(ROUTES.admin, this.appUrl).href);
+});
+
+Then("veo un mensaje que indica que se está verificando mi acceso", async function (this: CustomWorld) {
+  await this.page.getByRole("status").getByText("Estamos verificando tu acceso…").waitFor();
+});
+
+Then("no veo contenido administrativo", async function (this: CustomWorld) {
+  assert.equal(await this.page.getByRole("region", { name: "Área de administración" }).count(), 0);
+});

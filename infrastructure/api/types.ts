@@ -7,3 +7,12 @@ export interface ApiStub {
   body: unknown;
   delayMs?: number;
 }
+
+export interface ApiProfile {
+  id: number;
+  name: string;
+  surname: string;
+  email: string;
+  role: "admin" | "consumer" | "provider";
+  calendar_connection_status: "disconnected" | "connected" | "action_required";
+}

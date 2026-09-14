@@ -11,11 +11,14 @@ describe("administrator authentication configuration", () => {
     vi.stubEnv("AUTH0_DOMAIN", "admin.example.com");
     vi.stubEnv("AUTH0_CLIENT_ID", "admin-client");
     vi.stubEnv("AUTH0_CLIENT_SECRET", "test-client-secret");
+    vi.stubEnv("AUTH0_AUDIENCE", "https://api.example.com");
     vi.stubEnv("AUTH0_SECRET", "a".repeat(64));
     const { getAuth0 } = await import("./auth0");
     getAuth0();
     expect(construct).toHaveBeenCalledWith(expect.objectContaining({
       appBaseUrl: "http://localhost:3000",
+      authorizationParameters: { audience: "https://api.example.com", scope: "openid profile email" },
+      signInReturnToPath: "/admin",
       enableAccessTokenEndpoint: false,
       session: expect.objectContaining({ cookie: expect.objectContaining({ name: "__admin_session" }) }),
       transactionCookie: expect.objectContaining({ prefix: "__admin_transaction_" }),

@@ -15,7 +15,6 @@ Feature: Iniciar sesión como administrador
     Then soy redirigido al portal de autenticación de Auth0
     And no puedo iniciar otra solicitud mientras se procesa la redirección
 
-  @wip
   Scenario Outline: 03-ADM Esperar la verificación de acceso
     Given que todavía se está verificando <verificacion>
     When entro al área de administración

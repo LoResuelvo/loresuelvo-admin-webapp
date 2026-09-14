@@ -1,4 +1,8 @@
 export const authTranslations = {
+  administration: "Área de administración",
+  welcome: "Te damos la bienvenida.",
+  accessUnavailable: "No se pudo verificar tu acceso. Intentá nuevamente más tarde.",
+  verifying: "Estamos verificando tu acceso…",
   brand: "Lo Resuelvo",
   area: "Administración",
   brandMessage: "El buen trabajo empieza acá.",

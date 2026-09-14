@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { ConfigProvider } from "./config-provider";
 
 import "./globals.css";
 
@@ -15,16 +14,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const envConfig = {
-    apiUrl: process.env.API_URL || "http://localhost:8080",
-  };
-
   return (
     <html lang="es">
       <body>
-        <ConfigProvider config={envConfig}>
-          {children}
-        </ConfigProvider>
+        {children}
       </body>
     </html>
   );
