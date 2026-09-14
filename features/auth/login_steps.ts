@@ -154,3 +154,19 @@ Given(/^mi cuenta de Lo Resuelvo es de (?:cliente|prestador)$/, async function (
 Then("veo un mensaje que indica que el acceso está reservado a administradores", async function (this: CustomWorld) {
   await this.page.getByRole("alert").getByText("Este acceso está reservado a administradores de Lo Resuelvo.").waitFor();
 });
+
+Given("el servicio de consulta de mi perfil no está disponible", async function (this: CustomWorld) {
+  await this.page.route(new URL(ROUTES.adminAccess, this.appUrl).href, route => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ status: "unavailable" }) }));
+});
+
+Then("veo un mensaje que informa que no se pudo verificar mi acceso", async function (this: CustomWorld) {
+  await this.page.getByRole("alert").getByText("No se pudo verificar tu acceso. Intentá nuevamente más tarde.").waitFor();
+});
+
+Then("veo la opción {string}", async function (this: CustomWorld, label: string) {
+  await this.page.getByRole("button", { name: label, exact: true }).waitFor();
+});
+
+Then("no se informa que mi cuenta no está habilitada", async function (this: CustomWorld) {
+  assert.equal(await this.page.getByText(/Tu cuenta no está habilitada/).count(), 0);
+});

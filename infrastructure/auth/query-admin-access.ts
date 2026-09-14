@@ -8,7 +8,8 @@ const authenticationSchema = z.object({ status: z.enum(["unauthenticated", "sess
 const accessSchema = z.object({ status: z.literal("ready"), profile: identitySchema });
 
 export async function queryAdminAccess(signal: AbortSignal): Promise<AdminAccess> {
-  const response = await fetch(ROUTES.adminAccess, { cache: "no-store", credentials: "same-origin", signal });
+  const requestSignal = AbortSignal.any([signal, AbortSignal.timeout(15_000)]);
+  const response = await fetch(ROUTES.adminAccess, { cache: "no-store", credentials: "same-origin", signal: requestSignal });
   if (response.status === 401) {
     const result = authenticationSchema.safeParse(await response.json());
     return result.success ? result.data : { status: "unavailable" };

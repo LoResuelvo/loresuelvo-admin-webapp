@@ -15,9 +15,5 @@ export function AdminEntry() {
   if (access.status === "forbidden") return <AccessIssue message={translations.auth.forbidden} />;
   if (access.status === "pending") return <AccessLoading />;
   if (access.status === "ready") return <AdminWelcome profile={access.profile} />;
-  return (
-    <main className="grid min-h-svh place-items-center bg-[#F4F1EE] px-6 text-[#1A2B48]">
-      <p role="alert">{translations.auth.accessUnavailable}</p>
-    </main>
-  );
+  return <AccessIssue message={translations.auth.accessUnavailable} onRetry={access.retry} />;
 }

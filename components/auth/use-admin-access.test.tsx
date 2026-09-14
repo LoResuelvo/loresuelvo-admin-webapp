@@ -27,6 +27,40 @@ it("starts a fresh verification instead of reusing identity after remount", asyn
   first.unmount();
   query.mockImplementationOnce(() => new Promise(() => {}));
   const second = renderHook(() => useAdminAccess());
-  expect(second.result.current).toEqual({ status: "pending" });
+  expect(second.result.current.status).toBe("pending");
   expect(query).toHaveBeenCalledTimes(2);
+});
+it("retries only an unavailable verification and prevents duplicate requests", async () => {
+  query.mockResolvedValueOnce({ status: "unavailable" });
+  query.mockImplementationOnce(() => new Promise(() => {}));
+  const { result } = renderHook(() => useAdminAccess());
+  await waitFor(() => expect(result.current.status).toBe("unavailable"));
+  act(() => { result.current.retry(); result.current.retry(); });
+  expect(result.current.status).toBe("pending");
+  expect(query).toHaveBeenCalledTimes(2);
+});
+it("keeps denied states stable when retry is invoked", async () => {
+  query.mockResolvedValue({ status: "forbidden" });
+  const { result } = renderHook(() => useAdminAccess());
+  await waitFor(() => expect(result.current.status).toBe("forbidden"));
+  act(() => result.current.retry());
+  expect(result.current.status).toBe("forbidden");
+  expect(query).toHaveBeenCalledTimes(1);
+});
+it("discards late identity results from an unmounted verification", async () => {
+  let resolve!: (value: { status: "ready"; profile: { id: number; firstName: string; lastName: string; email: string; role: "admin" } }) => void;
+  query.mockImplementationOnce(() => new Promise(r => { resolve = r; }));
+  const first = renderHook(() => useAdminAccess());
+  first.unmount();
+  query.mockResolvedValueOnce({ status: "unavailable" });
+  const second = renderHook(() => useAdminAccess());
+  await waitFor(() => expect(second.result.current.status).toBe("unavailable"));
+  await act(async () => resolve({ status: "ready", profile: { id: 1, firstName: "Ana", lastName: "Pérez", email: "ana@example.com", role: "admin" } }));
+  expect(second.result.current.status).toBe("unavailable");
+});
+it.each([new Error("network failure"), new DOMException("Timed out", "TimeoutError")])("shows an unavailable state for a failed browser request without automatic retries: %s", async error => {
+  query.mockRejectedValue(error);
+  const { result } = renderHook(() => useAdminAccess());
+  await waitFor(() => expect(result.current.status).toBe("unavailable"));
+  expect(query).toHaveBeenCalledTimes(1);
 });

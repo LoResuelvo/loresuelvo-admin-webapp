@@ -71,7 +71,6 @@ Feature: Iniciar sesión como administrador
       | cliente   |
       | prestador |
 
-  @wip
   Scenario: 10-ADM No se puede verificar el acceso temporalmente
     Given que inicié sesión exitosamente en Auth0
     And el servicio de consulta de mi perfil no está disponible
