@@ -22,6 +22,11 @@ App at `http://localhost:3000`.
 docker compose -f compose.prod.yml --env-file .env.production up -d --build
 ```
 
+## Administrator login
+
+See the [configuration and external verification guide](docs/admin-login.md).
+Real Auth0/MFA verification remains pending until the environment is configured.
+
 ## Authentication test coverage
 
 Login navigation E2E tests replace the same-origin `/auth/login` boundary with a

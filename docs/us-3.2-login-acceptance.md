@@ -151,10 +151,13 @@ Probar el `404` real con una identidad de prueba sin perfil, sin modificar la
 semilla administradora. No registrar tokens, credenciales, correo real,
 identificadores reales ni códigos MFA. No modificar tenant, API Go ni Docker.
 
-## Siguiente frontera
+## Implementación y comprobación externa
 
-Los escenarios aprobados se trasladaron a `features/auth/login.feature` con
-`@wip`, reemplazando los dos escenarios heredados. Cada tag se retirará en el
-commit funcional que cierre su escenario en GREEN.
-Continuar con conducción `AGENT_ORCHESTRATED`, batches `SCENARIO`, presentación
-aislada antes de integrar y cierre GREEN de cada escenario antes del siguiente.
+Los 13 escenarios están implementados en `features/auth/login.feature`, sin
+`@wip`. La matriz anterior se complementa con pruebas unitarias de contratos,
+seguridad y estados; los escenarios outline expanden la suite a 17 casos E2E.
+
+La configuración real de Auth0, MFA y la API provisionada todavía no está
+preparada. El usuario aprobó entregar la implementación validada y dejar esa
+comprobación externa explícitamente pendiente. Consultar la
+[guía operativa](admin-login.md) antes de habilitar el entorno.
