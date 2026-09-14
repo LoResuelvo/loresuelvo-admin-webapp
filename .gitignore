@@ -7,3 +7,15 @@ npm-debug.log*
 .env
 .env.*
 !.env.example
+
+# Clone-local Codex MCP registration
+.codex/config.toml
+
+# Cucumber & Delivery Runtime
+reports/
+.cucumber-dist/
+.delivery/runtime/
+
+*.tsbuildinfo
+
+.agents/local/
