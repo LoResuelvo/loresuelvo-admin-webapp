@@ -3,7 +3,6 @@ Feature: Iniciar sesión como administrador
   Quiero iniciar sesión en Lo Resuelvo
   Para acceder al área de administración
 
-  @wip
   Scenario: 01-ADM Mostrar la entrada de administración
     Given que no tengo una sesión activa
     When entro a la página de inicio

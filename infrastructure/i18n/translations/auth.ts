@@ -5,6 +5,7 @@ export const authTranslations = {
   brandDescription: "Un espacio para cuidar lo que construimos juntos.",
   heading: "Todo listo para empezar.",
   description: "Accedé con tu cuenta de administrador.",
+  unavailable: "No se pudo iniciar sesión. Intentá nuevamente más tarde.",
   signIn: "Iniciar sesión",
   accessNotice: "Acceso exclusivo para personal autorizado.",
 } as const;
