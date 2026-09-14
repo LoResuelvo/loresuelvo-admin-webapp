@@ -170,3 +170,27 @@ Then("veo la opción {string}", async function (this: CustomWorld, label: string
 Then("no se informa que mi cuenta no está habilitada", async function (this: CustomWorld) {
   assert.equal(await this.page.getByText(/Tu cuenta no está habilitada/).count(), 0);
 });
+
+Given("que veo un error temporal al verificar mi acceso", async function (this: CustomWorld) {
+  await this.page.route(new URL(ROUTES.adminAccess, this.appUrl).href, route => route.fulfill({
+    status: 503, contentType: "application/json", body: JSON.stringify({ status: "unavailable" }),
+  }));
+  await this.page.goto(new URL(ROUTES.admin, this.appUrl).href);
+  await this.page.getByRole("alert").getByText("No se pudo verificar tu acceso. Intentá nuevamente más tarde.").waitFor();
+});
+
+Given("el servicio de consulta de mi perfil vuelve a estar disponible", async function (this: CustomWorld) {
+  await this.page.unroute(new URL(ROUTES.adminAccess, this.appUrl).href);
+});
+
+When("hago clic en {string}", async function (this: CustomWorld, label: string) {
+  await this.page.getByRole("button", { name: label, exact: true }).click();
+});
+
+Then("accedo al área de administración con mi identidad verificada", async function (this: CustomWorld) {
+  await this.page.getByRole("region", { name: "Área de administración" }).waitFor();
+  await this.page.getByRole("banner").getByText("Ana Pérez", { exact: true }).waitFor();
+  await this.page.getByRole("banner").getByText("ana@example.com", { exact: true }).waitFor();
+  assert.equal(this.adminAccessRequestCount, 1);
+  assert.equal(await this.page.getByRole("button", { name: "Reintentar" }).count(), 0);
+});

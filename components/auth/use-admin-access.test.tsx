@@ -64,3 +64,14 @@ it.each([new Error("network failure"), new DOMException("Timed out", "TimeoutErr
   await waitFor(() => expect(result.current.status).toBe("unavailable"));
   expect(query).toHaveBeenCalledTimes(1);
 });
+it("replaces a temporary failure with a freshly verified administrator on retry", async () => {
+  const profile = { id: 1, firstName: "Ana", lastName: "Pérez", email: "ana@example.com", role: "admin" };
+  query.mockResolvedValueOnce({ status: "unavailable" }).mockResolvedValueOnce({ status: "ready", profile });
+  const { result } = renderHook(() => useAdminAccess());
+  await waitFor(() => expect(result.current.status).toBe("unavailable"));
+  act(() => result.current.retry());
+  await waitFor(() => expect(result.current).toMatchObject({ status: "ready", profile }));
+  expect(query).toHaveBeenCalledTimes(2);
+  const firstSignal: AbortSignal = query.mock.calls[0][0];
+  expect(firstSignal.aborted).toBe(true);
+});

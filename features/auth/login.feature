@@ -80,7 +80,6 @@ Feature: Iniciar sesión como administrador
     And no se informa que mi cuenta no está habilitada
     And no veo contenido administrativo
 
-  @wip
   Scenario: 11-ADM Reintentar la verificación de acceso
     Given que veo un error temporal al verificar mi acceso
     And el servicio de consulta de mi perfil vuelve a estar disponible
