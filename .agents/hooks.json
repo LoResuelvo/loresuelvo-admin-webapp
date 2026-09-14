@@ -1,0 +1,16 @@
+{
+  "loresuelvo-delivery-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'if [ -f hooks/loresuelvo-delivery-guard.mjs ]; then node hooks/loresuelvo-delivery-guard.mjs; else node .agents/hooks/loresuelvo-delivery-guard.mjs; fi'",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

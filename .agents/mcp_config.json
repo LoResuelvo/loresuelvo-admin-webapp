@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "loresuelvo-delivery": {
+      "command": "node",
+      "args": [
+        "/home/matexore/Desktop/Facultad/tpp/loresuelvo-admin-webapp/tools/delivery-mcp/server.mjs"
+      ],
+      "cwd": "/home/matexore/Desktop/Facultad/tpp/loresuelvo-admin-webapp",
+      "env": {
+        "MCP_SERVER_REQUEST_TIMEOUT": "900000"
+      }
+    }
+  }
+}
