@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { translations } from "@/infrastructure/i18n/translations";
 
 type LoginScreenProps = {
@@ -10,11 +10,21 @@ type LoginScreenProps = {
 
 export function LoginScreen({ onSignIn, notice }: LoginScreenProps) {
   const copy = translations.auth;
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [attempt, setAttempt] = useState<"idle" | "redirecting" | "incomplete">("idle");
+  const isRedirecting = attempt === "redirecting";
+  const visibleNotice = attempt === "incomplete" ? copy.incomplete : notice;
+
+  useEffect(() => {
+    function restoreAttempt(event: PageTransitionEvent) {
+      if (event.persisted && isRedirecting) setAttempt("incomplete");
+    }
+    window.addEventListener("pageshow", restoreAttempt);
+    return () => window.removeEventListener("pageshow", restoreAttempt);
+  }, [isRedirecting]);
 
   function startSignIn() {
     if (isRedirecting) return;
-    setIsRedirecting(true);
+    setAttempt("redirecting");
     onSignIn();
   }
 
@@ -44,7 +54,7 @@ export function LoginScreen({ onSignIn, notice }: LoginScreenProps) {
           </p>
           <h1 id="login-heading" className="max-w-sm text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">{copy.heading}</h1>
           <p className="mt-5 text-base leading-relaxed text-[#536176]">{copy.description}</p>
-          {notice && <p role="alert" className="mt-6 rounded-xl border border-[#1A2B48]/15 bg-white p-4 text-sm leading-relaxed text-[#1A2B48]">{notice}</p>}
+          {visibleNotice && <p role="alert" className="mt-6 rounded-xl border border-[#1A2B48]/15 bg-white p-4 text-sm leading-relaxed text-[#1A2B48]">{visibleNotice}</p>}
           <button
             type="button"
             onClick={startSignIn}

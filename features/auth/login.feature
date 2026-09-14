@@ -87,7 +87,6 @@ Feature: Iniciar sesión como administrador
     When hago clic en "Reintentar"
     Then accedo al área de administración con mi identidad verificada
 
-  @wip
   Scenario Outline: 12-ADM Volver después de una autenticación incompleta
     Given que <resultado>
     When vuelvo a la aplicación

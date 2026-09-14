@@ -1,4 +1,5 @@
 export const authTranslations = {
+  incomplete: "No se completó el inicio de sesión. Podés intentarlo nuevamente.",
   retry: "Reintentar",
   forbidden: "Este acceso está reservado a administradores de Lo Resuelvo.",
   notProvisioned: "Tu cuenta no está habilitada en Lo Resuelvo. Contactá al responsable del entorno.",

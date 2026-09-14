@@ -1,4 +1,5 @@
 import "server-only";
+import { NextResponse } from "next/server";
 import { ROUTES } from "@/lib/routes";
 import { Auth0Client } from "@auth0/nextjs-auth0/server";
 
@@ -18,6 +19,13 @@ export function getAuth0(): Auth0Client {
     secret: AUTH0_SECRET,
     authorizationParameters: { audience: AUTH0_AUDIENCE, scope: "openid profile email offline_access" },
     signInReturnToPath: ROUTES.admin,
+    onCallback: async (error) => {
+      const destination = new URL(error ? ROUTES.home : ROUTES.admin, APP_URL);
+      if (error) destination.searchParams.set("auth", "incomplete");
+      const response = NextResponse.redirect(destination);
+      response.headers.set("Cache-Control", "no-store");
+      return response;
+    },
     enableAccessTokenEndpoint: false,
     session: { cookie: { name: "__admin_session", sameSite: "lax" } },
     transactionCookie: { prefix: "__admin_transaction_", sameSite: "lax" },

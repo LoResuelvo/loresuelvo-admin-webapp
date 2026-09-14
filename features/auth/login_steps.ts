@@ -194,3 +194,24 @@ Then("accedo al área de administración con mi identidad verificada", async fun
   assert.equal(this.adminAccessRequestCount, 1);
   assert.equal(await this.page.getByRole("button", { name: "Reintentar" }).count(), 0);
 });
+
+Given(/^que (?:cancelé el inicio de sesión|ocurrió un error durante el inicio de sesión|no completé la verificación en dos pasos)$/, async function (this: CustomWorld) {
+  await this.context.clearCookies();
+});
+
+When("vuelvo a la aplicación", async function (this: CustomWorld) {
+  // The SDK callback contract is covered separately; this double starts at its safe return URL.
+  const returnUrl = new URL(ROUTES.home, this.appUrl);
+  returnUrl.searchParams.set("auth", "incomplete");
+  await this.page.goto(returnUrl.href);
+});
+
+Then("veo un mensaje que indica que no se completó el inicio de sesión", async function (this: CustomWorld) {
+  await this.page.getByRole("alert").getByText("No se completó el inicio de sesión. Podés intentarlo nuevamente.").waitFor();
+});
+
+Then("se me ofrece iniciar sesión nuevamente", async function (this: CustomWorld) {
+  const button = this.page.getByRole("button", { name: "Iniciar sesión", exact: true });
+  await button.waitFor();
+  assert.equal(await button.isEnabled(), true);
+});

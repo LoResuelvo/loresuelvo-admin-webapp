@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { LoginScreen } from "./login-screen";
@@ -39,4 +39,33 @@ describe("sign-in redirect feedback", () => {
     expect(button).toBeDisabled();
     expect(screen.getByRole("status")).toHaveTextContent("Redirigiendo al inicio de sesión");
   });
+});
+
+
+it("restores sign-in and reports an incomplete attempt after a bfcache return", async () => {
+  const onSignIn = vi.fn();
+  const user = userEvent.setup();
+  render(<LoginScreen onSignIn={onSignIn} />);
+  await user.click(screen.getByRole("button", { name: "Iniciar sesión" }));
+  act(() => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true })));
+  expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeEnabled();
+  expect(screen.getByRole("alert")).toHaveTextContent("No se completó el inicio de sesión.");
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Iniciar sesión" }));
+  expect(onSignIn).toHaveBeenCalledTimes(2);
+});
+
+it("does not report an incomplete attempt for an ordinary page display", () => {
+  render(<LoginScreen onSignIn={vi.fn()} />);
+  act(() => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true })));
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+});
+
+it("keeps duplicate prevention on a non-persisted pageshow while redirecting", async () => {
+  const user = userEvent.setup();
+  render(<LoginScreen onSignIn={vi.fn()} />);
+  await user.click(screen.getByRole("button", { name: "Iniciar sesión" }));
+  act(() => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: false })));
+  expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeDisabled();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });
