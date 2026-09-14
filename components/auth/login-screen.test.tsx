@@ -27,3 +27,16 @@ describe("LoginScreen", () => {
     expect(onSignIn).toHaveBeenCalledOnce();
   });
 });
+
+describe("sign-in redirect feedback", () => {
+  it("prevents another request while the redirect is pending", async () => {
+    const onSignIn = vi.fn();
+    const user = userEvent.setup();
+    render(<LoginScreen onSignIn={onSignIn} />);
+    const button = screen.getByRole("button", { name: "Iniciar sesión" });
+    await user.dblClick(button);
+    expect(onSignIn).toHaveBeenCalledOnce();
+    expect(button).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent("Redirigiendo al inicio de sesión");
+  });
+});

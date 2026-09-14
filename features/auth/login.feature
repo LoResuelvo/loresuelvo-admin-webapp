@@ -9,7 +9,6 @@ Feature: Iniciar sesión como administrador
     Then veo la identidad de Lo Resuelvo y el botón "Iniciar sesión"
     And no veo un formulario de contraseña ni una opción de registro
 
-  @wip
   Scenario: 02-ADM Redirección al portal de autenticación
     Given que estoy en la página de inicio
     When hago clic en el botón "Iniciar sesión"

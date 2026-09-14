@@ -14,6 +14,8 @@ export class CustomWorld extends World {
   context!: BrowserContext;
   page!: Page;
   appUrl: string = APP_URL;
+  signInDisabledDuringRedirect = false;
+  signInRequestCount = 0;
   calendarProfileRole?: string;
   calendarConnectionStatus?: string;
   calendarCallbackResult?: "success" | "cancelled";

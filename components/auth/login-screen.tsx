@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { translations } from "@/infrastructure/i18n/translations";
 
 type LoginScreenProps = {
@@ -8,6 +9,13 @@ type LoginScreenProps = {
 
 export function LoginScreen({ onSignIn }: LoginScreenProps) {
   const copy = translations.auth;
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  function startSignIn() {
+    if (isRedirecting) return;
+    setIsRedirecting(true);
+    onSignIn();
+  }
 
   return (
     <main className="grid min-h-svh grid-rows-[auto_1fr] bg-[#F4F1EE] text-[#1A2B48] lg:grid-cols-[1fr_1.05fr] lg:grid-rows-1">
@@ -37,12 +45,15 @@ export function LoginScreen({ onSignIn }: LoginScreenProps) {
           <p className="mt-5 text-base leading-relaxed text-[#536176]">{copy.description}</p>
           <button
             type="button"
-            onClick={onSignIn}
-            className="mt-10 flex min-h-14 w-full items-center justify-between gap-4 rounded-xl bg-[#147560] px-6 py-4 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#105F4E] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#147560] motion-reduce:transition-none"
+            onClick={startSignIn}
+            disabled={isRedirecting}
+            aria-busy={isRedirecting}
+            className="mt-10 flex min-h-14 w-full items-center justify-between gap-4 rounded-xl bg-[#147560] px-6 py-4 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#105F4E] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#147560] motion-reduce:transition-none disabled:cursor-wait disabled:opacity-75"
           >
             {copy.signIn}
             <span aria-hidden="true" className="text-xl">→</span>
           </button>
+          {isRedirecting && <p role="status" className="mt-4 text-sm text-[#536176]">{copy.redirecting}</p>}
           <p className="mt-8 border-t border-[#1A2B48]/15 pt-6 text-sm leading-relaxed text-[#536176]">{copy.accessNotice}</p>
         </div>
       </section>
