@@ -215,3 +215,31 @@ Then("se me ofrece iniciar sesión nuevamente", async function (this: CustomWorl
   await button.waitFor();
   assert.equal(await button.isEnabled(), true);
 });
+
+Given("llegué al botón {string} usando el teclado", async function (this: CustomWorld, label: string) {
+  await this.page.keyboard.press("Tab");
+  assert.equal(await this.page.getByRole("button", { name: label, exact: true }).evaluate(element => element === document.activeElement), true);
+});
+
+Given("puedo distinguir visualmente el botón enfocado", async function (this: CustomWorld) {
+  const focus = await this.page.getByRole("button", { name: "Iniciar sesión", exact: true }).evaluate(element => {
+    const style = getComputedStyle(element);
+    return {
+      visible: element.matches(":focus-visible"),
+      outlineStyle: style.outlineStyle,
+      outlineWidth: parseFloat(style.outlineWidth),
+      outlineColor: style.outlineColor,
+      outlineOffset: parseFloat(style.outlineOffset),
+    };
+  });
+  assert.equal(focus.visible, true);
+  assert.notEqual(focus.outlineStyle, "none");
+  assert.ok(focus.outlineWidth >= 2);
+  assert.ok(focus.outlineOffset >= 2);
+  assert.notEqual(focus.outlineColor, "rgba(0, 0, 0, 0)");
+});
+
+When("activo el botón con el teclado", async function (this: CustomWorld) {
+  await observeSignInRedirect(this);
+  await this.page.keyboard.press("Enter");
+});

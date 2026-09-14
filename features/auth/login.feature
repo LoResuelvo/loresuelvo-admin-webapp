@@ -99,7 +99,6 @@ Feature: Iniciar sesión como administrador
       | ocurrió un error durante el inicio de sesión    |
       | no completé la verificación en dos pasos        |
 
-  @wip
   Scenario: 13-ADM Acceder mediante teclado
     Given que estoy en la página de inicio
     And llegué al botón "Iniciar sesión" usando el teclado

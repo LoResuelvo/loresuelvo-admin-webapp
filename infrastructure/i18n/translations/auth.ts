@@ -1,4 +1,6 @@
 export const authTranslations = {
+  pageTitle: "Lo Resuelvo · Administración",
+  pageDescription: "Accedé al espacio de administración de Lo Resuelvo.",
   incomplete: "No se completó el inicio de sesión. Podés intentarlo nuevamente.",
   retry: "Reintentar",
   forbidden: "Este acceso está reservado a administradores de Lo Resuelvo.",

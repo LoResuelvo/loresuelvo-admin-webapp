@@ -69,3 +69,14 @@ it("keeps duplicate prevention on a non-persisted pageshow while redirecting", a
   expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeDisabled();
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });
+
+it.each(["{Enter}", " "])("allows keyboard sign-in with %s", async key => {
+  const onSignIn = vi.fn();
+  const user = userEvent.setup();
+  render(<LoginScreen onSignIn={onSignIn} />);
+  await user.tab();
+  expect(screen.getByRole("button", { name: "Iniciar sesión" })).toHaveFocus();
+  await user.keyboard(key);
+  expect(onSignIn).toHaveBeenCalledOnce();
+  expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeDisabled();
+});
