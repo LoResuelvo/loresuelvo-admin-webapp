@@ -41,3 +41,11 @@ it("returns an uncached account provisioning result", async () => {
   expect(response.headers.get("Cache-Control")).toBe("private, no-store");
   expect(await response.json()).toEqual({ status: "notProvisioned" });
 });
+it("denies non-admin profiles without returning their identity", async () => {
+  const { AccessError } = await import("@/domain/auth/access-error");
+  verify.mockRejectedValue(new AccessError("forbidden"));
+  const response = await GET();
+  expect(response.status).toBe(403);
+  expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+  expect(await response.json()).toEqual({ status: "forbidden" });
+});

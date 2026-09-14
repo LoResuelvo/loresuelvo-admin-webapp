@@ -12,6 +12,7 @@ export function AdminEntry() {
   if (access.status === "unauthenticated") return <LoginEntry />;
   if (access.status === "sessionExpired") return <LoginEntry notice={translations.auth.sessionExpired} />;
   if (access.status === "notProvisioned") return <AccessIssue message={translations.auth.notProvisioned} />;
+  if (access.status === "forbidden") return <AccessIssue message={translations.auth.forbidden} />;
   if (access.status === "pending") return <AccessLoading />;
   if (access.status === "ready") return <AdminWelcome profile={access.profile} />;
   return (

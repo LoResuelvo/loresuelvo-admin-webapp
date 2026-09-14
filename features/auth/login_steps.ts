@@ -146,3 +146,11 @@ Then("no veo contenido administrativo ni una opción de registro", async functio
   assert.equal(await this.page.getByRole("region", { name: "Área de administración" }).count(), 0);
   assert.equal(await this.page.getByText(/registr|crear cuenta/i).count(), 0);
 });
+
+Given(/^mi cuenta de Lo Resuelvo es de (?:cliente|prestador)$/, async function (this: CustomWorld) {
+  await this.page.route(new URL(ROUTES.adminAccess, this.appUrl).href, route => route.fulfill({ status: 403, contentType: "application/json", body: JSON.stringify({ status: "forbidden" }) }));
+});
+
+Then("veo un mensaje que indica que el acceso está reservado a administradores", async function (this: CustomWorld) {
+  await this.page.getByRole("alert").getByText("Este acceso está reservado a administradores de Lo Resuelvo.").waitFor();
+});

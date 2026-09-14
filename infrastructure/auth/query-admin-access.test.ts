@@ -30,3 +30,7 @@ it("recognizes only the validated account provisioning response", async () => {
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ status: "notProvisioned", detail: "private" }, { status: 404 })));
   await expect(queryAdminAccess(new AbortController().signal)).resolves.toEqual({ status: "notProvisioned" });
 });
+it("recognizes a validated forbidden response without identity", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ status: "forbidden", profile: { email: "private@example.com" } }, { status: 403 })));
+  await expect(queryAdminAccess(new AbortController().signal)).resolves.toEqual({ status: "forbidden" });
+});

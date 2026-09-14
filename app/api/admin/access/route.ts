@@ -17,6 +17,9 @@ export async function GET(): Promise<Response> {
     if (error instanceof AccessError && error.code === "notProvisioned") {
       return Response.json({ status: "notProvisioned" }, { status: 404, headers });
     }
+    if (error instanceof AccessError && error.code === "forbidden") {
+      return Response.json({ status: "forbidden" }, { status: 403, headers });
+    }
     return Response.json({ status: "unavailable" }, { status: 503, headers });
   }
 }

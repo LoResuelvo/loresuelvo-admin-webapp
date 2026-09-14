@@ -17,6 +17,10 @@ export async function queryAdminAccess(signal: AbortSignal): Promise<AdminAccess
     const result = z.object({ status: z.literal("notProvisioned") }).safeParse(await response.json());
     return result.success ? result.data : { status: "unavailable" };
   }
+  if (response.status === 403) {
+    const result = z.object({ status: z.literal("forbidden") }).safeParse(await response.json());
+    return result.success ? result.data : { status: "unavailable" };
+  }
   if (!response.ok) return { status: "unavailable" };
   const result = accessSchema.safeParse(await response.json());
   if (!result.success || !isAdministrator(result.data.profile)) return { status: "unavailable" };

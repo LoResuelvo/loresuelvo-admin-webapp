@@ -60,7 +60,6 @@ Feature: Iniciar sesión como administrador
     Then veo un mensaje que indica que mi cuenta no está habilitada y que debo contactar al responsable del entorno
     And no veo contenido administrativo ni una opción de registro
 
-  @wip
   Scenario Outline: 09-ADM Restringir el acceso a cuentas no administrativas
     Given que inicié sesión exitosamente en Auth0
     And mi cuenta de Lo Resuelvo es de <tipo>

@@ -29,3 +29,12 @@ it("revalidates each session against its own uncached profile", async () => {
   expect(fetcher).toHaveBeenCalledTimes(2);
   for (const [, options] of fetcher.mock.calls) expect(options.cache).toBe("no-store");
 });
+it.each(["consumer", "provider"])("rejects HTTP 200 profiles with role %s using the real server pipeline", async role => {
+  vi.stubEnv("API_URL", "https://api.example.com");
+  sdk.getSession.mockResolvedValue({ user: { sub: "identity" } });
+  sdk.getAccessToken.mockResolvedValue({ token: "server-token" });
+  const fetcher = vi.fn().mockResolvedValue(Response.json({ id: 1, name: "Ana", surname: "Pérez", email: "ana@example.com", role, calendar_connection_status: "disconnected" }));
+  vi.stubGlobal("fetch", fetcher);
+  await expect(verifyAdminAccess(authSession, apiProfileRepository)).rejects.toMatchObject({ code: "forbidden" });
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});
