@@ -1,4 +1,5 @@
 export const authTranslations = {
+  notProvisioned: "Tu cuenta no está habilitada en Lo Resuelvo. Contactá al responsable del entorno.",
   sessionExpired: "Iniciá sesión nuevamente para continuar.",
   accessVerified: "Acceso verificado",
   welcomeDescription: "Ya estás en el espacio de administración de Lo Resuelvo.",

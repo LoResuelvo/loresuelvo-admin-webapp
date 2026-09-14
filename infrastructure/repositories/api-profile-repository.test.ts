@@ -21,3 +21,10 @@ it("requires a new authentication on unauthorized API access without retrying", 
   await expect(apiProfileRepository.getProfile("token")).rejects.toMatchObject({ code: "sessionExpired", message: "sessionExpired" });
   expect(fetcher).toHaveBeenCalledTimes(1);
 });
+it("identifies an unprovisioned account without attempting profile creation", async () => {
+  vi.stubEnv("API_URL", "https://api.example.com");
+  const fetcher = vi.fn().mockResolvedValue(new Response("private", { status: 404 }));
+  vi.stubGlobal("fetch", fetcher);
+  await expect(apiProfileRepository.getProfile("token")).rejects.toMatchObject({ code: "notProvisioned" });
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});

@@ -33,3 +33,11 @@ it("distinguishes an invalid authentication from a missing session", async () =>
   expect(response.headers.get("Cache-Control")).toBe("private, no-store");
   expect(await response.json()).toEqual({ status: "sessionExpired" });
 });
+it("returns an uncached account provisioning result", async () => {
+  const { AccessError } = await import("@/domain/auth/access-error");
+  verify.mockRejectedValue(new AccessError("notProvisioned"));
+  const response = await GET();
+  expect(response.status).toBe(404);
+  expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+  expect(await response.json()).toEqual({ status: "notProvisioned" });
+});

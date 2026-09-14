@@ -26,3 +26,7 @@ it("rejects an incompatible unauthorized response", async () => {
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ status: "ready" }, { status: 401 })));
   await expect(queryAdminAccess(new AbortController().signal)).resolves.toEqual({ status: "unavailable" });
 });
+it("recognizes only the validated account provisioning response", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ status: "notProvisioned", detail: "private" }, { status: 404 })));
+  await expect(queryAdminAccess(new AbortController().signal)).resolves.toEqual({ status: "notProvisioned" });
+});

@@ -1,6 +1,7 @@
 "use client";
 
 import { translations } from "@/infrastructure/i18n/translations";
+import { AccessIssue } from "./access-issue";
 import { LoginEntry } from "./login-entry";
 import { AdminWelcome } from "./admin-welcome";
 import { AccessLoading } from "./access-loading";
@@ -10,6 +11,7 @@ export function AdminEntry() {
   const access = useAdminAccess();
   if (access.status === "unauthenticated") return <LoginEntry />;
   if (access.status === "sessionExpired") return <LoginEntry notice={translations.auth.sessionExpired} />;
+  if (access.status === "notProvisioned") return <AccessIssue message={translations.auth.notProvisioned} />;
   if (access.status === "pending") return <AccessLoading />;
   if (access.status === "ready") return <AdminWelcome profile={access.profile} />;
   return (

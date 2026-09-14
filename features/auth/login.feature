@@ -53,7 +53,6 @@ Feature: Iniciar sesión como administrador
     And no veo contenido administrativo
     And no soy redirigido repetidamente
 
-  @wip
   Scenario: 08-ADM Acceso con una cuenta sin habilitación en la plataforma
     Given que inicié sesión exitosamente en Auth0
     And mi cuenta no está habilitada en Lo Resuelvo

@@ -133,3 +133,16 @@ Then("veo un mensaje que indica que debo iniciar sesión nuevamente", async func
   await this.page.getByRole("alert").getByText("Iniciá sesión nuevamente para continuar.").waitFor();
   await this.page.getByRole("button", { name: "Iniciar sesión", exact: true }).waitFor();
 });
+
+Given("mi cuenta no está habilitada en Lo Resuelvo", async function (this: CustomWorld) {
+  await this.page.route(new URL(ROUTES.adminAccess, this.appUrl).href, route => route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ status: "notProvisioned" }) }));
+});
+
+Then("veo un mensaje que indica que mi cuenta no está habilitada y que debo contactar al responsable del entorno", async function (this: CustomWorld) {
+  await this.page.getByRole("alert").getByText("Tu cuenta no está habilitada en Lo Resuelvo. Contactá al responsable del entorno.").waitFor();
+});
+
+Then("no veo contenido administrativo ni una opción de registro", async function (this: CustomWorld) {
+  assert.equal(await this.page.getByRole("region", { name: "Área de administración" }).count(), 0);
+  assert.equal(await this.page.getByText(/registr|crear cuenta/i).count(), 0);
+});

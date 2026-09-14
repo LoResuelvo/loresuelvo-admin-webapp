@@ -14,6 +14,9 @@ export async function GET(): Promise<Response> {
     if (error instanceof AccessError && (error.code === "unauthenticated" || error.code === "sessionExpired")) {
       return Response.json({ status: error.code }, { status: 401, headers });
     }
+    if (error instanceof AccessError && error.code === "notProvisioned") {
+      return Response.json({ status: "notProvisioned" }, { status: 404, headers });
+    }
     return Response.json({ status: "unavailable" }, { status: 503, headers });
   }
 }
