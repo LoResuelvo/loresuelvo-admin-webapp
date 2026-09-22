@@ -49,7 +49,6 @@ Feature: Gestión de rubros
     Then veo un mensaje indicando que el nombre es obligatorio
     And el modal permanece abierto
 
-  @wip
   Scenario: 08-RUB Rechazar rubro duplicado
     Given que existe el rubro "Plomería"
     And abro el formulario de creación de rubro

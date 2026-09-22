@@ -110,4 +110,29 @@ describe("CreateCategoryModal", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent("El rubro ya existe");
   });
+
+  it("preserves entered name when duplicate error is displayed", async () => {
+    const { rerender } = render(
+      <CreateCategoryModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+      />
+    );
+
+    const input = screen.getByLabelText("Nombre del rubro");
+    await userEvent.type(input, "Plomería");
+
+    rerender(
+      <CreateCategoryModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+        error="El rubro ya existe"
+      />
+    );
+
+    expect(input).toHaveValue("Plomería");
+    expect(screen.getByRole("alert")).toHaveTextContent("El rubro ya existe");
+  });
 });
