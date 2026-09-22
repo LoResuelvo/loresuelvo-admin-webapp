@@ -179,3 +179,31 @@ Then(
   },
 );
 
+When(
+  "intento crear un rubro sin completar el nombre",
+  async function (this: CustomWorld) {
+    const nameInput = this.page.getByLabel("Nombre del rubro");
+    await nameInput.fill("");
+
+    const submitButton = this.page.getByRole("button", { name: "Crear rubro" });
+    await submitButton.click();
+  },
+);
+
+Then(
+  "veo un mensaje indicando que el nombre es obligatorio",
+  async function (this: CustomWorld) {
+    const message = this.page.getByRole("alert").filter({
+      hasText: "El nombre es obligatorio",
+    });
+    await message.waitFor({ state: "visible" });
+  },
+);
+
+Then("el modal permanece abierto", async function (this: CustomWorld) {
+  const modal = this.page.getByRole("dialog");
+  await modal.waitFor({ state: "visible" });
+  assert.equal(await modal.isVisible(), true);
+});
+
+
