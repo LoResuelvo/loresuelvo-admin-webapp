@@ -10,7 +10,6 @@ Feature: Layout de navegación y cierre de sesión
     And veo mi nombre "Ana", apellido "Pérez" y correo "ana@example.com"
     And veo los enlaces de navegación "Directorio de Usuarios" y "Catálogo de Rubros"
 
-  @wip
   Scenario: 02-NAV Navegar entre secciones del panel con indicador de ruta activa
     Given que estoy autenticado como administrador
     And estoy en el área de administración
