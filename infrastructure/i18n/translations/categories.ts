@@ -8,4 +8,18 @@ export const categoriesTranslations = {
   empty: "No hay rubros registrados",
   error: "No se pudieron obtener los rubros",
   retry: "Reintentar",
+  newCategory: "Nuevo rubro",
+  createSuccess: "Rubro creado exitosamente",
+  modal: {
+    title: "Nuevo rubro",
+    nameLabel: "Nombre del rubro",
+    namePlaceholder: "Ej. Plomería",
+    submitButton: "Crear rubro",
+    submittingButton: "Creando rubro...",
+    cancelButton: "Cancelar",
+    closeAriaLabel: "Cerrar modal",
+    errors: {
+      nameRequired: "El nombre es obligatorio",
+    },
+  },
 } as const;
