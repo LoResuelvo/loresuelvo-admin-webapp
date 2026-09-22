@@ -1,0 +1,39 @@
+import assert from "node:assert/strict";
+import { DataTable, Given, When, Then } from "@cucumber/cucumber";
+import { ROUTES } from "@/lib/routes";
+import { CustomWorld } from "../support/world";
+
+Given("que existen los siguientes rubros:", async function (this: CustomWorld, dataTable: DataTable) {
+  const categories = dataTable.hashes().map((row) => ({
+    id: Number(row.id),
+    name: row.nombre,
+  }));
+  await this.stubGet("/categories", categories);
+});
+
+When("ingreso a la sección de rubros", async function (this: CustomWorld) {
+  await this.page.goto(new URL(ROUTES.categories, this.appUrl).href);
+});
+
+Then(
+  "veo los rubros ordenados alfabéticamente con su identificador y nombre",
+  async function (this: CustomWorld) {
+    const table = this.page.getByRole("table");
+    await table.waitFor();
+    const rows = this.page.locator("tbody tr");
+    await rows.first().waitFor();
+    assert.equal(await rows.count(), 3);
+
+    const cells0 = rows.nth(0).locator("td");
+    assert.equal((await cells0.nth(0).innerText()).trim(), "1");
+    assert.equal((await cells0.nth(1).innerText()).trim(), "Albañilería");
+
+    const cells1 = rows.nth(1).locator("td");
+    assert.equal((await cells1.nth(0).innerText()).trim(), "2");
+    assert.equal((await cells1.nth(1).innerText()).trim(), "Electricidad");
+
+    const cells2 = rows.nth(2).locator("td");
+    assert.equal((await cells2.nth(0).innerText()).trim(), "3");
+    assert.equal((await cells2.nth(1).innerText()).trim(), "Plomería");
+  },
+);
