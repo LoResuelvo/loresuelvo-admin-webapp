@@ -145,3 +145,37 @@ Then(
     await row.waitFor({ state: "visible" });
   },
 );
+
+When(
+  "inicio la creación del rubro {string}",
+  async function (this: CustomWorld, categoryName: string) {
+    await this.stubPost(
+      "/categories",
+      201,
+      {
+        id: 99,
+        name: categoryName,
+        normalized_name: categoryName.toLowerCase(),
+      },
+      3000,
+    );
+
+    const nameInput = this.page.getByLabel("Nombre del rubro");
+    await nameInput.fill(categoryName);
+
+    const submitButton = this.page.getByRole("button", { name: "Crear rubro" });
+    await submitButton.click();
+  },
+);
+
+Then(
+  "el botón de envío se deshabilita y muestra estado de carga",
+  async function (this: CustomWorld) {
+    const submitButton = this.page.locator("button[type='submit']");
+    await submitButton.waitFor({ state: "visible" });
+    assert.equal(await submitButton.isDisabled(), true);
+    const text = await submitButton.innerText();
+    assert.match(text, /creando/i);
+  },
+);
+
