@@ -55,3 +55,19 @@ Then(
     assert.equal(ariaCurrent, "page");
   },
 );
+
+Then("soy redirigido a la página de bienvenida pública", async function (this: CustomWorld) {
+  await this.page.waitForURL((url) => url.pathname === ROUTES.home);
+  await this.page.getByText("Lo Resuelvo", { exact: true }).waitFor();
+  await this.page.getByRole("button", { name: "Iniciar sesión", exact: true }).waitFor();
+});
+
+Then(
+  "si intento ingresar nuevamente al área de administración se me deniega el acceso",
+  async function (this: CustomWorld) {
+    await this.page.goto(new URL(ROUTES.admin, this.appUrl).href);
+    await this.page.getByRole("button", { name: "Iniciar sesión", exact: true }).waitFor();
+    assert.equal(await this.page.getByRole("region", { name: "Área de administración" }).count(), 0);
+  },
+);
+
