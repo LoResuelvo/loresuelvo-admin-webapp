@@ -263,6 +263,25 @@ Then(
   },
 );
 
+Given(
+  "que el servicio de creación de rubros no está disponible",
+  async function (this: CustomWorld) {
+    await this.stubGet("/categories", []);
+    await this.stubPost("/categories", 500, { error: "Internal Server Error" });
+  },
+);
+
+Then(
+  "veo un mensaje de error recuperable",
+  async function (this: CustomWorld) {
+    const errorAlert = this.page.getByRole("alert").filter({
+      hasText: "No se pudo crear el rubro. Intentá nuevamente más tarde",
+    });
+    await errorAlert.waitFor({ state: "visible" });
+  },
+);
+
+
 
 
 
