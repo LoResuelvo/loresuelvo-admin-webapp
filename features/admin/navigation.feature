@@ -3,7 +3,6 @@ Feature: Layout de navegación y cierre de sesión
   quiero contar con un layout de navegación y cerrar mi sesión
   para navegar entre módulos de gestión y finalizar mi acceso de forma segura
 
-  @wip
   Scenario: 01-NAV Mostrar el layout de administración con identidad del administrador
     Given que estoy autenticado como administrador con nombre "Ana", apellido "Pérez" y correo "ana@example.com"
     When ingreso al área de administración

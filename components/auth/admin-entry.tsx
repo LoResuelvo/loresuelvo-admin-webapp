@@ -1,19 +1,12 @@
 "use client";
 
-import { translations } from "@/infrastructure/i18n/translations";
-import { AccessIssue } from "./access-issue";
-import { LoginEntry } from "./login-entry";
+import { AdminShell } from "@/components/admin/admin-shell";
 import { AdminWelcome } from "./admin-welcome";
-import { AccessLoading } from "./access-loading";
-import { useAdminAccess } from "./use-admin-access";
 
 export function AdminEntry() {
-  const access = useAdminAccess();
-  if (access.status === "unauthenticated") return <LoginEntry />;
-  if (access.status === "sessionExpired") return <LoginEntry notice={translations.auth.sessionExpired} />;
-  if (access.status === "notProvisioned") return <AccessIssue message={translations.auth.notProvisioned} />;
-  if (access.status === "forbidden") return <AccessIssue message={translations.auth.forbidden} />;
-  if (access.status === "pending") return <AccessLoading />;
-  if (access.status === "ready") return <AdminWelcome profile={access.profile} />;
-  return <AccessIssue message={translations.auth.accessUnavailable} onRetry={access.retry} />;
+  return (
+    <AdminShell>
+      <AdminWelcome />
+    </AdminShell>
+  );
 }
