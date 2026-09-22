@@ -21,3 +21,12 @@ export const apiProfileSchema = z.object({
 });
 
 export type ApiProfile = z.infer<typeof apiProfileSchema>;
+
+export const apiCategoryListItemSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string().trim().min(1),
+});
+
+export const apiCategoriesListSchema = z.array(apiCategoryListItemSchema);
+
+export type ApiCategoryListItem = z.infer<typeof apiCategoryListItemSchema>;
