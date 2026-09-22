@@ -1,6 +1,7 @@
 import "server-only";
 import type { CategoryRepository } from "@/ports/categories/category-repository";
 import type { Category } from "@/domain/categories/category";
+import { CategoryError } from "@/domain/categories/category-error";
 import { parseE2EStubsFromCookies } from "@/infrastructure/api/e2e-stubs-utils";
 import { mapCategories, mapCreatedCategory } from "./category-mapper";
 
@@ -57,6 +58,9 @@ export const apiCategoryRepository: CategoryRepository = {
       if (stub.delayMs) {
         await new Promise((resolve) => setTimeout(resolve, stub.delayMs));
       }
+      if (stub.status === 409) {
+        throw new CategoryError("duplicate", "Category already exists");
+      }
       if (stub.status >= 400) {
         throw new Error(`Failed to create category: ${stub.status}`);
       }
@@ -79,6 +83,10 @@ export const apiCategoryRepository: CategoryRepository = {
       cache: "no-store",
       signal: AbortSignal.timeout(10_000),
     });
+
+    if (response.status === 409) {
+      throw new CategoryError("duplicate", "Category already exists");
+    }
 
     if (!response.ok) {
       throw new Error(`Failed to create category: ${response.status}`);

@@ -20,6 +20,7 @@ export const categoriesTranslations = {
     closeAriaLabel: "Cerrar modal",
     errors: {
       nameRequired: "El nombre es obligatorio",
+      duplicate: "El rubro ya existe",
     },
   },
 } as const;

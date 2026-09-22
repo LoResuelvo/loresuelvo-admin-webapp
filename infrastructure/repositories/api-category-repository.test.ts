@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { CategoryError } from "@/domain/categories/category-error";
 import { apiCategoryRepository } from "./api-category-repository";
 
 describe("apiCategoryRepository", () => {
@@ -73,6 +74,14 @@ describe("apiCategoryRepository", () => {
     it("throws error if API_URL is not configured for create", async () => {
       vi.stubEnv("API_URL", "");
       await expect(apiCategoryRepository.create("token", "Plomería")).rejects.toThrow("API_URL is not configured");
+    });
+
+    it("throws CategoryError with duplicate code on 409 Conflict", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Conflict", { status: 409 })));
+      await expect(apiCategoryRepository.create("token", "Plomería")).rejects.toSatisfy(
+        (err) => err instanceof CategoryError && err.code === "duplicate",
+      );
     });
 
     it("throws error if HTTP response is not ok for create", async () => {

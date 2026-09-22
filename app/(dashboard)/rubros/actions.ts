@@ -5,6 +5,8 @@ import { getCategories } from "@/application/categories/get-categories";
 import { createCategory } from "@/application/categories/create-category";
 import { apiCategoryRepository } from "@/infrastructure/repositories/api-category-repository";
 import { authSession } from "@/infrastructure/auth/auth-session";
+import { CategoryError } from "@/domain/categories/category-error";
+import { translations } from "@/infrastructure/i18n/translations";
 
 export type GetCategoriesResult =
   | { success: true; data: Category[] }
@@ -42,6 +44,9 @@ export async function createCategoryAction(name: string): Promise<CreateCategory
     const category = await createCategory(token, apiCategoryRepository, name);
     return { success: true, data: category };
   } catch (error: unknown) {
+    if (error instanceof CategoryError && error.code === "duplicate") {
+      return { success: false, error: translations.categories.modal.errors.duplicate };
+    }
     const message = error instanceof Error ? error.message : "Error al crear rubro";
     return { success: false, error: message };
   }
