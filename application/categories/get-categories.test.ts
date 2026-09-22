@@ -10,6 +10,7 @@ describe("getCategories usecase", () => {
     ];
     const mockRepo: CategoryRepository = {
       getAll: vi.fn().mockResolvedValue(categories),
+      create: vi.fn(),
     };
 
     const result = await getCategories(mockRepo, "valid-token");
@@ -21,6 +22,7 @@ describe("getCategories usecase", () => {
   it("propagates repository errors", async () => {
     const mockRepo: CategoryRepository = {
       getAll: vi.fn().mockRejectedValue(new Error("Network failure")),
+      create: vi.fn(),
     };
 
     await expect(getCategories(mockRepo, "token")).rejects.toThrow("Network failure");

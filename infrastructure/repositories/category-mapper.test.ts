@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapCategories, mapCategory } from "./category-mapper";
+import { mapCategories, mapCategory, mapCreatedCategory } from "./category-mapper";
 
 describe("category-mapper", () => {
   it("maps valid category DTO excluding additional properties", () => {
@@ -12,6 +12,18 @@ describe("category-mapper", () => {
     expect(() => mapCategory({})).toThrow("Invalid category data");
     expect(() => mapCategory({ id: -1, name: "Test" })).toThrow("Invalid category data");
     expect(() => mapCategory({ id: 1, name: "" })).toThrow("Invalid category data");
+  });
+
+  it("maps created category DTO excluding normalized_name and additional fields", () => {
+    const dto = { id: 1, name: "Plomería", normalized_name: "plomeria", extra: true };
+    expect(mapCreatedCategory(dto)).toEqual({ id: 1, name: "Plomería" });
+  });
+
+  it("rejects invalid created category DTOs", () => {
+    expect(() => mapCreatedCategory(null)).toThrow("Invalid created category data");
+    expect(() => mapCreatedCategory({})).toThrow("Invalid created category data");
+    expect(() => mapCreatedCategory({ id: 0, name: "Test" })).toThrow("Invalid created category data");
+    expect(() => mapCreatedCategory({ id: 1, name: "   " })).toThrow("Invalid created category data");
   });
 
   it("maps category list and sorts them alphabetically by name in Spanish", () => {
@@ -35,3 +47,4 @@ describe("category-mapper", () => {
     );
   });
 });
+

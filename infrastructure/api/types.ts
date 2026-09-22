@@ -30,3 +30,11 @@ export const apiCategoryListItemSchema = z.object({
 export const apiCategoriesListSchema = z.array(apiCategoryListItemSchema);
 
 export type ApiCategoryListItem = z.infer<typeof apiCategoryListItemSchema>;
+
+export const apiCreateCategoryResponseSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string().trim().min(1),
+  normalized_name: z.string().trim().min(1).optional(),
+});
+
+export type ApiCreateCategoryResponse = z.infer<typeof apiCreateCategoryResponseSchema>;
