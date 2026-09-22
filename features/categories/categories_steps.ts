@@ -206,4 +206,44 @@ Then("el modal permanece abierto", async function (this: CustomWorld) {
   assert.equal(await modal.isVisible(), true);
 });
 
+Given(
+  "que existe el rubro {string}",
+  async function (this: CustomWorld, categoryName: string) {
+    await this.stubGet("/categories", [{ id: 1, name: categoryName }]);
+    await this.stubPost("/categories", 409, { error: "Conflict" });
+  },
+);
+
+When(
+  "intento crear el rubro {string}",
+  async function (this: CustomWorld, categoryName: string) {
+    this.lastAttemptedCategoryName = categoryName;
+    const nameInput = this.page.getByLabel("Nombre del rubro");
+    await nameInput.fill(categoryName);
+
+    const submitButton = this.page.getByRole("button", { name: "Crear rubro" });
+    await submitButton.click();
+  },
+);
+
+Then(
+  "veo un mensaje indicando que el rubro ya existe",
+  async function (this: CustomWorld) {
+    const errorAlert = this.page.getByRole("alert").filter({
+      hasText: "El rubro ya existe",
+    });
+    await errorAlert.waitFor({ state: "visible" });
+  },
+);
+
+Then(
+  "el formulario conserva el texto ingresado",
+  async function (this: CustomWorld) {
+    const nameInput = this.page.getByLabel("Nombre del rubro");
+    const value = await nameInput.inputValue();
+    assert.equal(value, this.lastAttemptedCategoryName ?? "Plomería");
+  },
+);
+
+
 

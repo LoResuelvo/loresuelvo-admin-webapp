@@ -32,6 +32,7 @@ export class CustomWorld extends World {
   audioWsServer: import("playwright").WebSocketRoute | null = null;
   currentAttachedImages: string[] = [];
   currentJobRequestAttachedImages: string[] = [];
+  lastAttemptedCategoryName?: string;
 
   constructor(options: IWorldOptions) {
     super(options);
