@@ -63,7 +63,6 @@ Feature: Gestión de rubros
     Then veo un mensaje indicando que no tengo permisos suficientes
     And el formulario conserva el texto ingresado
 
-  @wip
   Scenario: 10-RUB Manejar error de servidor al crear rubro
     Given que el servicio de creación de rubros no está disponible
     And abro el formulario de creación de rubro

@@ -92,10 +92,18 @@ describe("apiCategoryRepository", () => {
       );
     });
 
-    it("throws error if HTTP response is not ok for create", async () => {
+    it("throws CategoryError with unavailable code on 500 Server Error", async () => {
       vi.stubEnv("API_URL", "https://api.example.com");
       vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Internal error", { status: 500 })));
-      await expect(apiCategoryRepository.create("token", "Plomería")).rejects.toThrow("Failed to create category: 500");
+      await expect(apiCategoryRepository.create("token", "Plomería")).rejects.toSatisfy(
+        (err) => err instanceof CategoryError && err.code === "unavailable",
+      );
+    });
+
+    it("throws error if HTTP response is not ok (e.g. 400)", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Bad request", { status: 400 })));
+      await expect(apiCategoryRepository.create("token", "Plomería")).rejects.toThrow("Failed to create category: 400");
     });
   });
 });

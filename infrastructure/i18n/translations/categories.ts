@@ -22,6 +22,7 @@ export const categoriesTranslations = {
       nameRequired: "El nombre es obligatorio",
       duplicate: "El rubro ya existe",
       forbidden: "No tenés permisos para realizar esta acción",
+      serverError: "No se pudo crear el rubro. Intentá nuevamente más tarde",
     },
   },
 } as const;

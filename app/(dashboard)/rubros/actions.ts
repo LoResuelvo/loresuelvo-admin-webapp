@@ -51,9 +51,11 @@ export async function createCategoryAction(name: string): Promise<CreateCategory
       if (error.code === "forbidden") {
         return { success: false, error: translations.categories.modal.errors.forbidden };
       }
+      if (error.code === "unavailable") {
+        return { success: false, error: translations.categories.modal.errors.serverError };
+      }
     }
-    const message = error instanceof Error ? error.message : "Error al crear rubro";
-    return { success: false, error: message };
+    return { success: false, error: translations.categories.modal.errors.serverError };
   }
 }
 

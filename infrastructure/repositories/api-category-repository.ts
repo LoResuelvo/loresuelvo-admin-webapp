@@ -64,6 +64,9 @@ export const apiCategoryRepository: CategoryRepository = {
       if (stub.status === 403) {
         throw new CategoryError("forbidden", "Forbidden");
       }
+      if (stub.status >= 500) {
+        throw new CategoryError("unavailable", `Failed to create category: ${stub.status}`);
+      }
       if (stub.status >= 400) {
         throw new Error(`Failed to create category: ${stub.status}`);
       }
@@ -92,6 +95,9 @@ export const apiCategoryRepository: CategoryRepository = {
     }
     if (response.status === 403) {
       throw new CategoryError("forbidden", "Forbidden");
+    }
+    if (response.status >= 500) {
+      throw new CategoryError("unavailable", `Failed to create category: ${response.status}`);
     }
 
     if (!response.ok) {

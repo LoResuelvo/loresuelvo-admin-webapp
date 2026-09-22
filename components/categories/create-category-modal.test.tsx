@@ -160,4 +160,29 @@ describe("CreateCategoryModal", () => {
     expect(input).toHaveValue("Plomería");
     expect(screen.getByRole("alert")).toHaveTextContent("No tenés permisos para realizar esta acción");
   });
+
+  it("preserves entered name when server error is displayed", async () => {
+    const { rerender } = render(
+      <CreateCategoryModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+      />
+    );
+
+    const input = screen.getByLabelText("Nombre del rubro");
+    await userEvent.type(input, "Plomería");
+
+    rerender(
+      <CreateCategoryModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+        error="No se pudo crear el rubro. Intentá nuevamente más tarde"
+      />
+    );
+
+    expect(input).toHaveValue("Plomería");
+    expect(screen.getByRole("alert")).toHaveTextContent("No se pudo crear el rubro. Intentá nuevamente más tarde");
+  });
 });
