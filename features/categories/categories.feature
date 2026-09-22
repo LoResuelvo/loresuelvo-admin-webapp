@@ -25,7 +25,6 @@ Feature: Gestión de rubros
     When ingreso a la sección de rubros
     Then veo un mensaje indicando que no hay rubros registrados
 
-  @wip
   Scenario: 04-RUB Manejar error de conexión al consultar rubros
     Given que el servicio de consulta de rubros no está disponible
     When ingreso a la sección de rubros
