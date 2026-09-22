@@ -71,3 +71,22 @@ Then(
     await emptyMessage.waitFor({ state: "visible" });
   },
 );
+
+Given("que el servicio de consulta de rubros no está disponible", async function (this: CustomWorld) {
+  await this.addApiStub({
+    method: "GET",
+    endpoint: "/categories",
+    status: 503,
+    body: { error: "Service unavailable" },
+  });
+});
+
+Then(
+  "veo un mensaje de error indicando que no se pudieron obtener los rubros",
+  async function (this: CustomWorld) {
+    const errorAlert = this.page.getByRole("alert").filter({
+      hasText: "No se pudieron obtener los rubros",
+    });
+    await errorAlert.waitFor({ state: "visible" });
+  },
+);
