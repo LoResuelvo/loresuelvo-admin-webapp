@@ -43,7 +43,6 @@ Feature: Gestión de rubros
     When inicio la creación del rubro "Plomería"
     Then el botón de envío se deshabilita y muestra estado de carga
 
-  @wip
   Scenario: 07-RUB Validar nombre obligatorio al crear rubro
     Given que abro el formulario de creación de rubro
     When intento crear un rubro sin completar el nombre
