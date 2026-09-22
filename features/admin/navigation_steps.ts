@@ -85,3 +85,37 @@ Then(
   },
 );
 
+Given(
+  "estoy en el área de administración en una pantalla móvil",
+  async function (this: CustomWorld) {
+    await this.page.setViewportSize({ width: 375, height: 667 });
+    await this.page.goto(new URL(ROUTES.admin, this.appUrl).href);
+  },
+);
+
+When("abro el menú de navegación", async function (this: CustomWorld) {
+  const menuButton = this.page.getByRole("button", { name: /abrir menú/i });
+  await menuButton.click();
+});
+
+Then(
+  "veo los enlaces de navegación y la opción {string}",
+  async function (this: CustomWorld, logoutLabel: string) {
+    await this.page.getByRole("link", { name: "Directorio de Usuarios", exact: true }).waitFor();
+    await this.page.getByRole("link", { name: "Catálogo de Rubros", exact: true }).waitFor();
+    const logoutOption = this.page.getByRole("button", { name: logoutLabel, exact: true }).or(
+      this.page.getByRole("link", { name: logoutLabel, exact: true }),
+    );
+    await logoutOption.waitFor();
+  },
+);
+
+Then("puedo cerrar el menú colapsable", async function (this: CustomWorld) {
+  const closeButton = this.page.getByRole("button", { name: /cerrar menú/i });
+  await closeButton.click();
+  const menuButton = this.page.getByRole("button", { name: /abrir menú/i });
+  await menuButton.waitFor();
+  assert.equal(await menuButton.getAttribute("aria-expanded"), "false");
+});
+
+
