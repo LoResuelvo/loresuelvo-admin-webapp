@@ -37,3 +37,23 @@ Then(
     assert.equal((await cells2.nth(1).innerText()).trim(), "Plomería");
   },
 );
+
+Given("que la consulta de rubros tarda en responder", async function (this: CustomWorld) {
+  await this.addApiStub({
+    method: "GET",
+    endpoint: "/categories",
+    status: 200,
+    body: [],
+    delayMs: 3000,
+  });
+});
+
+Then(
+  "veo un indicador de carga mientras se obtienen los datos",
+  async function (this: CustomWorld) {
+    const loadingIndicator = this.page.getByRole("status").filter({
+      hasText: /cargando/i,
+    });
+    await loadingIndicator.waitFor({ state: "visible" });
+  },
+);
