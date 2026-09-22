@@ -15,7 +15,6 @@ Feature: Gestión de rubros
     When ingreso a la sección de rubros
     Then veo los rubros ordenados alfabéticamente con su identificador y nombre
 
-  @wip
   Scenario: 02-RUB Mostrar estado de carga al consultar rubros
     Given que la consulta de rubros tarda en responder
     When ingreso a la sección de rubros
