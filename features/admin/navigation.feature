@@ -17,7 +17,6 @@ Feature: Layout de navegación y cierre de sesión
     Then accedo a la sección de rubros
     And el enlace "Catálogo de Rubros" se muestra como ruta activa
 
-  @wip
   Scenario: 03-NAV Cerrar sesión y denegar acceso posterior
     Given que estoy autenticado como administrador
     And estoy en el área de administración

@@ -15,6 +15,20 @@ Given(
 Given("que estoy autenticado como administrador", async function (this: CustomWorld) {
   await this.context.clearCookies();
   await stubAdminAccess(this, anAdminProfile());
+  await this.page.route(/\/auth\/logout(?:\?|$)/, async (route) => {
+    await this.context.clearCookies();
+    await this.page.route(new URL(ROUTES.adminAccess, this.appUrl).href, (r) =>
+      r.fulfill({
+        status: 401,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "unauthenticated" }),
+      }),
+    );
+    await route.fulfill({
+      status: 302,
+      headers: { Location: new URL(ROUTES.home, this.appUrl).href },
+    });
+  });
 });
 
 When("ingreso al área de administración", async function (this: CustomWorld) {
