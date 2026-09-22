@@ -48,6 +48,14 @@ function CategoriesIcon() {
   );
 }
 
+function LogoutIcon() {
+  return (
+    <svg aria-hidden="true" className="size-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+    </svg>
+  );
+}
+
 export function Sidebar({ profile, className = "" }: SidebarProps) {
   const copy = translations.navigation;
   const linkClass = "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#536176] hover:bg-[#F4F1EE] hover:text-[#1A2B48] transition-colors";
@@ -71,6 +79,17 @@ export function Sidebar({ profile, className = "" }: SidebarProps) {
           <span>{copy.categories}</span>
         </NavLink>
       </nav>
+
+      <div className="p-4 border-t border-[#1A2B48]/10">
+        <a
+          href={ROUTES.logout}
+          role="button"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-[#536176] hover:bg-[#F4F1EE] hover:text-[#1A2B48] transition-colors"
+        >
+          <LogoutIcon />
+          <span>{copy.signOut}</span>
+        </a>
+      </div>
     </aside>
   );
 }

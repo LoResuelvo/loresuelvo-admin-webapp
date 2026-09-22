@@ -36,4 +36,12 @@ describe("Sidebar", () => {
     expect(categoriesLink).toBeVisible();
     expect(categoriesLink).toHaveAttribute("href", "/rubros");
   });
+
+  it("renders the logout option pointing to the logout route", () => {
+    render(<Sidebar profile={profile} />);
+
+    const logoutOption = screen.getByRole("button", { name: "Cerrar sesión" });
+    expect(logoutOption).toBeVisible();
+    expect(logoutOption).toHaveAttribute("href", "/auth/logout");
+  });
 });
