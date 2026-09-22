@@ -38,7 +38,6 @@ Feature: Gestión de rubros
     And veo un mensaje de confirmación
     And el rubro "Plomería" aparece en el catálogo
 
-  @wip
   Scenario: 06-RUB Deshabilitar envío y mostrar carga mientras se procesa la creación
     Given que abro el formulario de creación de rubro
     When inicio la creación del rubro "Plomería"
