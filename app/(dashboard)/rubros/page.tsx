@@ -1,11 +1,43 @@
-import { translations } from "@/infrastructure/i18n/translations";
+"use client";
 
-export default function CategoriesPage() {
+import { useCallback, useEffect, useState } from "react";
+import type { Category } from "@/domain/categories/category";
+import { CategoriesPage } from "@/components/categories/categories-page";
+import { translations } from "@/infrastructure/i18n/translations";
+import { getCategoriesAction } from "./actions";
+
+export default function RubrosPage() {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadCategories = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await getCategoriesAction();
+      if (result.success) {
+        setCategories(result.data);
+      } else {
+        setError(translations.categories.error);
+      }
+    } catch {
+      setError(translations.categories.error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
+
   return (
-    <section aria-label={translations.navigation.categories} className="max-w-6xl">
-      <h1 className="text-2xl font-semibold tracking-tight text-[#1A2B48]">
-        {translations.navigation.categories}
-      </h1>
-    </section>
+    <CategoriesPage
+      categories={categories}
+      isLoading={isLoading}
+      error={error}
+      onRetry={loadCategories}
+    />
   );
 }

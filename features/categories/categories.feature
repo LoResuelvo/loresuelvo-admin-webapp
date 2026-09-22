@@ -6,7 +6,6 @@ Feature: Gestión de rubros
   Background:
     Given que estoy autenticado como administrador
 
-  @wip
   Scenario: 01-RUB Mostrar el catálogo de rubros
     Given que existen los siguientes rubros:
       | id | nombre       |
