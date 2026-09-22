@@ -20,7 +20,6 @@ Feature: Gestión de rubros
     When ingreso a la sección de rubros
     Then veo un indicador de carga mientras se obtienen los datos
 
-  @wip
   Scenario: 03-RUB Informar que no existen rubros registrados
     Given que no existen rubros registrados
     When ingreso a la sección de rubros
