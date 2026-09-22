@@ -18,7 +18,6 @@ describe("CategoriesPage", () => {
     expect(screen.getByRole("columnheader", { name: "Nombre" })).toBeInTheDocument();
 
     const rows = screen.getAllByRole("row");
-    // 1 header row + 3 data rows
     expect(rows).toHaveLength(4);
     expect(screen.getByText("Albañilería")).toBeInTheDocument();
     expect(screen.getByText("Electricidad")).toBeInTheDocument();
@@ -47,5 +46,33 @@ describe("CategoriesPage", () => {
     const retryButton = screen.getByRole("button", { name: "Reintentar" });
     await userEvent.click(retryButton);
     expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens create modal when clicking Nuevo rubro button", async () => {
+    render(<CategoriesPage categories={sampleCategories} />);
+
+    const newButton = screen.getByRole("button", { name: "Nuevo rubro" });
+    await userEvent.click(newButton);
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Nuevo rubro" })).toBeInTheDocument();
+  });
+
+  it("calls onCreateCategory and displays success message on successful creation", async () => {
+    const onCreateCategory = vi.fn().mockResolvedValue(undefined);
+    render(<CategoriesPage categories={sampleCategories} onCreateCategory={onCreateCategory} />);
+
+    const newButton = screen.getByRole("button", { name: "Nuevo rubro" });
+    await userEvent.click(newButton);
+
+    const input = screen.getByLabelText("Nombre del rubro");
+    await userEvent.type(input, "Pintura");
+
+    const submitButton = screen.getByRole("button", { name: "Crear rubro" });
+    await userEvent.click(submitButton);
+
+    expect(onCreateCategory).toHaveBeenCalledWith("Pintura");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Rubro creado exitosamente");
   });
 });

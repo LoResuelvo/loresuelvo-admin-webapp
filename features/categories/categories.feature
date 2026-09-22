@@ -30,7 +30,6 @@ Feature: Gestión de rubros
     When ingreso a la sección de rubros
     Then veo un mensaje de error indicando que no se pudieron obtener los rubros
 
-  @wip
   Scenario: 05-RUB Crear un rubro exitosamente
     Given que no existen rubros registrados
     And abro el formulario de creación de rubro

@@ -1,4 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import type { Category } from "@/domain/categories/category";
+import { CreateCategoryModal } from "@/components/categories/create-category-modal";
 import { translations } from "@/infrastructure/i18n/translations";
 
 export type CategoriesPageProps = {
@@ -6,7 +10,55 @@ export type CategoriesPageProps = {
   isLoading?: boolean;
   error?: string | null;
   onRetry?: () => void;
+  onCreateCategory?: (name: string) => Promise<void>;
+  createError?: string | null;
 };
+
+function PlusIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4 shrink-0"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+    </svg>
+  );
+}
+
+function CategoriesHeader({ onOpenModal }: { onOpenModal: () => void }) {
+  const copy = translations.categories;
+  return (
+    <div className="flex items-center justify-between">
+      <h1 className="text-2xl font-semibold tracking-tight text-[#1A2B48]">
+        {copy.title}
+      </h1>
+      <button
+        type="button"
+        onClick={onOpenModal}
+        className="inline-flex items-center gap-2 rounded-xl bg-[#147560] px-4 py-2.5 text-sm font-medium text-white shadow-xs transition-colors hover:bg-[#105F4E] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]"
+      >
+        <PlusIcon />
+        <span>{copy.newCategory}</span>
+      </button>
+    </div>
+  );
+}
+
+function CategoriesSuccessAlert({ message }: { message: string }) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800"
+    >
+      {message}
+    </div>
+  );
+}
 
 function CategoriesLoading() {
   return (
@@ -42,6 +94,19 @@ function CategoriesError({ error, onRetry }: { error: string; onRetry?: () => vo
   );
 }
 
+function CategoriesEmpty() {
+  return (
+    <div
+      role="status"
+      className="rounded-2xl border border-[#1A2B48]/10 bg-white p-12 text-center shadow-xs"
+    >
+      <p className="text-base font-medium text-[#1A2B48]/80">
+        {translations.categories.empty}
+      </p>
+    </div>
+  );
+}
+
 function CategoriesTable({ categories }: { categories: readonly Category[] }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-[#1A2B48]/10 bg-white shadow-xs">
@@ -73,38 +138,85 @@ function CategoriesTable({ categories }: { categories: readonly Category[] }) {
   );
 }
 
+function useCategoriesCreation(onCreateCategory?: (name: string) => Promise<void>) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const handleCreate = async (name: string) => {
+    if (!onCreateCategory) return;
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      await onCreateCategory(name);
+      setIsModalOpen(false);
+      setSuccessMessage(translations.categories.createSuccess);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error al crear rubro";
+      setSubmitError(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSubmitError(null);
+  };
+
+  return {
+    isModalOpen,
+    setIsModalOpen,
+    isSubmitting,
+    submitError,
+    successMessage,
+    handleCreate,
+    handleCloseModal,
+  };
+}
+
 export function CategoriesPage({
   categories = [],
   isLoading = false,
   error = null,
   onRetry,
+  onCreateCategory,
+  createError = null,
 }: CategoriesPageProps) {
+  const {
+    isModalOpen,
+    setIsModalOpen,
+    isSubmitting,
+    submitError,
+    successMessage,
+    handleCreate,
+    handleCloseModal,
+  } = useCategoriesCreation(onCreateCategory);
+
   return (
     <section aria-label={translations.categories.title} className="max-w-6xl space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight text-[#1A2B48]">
-          {translations.categories.title}
-        </h1>
-      </div>
+      <CategoriesHeader onOpenModal={() => setIsModalOpen(true)} />
+
+      {successMessage && <CategoriesSuccessAlert message={successMessage} />}
 
       {isLoading && <CategoriesLoading />}
 
       {!isLoading && error && <CategoriesError error={error} onRetry={onRetry} />}
 
-      {!isLoading && !error && categories.length === 0 && (
-        <div
-          role="status"
-          className="rounded-2xl border border-[#1A2B48]/10 bg-white p-12 text-center shadow-xs"
-        >
-          <p className="text-base font-medium text-[#1A2B48]/80">
-            {translations.categories.empty}
-          </p>
-        </div>
-      )}
+      {!isLoading && !error && categories.length === 0 && <CategoriesEmpty />}
 
       {!isLoading && !error && categories.length > 0 && (
         <CategoriesTable categories={categories} />
       )}
+
+      <CreateCategoryModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSubmit={handleCreate}
+        isSubmitting={isSubmitting}
+        error={submitError || createError}
+      />
     </section>
   );
 }
