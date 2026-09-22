@@ -245,5 +245,24 @@ Then(
   },
 );
 
+Given(
+  "que mi cuenta no tiene el permiso de creación de rubros",
+  async function (this: CustomWorld) {
+    await this.stubGet("/categories", []);
+    await this.stubPost("/categories", 403, { error: "Forbidden" });
+  },
+);
+
+Then(
+  "veo un mensaje indicando que no tengo permisos suficientes",
+  async function (this: CustomWorld) {
+    const errorAlert = this.page.getByRole("alert").filter({
+      hasText: "No tenés permisos para realizar esta acción",
+    });
+    await errorAlert.waitFor({ state: "visible" });
+  },
+);
+
+
 
 
