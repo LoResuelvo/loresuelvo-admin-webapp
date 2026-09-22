@@ -57,3 +57,17 @@ Then(
     await loadingIndicator.waitFor({ state: "visible" });
   },
 );
+
+Given("que no existen rubros registrados", async function (this: CustomWorld) {
+  await this.stubGet("/categories", []);
+});
+
+Then(
+  "veo un mensaje indicando que no hay rubros registrados",
+  async function (this: CustomWorld) {
+    const emptyMessage = this.page.getByRole("status").filter({
+      hasText: "No hay rubros registrados",
+    });
+    await emptyMessage.waitFor({ state: "visible" });
+  },
+);
