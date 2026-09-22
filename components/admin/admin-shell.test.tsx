@@ -25,6 +25,7 @@ describe("AdminShell", () => {
     expect(within(screen.getByRole("banner")).getByText("Ana Pérez")).toBeVisible();
     expect(screen.getByRole("link", { name: "Directorio de Usuarios" })).toBeVisible();
     expect(screen.getByRole("link", { name: "Catálogo de Rubros" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Abrir menú de navegación" })).toBeVisible();
     expect(screen.getByRole("main")).toHaveTextContent("Contenido del Panel");
   });
 

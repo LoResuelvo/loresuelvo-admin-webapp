@@ -24,7 +24,6 @@ Feature: Layout de navegación y cierre de sesión
     Then soy redirigido a la página de bienvenida pública
     And si intento ingresar nuevamente al área de administración se me deniega el acceso
 
-  @wip
   Scenario: 04-NAV Navegar mediante el menú colapsable en pantallas pequeñas
     Given que estoy autenticado como administrador
     And estoy en el área de administración en una pantalla móvil
