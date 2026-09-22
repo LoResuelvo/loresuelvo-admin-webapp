@@ -44,8 +44,13 @@ export async function createCategoryAction(name: string): Promise<CreateCategory
     const category = await createCategory(token, apiCategoryRepository, name);
     return { success: true, data: category };
   } catch (error: unknown) {
-    if (error instanceof CategoryError && error.code === "duplicate") {
-      return { success: false, error: translations.categories.modal.errors.duplicate };
+    if (error instanceof CategoryError) {
+      if (error.code === "duplicate") {
+        return { success: false, error: translations.categories.modal.errors.duplicate };
+      }
+      if (error.code === "forbidden") {
+        return { success: false, error: translations.categories.modal.errors.forbidden };
+      }
     }
     const message = error instanceof Error ? error.message : "Error al crear rubro";
     return { success: false, error: message };

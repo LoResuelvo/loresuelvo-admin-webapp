@@ -135,4 +135,29 @@ describe("CreateCategoryModal", () => {
     expect(input).toHaveValue("Plomería");
     expect(screen.getByRole("alert")).toHaveTextContent("El rubro ya existe");
   });
+
+  it("preserves entered name when forbidden error is displayed", async () => {
+    const { rerender } = render(
+      <CreateCategoryModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+      />
+    );
+
+    const input = screen.getByLabelText("Nombre del rubro");
+    await userEvent.type(input, "Plomería");
+
+    rerender(
+      <CreateCategoryModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+        error="No tenés permisos para realizar esta acción"
+      />
+    );
+
+    expect(input).toHaveValue("Plomería");
+    expect(screen.getByRole("alert")).toHaveTextContent("No tenés permisos para realizar esta acción");
+  });
 });

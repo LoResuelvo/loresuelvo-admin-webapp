@@ -61,6 +61,9 @@ export const apiCategoryRepository: CategoryRepository = {
       if (stub.status === 409) {
         throw new CategoryError("duplicate", "Category already exists");
       }
+      if (stub.status === 403) {
+        throw new CategoryError("forbidden", "Forbidden");
+      }
       if (stub.status >= 400) {
         throw new Error(`Failed to create category: ${stub.status}`);
       }
@@ -86,6 +89,9 @@ export const apiCategoryRepository: CategoryRepository = {
 
     if (response.status === 409) {
       throw new CategoryError("duplicate", "Category already exists");
+    }
+    if (response.status === 403) {
+      throw new CategoryError("forbidden", "Forbidden");
     }
 
     if (!response.ok) {

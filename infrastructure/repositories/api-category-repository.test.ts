@@ -84,6 +84,14 @@ describe("apiCategoryRepository", () => {
       );
     });
 
+    it("throws CategoryError with forbidden code on 403 Forbidden", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Forbidden", { status: 403 })));
+      await expect(apiCategoryRepository.create("token", "Plomería")).rejects.toSatisfy(
+        (err) => err instanceof CategoryError && err.code === "forbidden",
+      );
+    });
+
     it("throws error if HTTP response is not ok for create", async () => {
       vi.stubEnv("API_URL", "https://api.example.com");
       vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Internal error", { status: 500 })));

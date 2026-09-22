@@ -56,7 +56,6 @@ Feature: Gestión de rubros
     Then veo un mensaje indicando que el rubro ya existe
     And el formulario conserva el texto ingresado
 
-  @wip
   Scenario: 09-RUB Informar permisos insuficientes al crear rubro
     Given que mi cuenta no tiene el permiso de creación de rubros
     And abro el formulario de creación de rubro

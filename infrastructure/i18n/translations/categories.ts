@@ -21,6 +21,7 @@ export const categoriesTranslations = {
     errors: {
       nameRequired: "El nombre es obligatorio",
       duplicate: "El rubro ya existe",
+      forbidden: "No tenés permisos para realizar esta acción",
     },
   },
 } as const;
