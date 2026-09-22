@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import { Given, When, Then } from "@cucumber/cucumber";
 import { ROUTES } from "@/lib/routes";
 import { CustomWorld } from "../support/world";
@@ -11,8 +12,17 @@ Given(
   },
 );
 
+Given("que estoy autenticado como administrador", async function (this: CustomWorld) {
+  await this.context.clearCookies();
+  await stubAdminAccess(this, anAdminProfile());
+});
+
 When("ingreso al área de administración", async function (this: CustomWorld) {
   await this.page.goto(new URL(ROUTES.admin, this.appUrl).href);
+});
+
+When("navego a la sección {string}", async function (this: CustomWorld, sectionName: string) {
+  await this.page.getByRole("link", { name: sectionName, exact: true }).click();
 });
 
 Then(
@@ -28,5 +38,20 @@ Then(
   async function (this: CustomWorld, link1: string, link2: string) {
     await this.page.getByRole("link", { name: link1, exact: true }).waitFor();
     await this.page.getByRole("link", { name: link2, exact: true }).waitFor();
+  },
+);
+
+Then("accedo a la sección de rubros", async function (this: CustomWorld) {
+  await this.page.waitForURL((url) => url.pathname === ROUTES.categories);
+  await this.page.getByRole("region", { name: "Catálogo de Rubros" }).waitFor();
+});
+
+Then(
+  "el enlace {string} se muestra como ruta activa",
+  async function (this: CustomWorld, linkName: string) {
+    const link = this.page.getByRole("link", { name: linkName, exact: true });
+    await link.waitFor();
+    const ariaCurrent = await link.getAttribute("aria-current");
+    assert.equal(ariaCurrent, "page");
   },
 );
