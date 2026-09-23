@@ -77,7 +77,6 @@ Feature: Listar usuarios registrados
     When intento ingresar al directorio de prestadores
     Then veo un mensaje informativo de acceso restringido
 
-  @wip
   Scenario: 12-USR Manejar error de conexión al consultar prestadores
     Given que el servicio de consulta de prestadores no está disponible
     When ingreso al directorio de prestadores

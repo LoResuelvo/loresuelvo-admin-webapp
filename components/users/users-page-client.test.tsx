@@ -124,5 +124,37 @@ describe("UsersPageClient", () => {
       expect(screen.getByRole("alert")).toHaveTextContent("Acceso restringido: no tenés permisos");
     });
   });
+
+  it("displays error alert and retries when clicking retry button in providers tab", async () => {
+    vi.mocked(actions.getConsumersAction).mockResolvedValue({
+      success: true,
+      data: [],
+    });
+    vi.mocked(actions.getProvidersAction)
+      .mockResolvedValueOnce({
+        success: false,
+        error: "No se pudieron obtener los prestadores. Intentá nuevamente más tarde",
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        data: [],
+      });
+
+    render(<UsersPageClient />);
+
+    const providersTab = screen.getByRole("tab", { name: "Prestadores" });
+    await userEvent.click(providersTab);
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent("No se pudieron obtener los prestadores");
+    });
+
+    const retryBtn = screen.getByRole("button", { name: "Reintentar" });
+    await userEvent.click(retryBtn);
+
+    await waitFor(() => {
+      expect(actions.getProvidersAction).toHaveBeenCalledTimes(2);
+    });
+  });
 });
 
