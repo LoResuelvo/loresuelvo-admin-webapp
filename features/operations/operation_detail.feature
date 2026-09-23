@@ -16,7 +16,6 @@ Feature: Ficha unificada de contratación y trazabilidad operativa
     When consulto la ficha de la contratación
     Then visualizo una línea de tiempo cronológica con cada evento ocurrido, la fecha y hora registrada y su avance
 
-  @wip
   Scenario: 03-FCH Visualizar solicitud inicial y diagnóstico asistido por IA
     Given que la solicitud del cliente fue generada mediante el asistente de diagnóstico virtual
     When reviso la sección de solicitud en la ficha

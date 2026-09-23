@@ -6,6 +6,7 @@ import { getOperationDetailAction } from "@/app/(dashboard)/operaciones/actions"
 import { translations } from "@/infrastructure/i18n/translations";
 import { OperationHeader } from "./operation-header";
 import { OperationTimeline } from "./operation-timeline";
+import { OperationRequestCard } from "./operation-request-card";
 
 export interface OperationDetailClientProps {
   id: string;
@@ -140,6 +141,7 @@ export function OperationDetailClient({ id }: OperationDetailClientProps) {
         provider={operation.provider}
         currentAddress={operation.currentAddress}
       />
+      <OperationRequestCard request={operation.request} />
       <OperationTimeline milestones={operation.timeline} />
     </div>
   );
