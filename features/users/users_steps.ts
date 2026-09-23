@@ -313,3 +313,15 @@ When(
     await providersTab.click();
   },
 );
+
+Given(
+  "que el servicio de consulta de prestadores no está disponible",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/providers",
+      status: 503,
+      body: { error: "Service unavailable" },
+    });
+  },
+);
