@@ -157,7 +157,69 @@ Then(
   },
 );
 
+Given(
+  "que existen los siguientes prestadores registrados:",
+  async function (this: CustomWorld, dataTable: DataTable) {
+    const providers = dataTable.hashes().map((row, index) => {
+      const rawZones = row.zonas ?? row.zona ?? "";
+      const zones = rawZones
+        .split(",")
+        .map((z) => z.trim())
+        .filter(Boolean)
+        .map((z, zIdx) => ({
+          id: zIdx + 1,
+          name: z,
+          code: z.toLowerCase().replace(/\s+/g, "_"),
+        }));
 
+      return {
+        id: index + 1,
+        role: "provider",
+        name: row.nombre,
+        surname: row.apellido,
+        email: row.correo,
+        profile_photo_url: `https://example.com/photos/${row.nombre.toLowerCase()}.jpg`,
+        created_on: "2026-09-10",
+        category: {
+          id: 10 + index,
+          name: row.rubro,
+        },
+        coverage_zones: zones,
+        identity_verification_status: row.estado_verificacion ?? "approved",
+      };
+    });
+    await this.stubGet("/admin/providers", providers);
+  },
+);
 
+When("ingreso al directorio de prestadores", async function (this: CustomWorld) {
+  if (!this.page.url().includes(ROUTES.users)) {
+    await this.page.goto(new URL(ROUTES.users, this.appUrl).href);
+  }
+  const providersTab = this.page.getByRole("tab", { name: /prestadores/i });
+  await providersTab.waitFor({ state: "visible" });
+  await providersTab.click();
+});
 
+Then(
+  "veo el listado de prestadores con su rubro, zonas de cobertura y estado de verificación",
+  async function (this: CustomWorld) {
+    const panel = this.page.locator("#panel-providers");
+    await panel.waitFor({ state: "visible" });
+    const table = panel.getByRole("table");
+    await table.waitFor({ state: "visible" });
+    const rows = panel.locator("tbody tr");
+    await rows.first().waitFor({ state: "visible" });
+    assert.equal(await rows.count(), 1);
 
+    const row0 = rows.nth(0);
+    const text0 = await row0.innerText();
+    assert.ok(text0.includes("Juan"));
+    assert.ok(text0.includes("Gómez"));
+    assert.ok(text0.includes("juan@example.com"));
+    assert.ok(text0.includes("Plomería"));
+    assert.ok(text0.includes("Comuna 6"));
+    assert.ok(text0.includes("Comuna 14"));
+    assert.ok(text0.includes("Verificado"));
+  },
+);
