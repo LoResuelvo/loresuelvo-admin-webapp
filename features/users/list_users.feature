@@ -22,7 +22,6 @@ Feature: Listar usuarios registrados
     When ingreso al directorio de consumidores
     Then veo un indicador de carga mientras se obtienen los datos
 
-  @wip
   Scenario: 03-USR Buscar consumidores por nombre, apellido o correo
     Given que existen los siguientes consumidores registrados:
       | nombre  | apellido | correo              |
