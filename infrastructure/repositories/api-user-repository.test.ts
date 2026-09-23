@@ -94,10 +94,83 @@ describe("apiUserRepository", () => {
     );
   });
 
-  it("throws error if HTTP response is other non-ok status (e.g. 400)", async () => {
-    vi.stubEnv("API_URL", "https://api.example.com");
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Bad request", { status: 400 })));
+  describe("getProviders", () => {
+    const sampleProviderDto = [
+      {
+        id: 1,
+        role: "provider",
+        name: "Juan",
+        surname: "Gómez",
+        email: "juan@example.com",
+        profile_photo_url: "https://example.com/photos/juan.jpg",
+        created_on: "2026-09-10",
+        category: { id: 10, name: "Plomería" },
+        coverage_zones: [
+          { id: 1, name: "Comuna 6", code: "comuna_6" },
+          { id: 2, name: "Comuna 14", code: "comuna_14" },
+        ],
+        identity_verification_status: "approved",
+      },
+    ];
 
-    await expect(apiUserRepository.getConsumers("token")).rejects.toThrow("Failed to fetch consumers: 400");
+    it("requests /admin/providers with bearer token and returns mapped providers", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(sampleProviderDto)));
+      vi.stubGlobal("fetch", fetcher);
+
+      const result = await apiUserRepository.getProviders("test-token");
+
+      expect(fetcher).toHaveBeenCalledWith(
+        "https://api.example.com/admin/providers",
+        expect.objectContaining({
+          cache: "no-store",
+          headers: {
+            Authorization: "Bearer test-token",
+            Accept: "application/json",
+          },
+          signal: expect.any(AbortSignal),
+        }),
+      );
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe("Juan");
+      expect(result[0].category.name).toBe("Plomería");
+    });
+
+    it("appends filters as query parameters", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify([])));
+      vi.stubGlobal("fetch", fetcher);
+
+      await apiUserRepository.getProviders("test-token", {
+        q: "juan",
+        categoryId: 10,
+        coverageZoneId: 1,
+        verificationStatus: "approved",
+      });
+
+      expect(fetcher).toHaveBeenCalledWith(
+        "https://api.example.com/admin/providers?q=juan&category_id=10&coverage_zone_id=1&identity_verification_status=approved",
+        expect.any(Object),
+      );
+    });
+
+    it("throws UserError with forbidden code on 403 Forbidden", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Forbidden", { status: 403 })));
+
+      await expect(apiUserRepository.getProviders("token")).rejects.toSatisfy(
+        (err) => err instanceof UserError && err.code === "forbidden",
+      );
+    });
+
+    it("throws UserError with unavailable code on network failure", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Network connection error")));
+
+      await expect(apiUserRepository.getProviders("token")).rejects.toSatisfy(
+        (err) => err instanceof UserError && err.code === "unavailable",
+      );
+    });
   });
 });
+

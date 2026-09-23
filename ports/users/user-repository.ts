@@ -10,5 +10,5 @@ export interface ProviderFilters {
 
 export interface UserRepository {
   getConsumers(token: string, q?: string): Promise<Consumer[]>;
-  getProviders?(token: string, filters?: ProviderFilters): Promise<Provider[]>;
+  getProviders(token: string, filters?: ProviderFilters): Promise<Provider[]>;
 }

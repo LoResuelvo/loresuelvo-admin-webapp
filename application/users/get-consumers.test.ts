@@ -16,6 +16,7 @@ describe("getConsumers usecase", () => {
     ];
     const mockRepo: UserRepository = {
       getConsumers: vi.fn().mockResolvedValue(consumers),
+      getProviders: vi.fn(),
     };
 
     const result = await getConsumers(mockRepo, "valid-token", "ana");
@@ -27,6 +28,7 @@ describe("getConsumers usecase", () => {
   it("propagates repository errors", async () => {
     const mockRepo: UserRepository = {
       getConsumers: vi.fn().mockRejectedValue(new UserError("forbidden", "Forbidden")),
+      getProviders: vi.fn(),
     };
 
     await expect(getConsumers(mockRepo, "token")).rejects.toSatisfy(
