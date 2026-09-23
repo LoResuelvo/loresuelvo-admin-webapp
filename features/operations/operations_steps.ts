@@ -773,3 +773,40 @@ When("accedo a la ficha de la contratación", async function (this: CustomWorld)
   const detailRoute = ROUTES.operationDetail("op-101");
   await this.page.goto(new URL(detailRoute, this.appUrl).href);
 });
+
+Given(
+  "que intento consultar una contratación que no se encuentra registrada",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/operations/op-999",
+      status: 404,
+      body: { message: "Not found" },
+    });
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/operations/op-999",
+      status: 404,
+      body: { message: "Not found" },
+    });
+  },
+);
+
+When("accedo al enlace de la contratación", async function (this: CustomWorld) {
+  const notFoundRoute = ROUTES.operationDetail("op-999");
+  await this.page.goto(new URL(notFoundRoute, this.appUrl).href);
+});
+
+Then(
+  "se presenta un mensaje claro indicando que el servicio no fue encontrado",
+  async function (this: CustomWorld) {
+    const alert = this.page.getByRole("alert");
+    await alert.waitFor({ state: "visible", timeout: 5000 });
+    const text = await alert.innerText();
+    assert.ok(
+      text.includes("El servicio no fue encontrado") ||
+        text.includes("Contratación no encontrada"),
+    );
+  },
+);
+
