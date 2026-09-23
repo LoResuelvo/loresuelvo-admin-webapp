@@ -107,5 +107,32 @@ Then(
   },
 );
 
+Given(
+  'que mi cuenta no tiene el permiso "read:consumers"',
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/consumers",
+      status: 403,
+      body: { error: "Forbidden" },
+    });
+  },
+);
+
+When("intento ingresar al directorio de consumidores", async function (this: CustomWorld) {
+  await this.page.goto(new URL(ROUTES.users, this.appUrl).href);
+});
+
+Then(
+  "veo un mensaje informativo de acceso restringido",
+  async function (this: CustomWorld) {
+    const alert = this.page.getByRole("alert").filter({
+      hasText: /restringido|permisos/i,
+    });
+    await alert.waitFor({ state: "visible" });
+  },
+);
+
+
 
 
