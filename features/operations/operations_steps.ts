@@ -360,6 +360,18 @@ Given(
       status: 500,
       body: { error: "Internal Server Error" },
     });
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/operations/op-101",
+      status: 500,
+      body: { error: "Internal Server Error" },
+    });
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/operations/op-101",
+      status: 500,
+      body: { error: "Internal Server Error" },
+    });
   },
 );
 
@@ -834,3 +846,9 @@ When("intento ingresar a la ficha de una contratación", async function (this: C
   const detailRoute = ROUTES.operationDetail("op-101");
   await this.page.goto(new URL(detailRoute, this.appUrl).href);
 });
+
+When("intento cargar la ficha de la contratación", async function (this: CustomWorld) {
+  const detailRoute = ROUTES.operationDetail("op-101");
+  await this.page.goto(new URL(detailRoute, this.appUrl).href);
+});
+
