@@ -6,7 +6,6 @@ Feature: Bandeja transversal de operaciones y contrataciones
   Background:
     Given que he iniciado sesión en el panel de administración
 
-  @wip
   Scenario: 01-OP Visualizar contrataciones con información operativa y cuellos de botella
     Given que existen contrataciones en curso con diferentes estados en el marketplace
     When ingreso a la sección de operaciones
