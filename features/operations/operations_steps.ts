@@ -812,3 +812,25 @@ Then(
   },
 );
 
+Given(
+  "que mi cuenta de usuario no posee permisos para ver el detalle de operaciones",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/operations/op-101",
+      status: 403,
+      body: { message: "Forbidden" },
+    });
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/operations/op-101",
+      status: 403,
+      body: { message: "Forbidden" },
+    });
+  },
+);
+
+When("intento ingresar a la ficha de una contratación", async function (this: CustomWorld) {
+  const detailRoute = ROUTES.operationDetail("op-101");
+  await this.page.goto(new URL(detailRoute, this.appUrl).href);
+});
