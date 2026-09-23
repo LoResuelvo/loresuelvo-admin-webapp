@@ -5,13 +5,15 @@ import type { OperationSummary, BottleneckType } from "@/domain/operations/opera
 import type { OperationFilters } from "@/ports/operations/operation-repository";
 import { translations } from "@/infrastructure/i18n/translations";
 import { getOperationsAction } from "@/app/(dashboard)/operaciones/actions";
+import { getCategoriesAction } from "@/app/(dashboard)/rubros/actions";
 import { OperationsTable } from "./operations-table";
 import { OperationsSkeleton } from "./operations-skeleton";
 import { OperationsEmptyState } from "./operations-empty-state";
-import { OperationsFilterBar } from "./operations-filter-bar";
+import { OperationsFilterBar, type CategoryOption } from "./operations-filter-bar";
 
 export interface OperationsInboxClientProps {
   initialFilters?: OperationFilters;
+  initialCategories?: readonly CategoryOption[];
 }
 
 function useOperations(filters?: OperationFilters) {
@@ -43,6 +45,27 @@ function useOperations(filters?: OperationFilters) {
   return { operations, isLoading, error, retry: loadOperations };
 }
 
+function useCategories(initialCategories?: readonly CategoryOption[]) {
+  const [categories, setCategories] = useState<readonly CategoryOption[]>(initialCategories ?? []);
+
+  useEffect(() => {
+    let isMounted = true;
+    getCategoriesAction()
+      .then((res) => {
+        if (isMounted && res.success) {
+          setCategories(res.data);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  return categories;
+}
+
 function OperationsError({ error, onRetry }: { error: string; onRetry: () => void }) {
   return (
     <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
@@ -58,9 +81,27 @@ function OperationsError({ error, onRetry }: { error: string; onRetry: () => voi
   );
 }
 
-export function OperationsInboxClient({ initialFilters }: OperationsInboxClientProps) {
+export function OperationsInboxClient({
+  initialFilters,
+  initialCategories,
+}: OperationsInboxClientProps) {
   const [filters, setFilters] = useState<OperationFilters>(initialFilters ?? {});
   const { operations, isLoading, error, retry } = useOperations(filters);
+  const categories = useCategories(initialCategories);
+
+  const handleSearchChange = (query: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      q: query || undefined,
+    }));
+  };
+
+  const handleCategoryChange = (categoryId: number | "") => {
+    setFilters((prev) => ({
+      ...prev,
+      categoryId: categoryId ? Number(categoryId) : undefined,
+    }));
+  };
 
   const handleBottleneckChange = (bottleneck: BottleneckType | "") => {
     setFilters((prev) => ({
@@ -75,7 +116,12 @@ export function OperationsInboxClient({ initialFilters }: OperationsInboxClientP
   return (
     <div className="space-y-6">
       <OperationsFilterBar
-        selectedBottleneck={filters.bottleneck}
+        searchQuery={filters.q ?? ""}
+        onSearchChange={handleSearchChange}
+        selectedCategoryId={filters.categoryId ?? ""}
+        onCategoryChange={handleCategoryChange}
+        categoryOptions={categories}
+        selectedBottleneck={filters.bottleneck ?? ""}
         onBottleneckChange={handleBottleneckChange}
       />
 

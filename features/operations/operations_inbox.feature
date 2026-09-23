@@ -21,7 +21,6 @@ Feature: Bandeja transversal de operaciones y contrataciones
     When filtro las operaciones seleccionando la alerta "Estancada > 24h"
     Then se presentan únicamente los trabajos que requieren atención por llevar más de un día sin avance
 
-  @wip
   Scenario: 04-OP Filtrar contrataciones por rubro y buscar por participante
     Given que existen contrataciones en diversos rubros y con distintos clientes
     When busco por el apellido "Pérez" y selecciono el rubro "Plomería"

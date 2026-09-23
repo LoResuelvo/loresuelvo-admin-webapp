@@ -9,6 +9,16 @@ vi.mock("@/app/(dashboard)/operaciones/actions", () => ({
   getOperationsAction: vi.fn(),
 }));
 
+vi.mock("@/app/(dashboard)/rubros/actions", () => ({
+  getCategoriesAction: vi.fn().mockResolvedValue({
+    success: true,
+    data: [
+      { id: 1, name: "Plomería" },
+      { id: 2, name: "Electricidad" },
+    ],
+  }),
+}));
+
 const mockOperations: OperationSummary[] = [
   {
     id: "op-1",
@@ -56,6 +66,8 @@ describe("OperationsInboxClient", () => {
     });
 
     expect(screen.getByRole("combobox", { name: "Alerta Operativa" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Rubro" })).toBeInTheDocument();
+    expect(screen.getByRole("searchbox", { name: "Buscar participante" })).toBeInTheDocument();
     expect(screen.getByText("Juan Pérez")).toBeInTheDocument();
   });
 
@@ -77,6 +89,48 @@ describe("OperationsInboxClient", () => {
 
     expect(actions.getOperationsAction).toHaveBeenCalledWith(
       expect.objectContaining({ bottleneck: "stalled" }),
+    );
+  });
+
+  it("filters operations when category changes", async () => {
+    const user = userEvent.setup();
+    vi.mocked(actions.getOperationsAction).mockResolvedValue({
+      success: true,
+      data: mockOperations,
+    });
+
+    render(<OperationsInboxClient />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+
+    const select = screen.getByRole("combobox", { name: "Rubro" });
+    await user.selectOptions(select, "1");
+
+    expect(actions.getOperationsAction).toHaveBeenCalledWith(
+      expect.objectContaining({ categoryId: 1 }),
+    );
+  });
+
+  it("filters operations when search query is entered", async () => {
+    const user = userEvent.setup();
+    vi.mocked(actions.getOperationsAction).mockResolvedValue({
+      success: true,
+      data: mockOperations,
+    });
+
+    render(<OperationsInboxClient />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+
+    const input = screen.getByRole("searchbox", { name: "Buscar participante" });
+    await user.type(input, "Pérez");
+
+    expect(actions.getOperationsAction).toHaveBeenCalledWith(
+      expect.objectContaining({ q: "Pérez" }),
     );
   });
 
