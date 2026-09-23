@@ -1,10 +1,11 @@
 import "server-only";
 import type { OperationFilters, OperationRepository } from "@/ports/operations/operation-repository";
 import type { OperationSummary } from "@/domain/operations/operation-summary";
+import type { UnifiedOperationDetail } from "@/domain/operations/unified-operation-detail";
 import { OperationError } from "@/domain/operations/operation-error";
 import type { ApiStub } from "@/infrastructure/api/types";
 import { parseE2EStubsFromCookies } from "@/infrastructure/api/e2e-stubs-utils";
-import { mapOperations } from "./mappers/operation-mapper";
+import { mapOperations, mapUnifiedOperationDetail } from "./mappers/operation-mapper";
 
 async function getE2EOperationsStub(filters?: OperationFilters): Promise<ApiStub | null> {
   if (process.env.APP_ENV === "production") return null;
@@ -135,6 +136,90 @@ async function fetchOperationsFromApi(
   return mapOperations(data);
 }
 
+async function getE2EOperationDetailStub(id: string): Promise<ApiStub | null> {
+  if (process.env.APP_ENV === "production") return null;
+  try {
+    const { cookies } = await import("next/headers");
+    const cookieStore = await cookies();
+    const stubs = parseE2EStubsFromCookies(cookieStore.getAll());
+    return (
+      stubs.find(
+        (s) =>
+          s.method === "GET" &&
+          (s.endpoint === `/admin/operations/${id}` || s.endpoint === `/operations/${id}`),
+      ) ?? null
+    );
+  } catch {
+    return null;
+  }
+}
+
+async function resolveOperationDetailFromStub(stub: ApiStub): Promise<UnifiedOperationDetail> {
+  if (stub.delayMs) {
+    await new Promise((resolve) => setTimeout(resolve, stub.delayMs));
+  }
+  if (stub.status === 404) {
+    throw new OperationError("not_found", "Operation not found");
+  }
+  if (stub.status === 403) {
+    throw new OperationError("forbidden", "Forbidden");
+  }
+  if (stub.status >= 500) {
+    throw new OperationError("unavailable", `Failed to fetch operation detail: ${stub.status}`);
+  }
+  if (stub.status >= 400) {
+    throw new OperationError("unknown", `Failed to fetch operation detail: ${stub.status}`);
+  }
+
+  return mapUnifiedOperationDetail(stub.body);
+}
+
+function handleOperationDetailHttpError(status: number): never {
+  if (status === 404) {
+    throw new OperationError("not_found", "Operation not found");
+  }
+  if (status === 403) {
+    throw new OperationError("forbidden", "Forbidden");
+  }
+  if (status >= 500) {
+    throw new OperationError("unavailable", `Failed to fetch operation detail: ${status}`);
+  }
+  throw new OperationError("unknown", `Failed to fetch operation detail: ${status}`);
+}
+
+async function fetchOperationDetailFromApi(
+  token: string,
+  id: string,
+): Promise<UnifiedOperationDetail> {
+  const baseUrl = process.env.API_URL;
+  if (!baseUrl) {
+    throw new Error("API_URL is not configured");
+  }
+
+  const url = `${baseUrl.replace(/\/$/, "")}/admin/operations/${id}`;
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+      cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch (err: unknown) {
+    if (err instanceof OperationError) throw err;
+    throw new OperationError("unavailable", "Network error when fetching operation detail");
+  }
+
+  if (!response.ok) {
+    handleOperationDetailHttpError(response.status);
+  }
+
+  const data = await response.json();
+  return mapUnifiedOperationDetail(data);
+}
+
 export const apiOperationRepository: OperationRepository = {
   async getOperations(token: string, filters?: OperationFilters): Promise<OperationSummary[]> {
     const stub = await getE2EOperationsStub(filters);
@@ -143,4 +228,13 @@ export const apiOperationRepository: OperationRepository = {
     }
     return fetchOperationsFromApi(token, filters);
   },
+
+  async getOperationById(token: string, id: string): Promise<UnifiedOperationDetail> {
+    const stub = await getE2EOperationDetailStub(id);
+    if (stub) {
+      return resolveOperationDetailFromStub(stub);
+    }
+    return fetchOperationDetailFromApi(token, id);
+  },
 };
+

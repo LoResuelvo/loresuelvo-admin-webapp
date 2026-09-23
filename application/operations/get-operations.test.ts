@@ -21,6 +21,7 @@ describe("getOperations use case", () => {
 
     const mockRepo: OperationRepository = {
       getOperations: vi.fn().mockResolvedValue(mockOperations),
+      getOperationById: vi.fn(),
     };
 
     const filters = { bottleneck: "stalled" as const };
@@ -33,6 +34,7 @@ describe("getOperations use case", () => {
   it("propagates repository errors", async () => {
     const mockRepo: OperationRepository = {
       getOperations: vi.fn().mockRejectedValue(new OperationError("forbidden", "Forbidden")),
+      getOperationById: vi.fn(),
     };
 
     await expect(getOperations(mockRepo, "test-token")).rejects.toSatisfy(

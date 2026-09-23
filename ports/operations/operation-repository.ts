@@ -9,6 +9,6 @@ export interface OperationFilters {
 
 export interface OperationRepository {
   getOperations(token: string, filters?: OperationFilters): Promise<OperationSummary[]>;
-  getOperationById?(token: string, id: string): Promise<UnifiedOperationDetail>;
+  getOperationById(token: string, id: string): Promise<UnifiedOperationDetail>;
 }
 
