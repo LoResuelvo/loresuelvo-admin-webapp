@@ -47,7 +47,6 @@ Feature: Listar usuarios registrados
 
   # --- Directorio de Prestadores ---
 
-  @wip
   Scenario: 07-USR Visualizar directorio de prestadores con información operativa
     Given que existen los siguientes prestadores registrados:
       | nombre | apellido | correo           | rubro    | zonas               | estado_verificacion |

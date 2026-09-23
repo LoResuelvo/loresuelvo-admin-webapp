@@ -6,7 +6,9 @@ import { UsersPageClient } from "./users-page-client";
 
 vi.mock("@/app/(dashboard)/usuarios/actions", () => ({
   getConsumersAction: vi.fn(),
+  getProvidersAction: vi.fn(),
 }));
+
 
 describe("UsersPageClient", () => {
   beforeEach(() => {
@@ -66,4 +68,39 @@ describe("UsersPageClient", () => {
       expect(screen.getByRole("alert")).toHaveTextContent("Acceso restringido");
     });
   });
+
+  it("switches to providers tab and loads providers", async () => {
+    vi.mocked(actions.getConsumersAction).mockResolvedValue({
+      success: true,
+      data: [],
+    });
+    vi.mocked(actions.getProvidersAction).mockResolvedValue({
+      success: true,
+      data: [
+        {
+          id: 1,
+          name: "Juan",
+          surname: "Gómez",
+          email: "juan@example.com",
+          createdOn: "2026-09-10",
+          category: { id: 10, name: "Plomería" },
+          coverageZones: [{ id: 1, name: "Comuna 6", code: "comuna_6" }],
+          identityVerificationStatus: "approved",
+        },
+      ],
+    });
+
+    render(<UsersPageClient />);
+
+    const providersTab = screen.getByRole("tab", { name: "Prestadores" });
+    await userEvent.click(providersTab);
+
+    await waitFor(() => {
+      expect(actions.getProvidersAction).toHaveBeenCalled();
+      expect(screen.getByText("Juan")).toBeInTheDocument();
+      expect(screen.getByText("Gómez")).toBeInTheDocument();
+      expect(screen.getByText("Plomería")).toBeInTheDocument();
+    });
+  });
 });
+
