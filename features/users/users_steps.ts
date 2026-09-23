@@ -133,6 +133,31 @@ Then(
   },
 );
 
+Given(
+  "que el servicio de consulta de consumidores no está disponible",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/consumers",
+      status: 503,
+      body: { error: "Service unavailable" },
+    });
+  },
+);
+
+Then(
+  "veo un mensaje de error recuperable con opción de reintentar",
+  async function (this: CustomWorld) {
+    const errorAlert = this.page.getByRole("alert").filter({
+      hasText: /error|no se pud/i,
+    });
+    await errorAlert.waitFor({ state: "visible" });
+    const retryButton = this.page.getByRole("button", { name: "Reintentar" });
+    await retryButton.waitFor({ state: "visible" });
+  },
+);
+
+
 
 
 
