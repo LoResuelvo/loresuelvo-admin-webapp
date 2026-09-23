@@ -289,3 +289,27 @@ When(
     await statusSelect.selectOption(estado);
   },
 );
+
+Given(
+  'que mi cuenta no tiene el permiso "read:providers"',
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/providers",
+      status: 403,
+      body: { error: "Forbidden" },
+    });
+  },
+);
+
+When(
+  "intento ingresar al directorio de prestadores",
+  async function (this: CustomWorld) {
+    if (!this.page.url().includes(ROUTES.users)) {
+      await this.page.goto(new URL(ROUTES.users, this.appUrl).href);
+    }
+    const providersTab = this.page.getByRole("tab", { name: /prestadores/i });
+    await providersTab.waitFor({ state: "visible" });
+    await providersTab.click();
+  },
+);
