@@ -26,7 +26,6 @@ Feature: Ficha unificada de contratación y trazabilidad operativa
     When reviso la sección de presupuesto y orden en la ficha
     Then visualizo el valor total acordado, el porcentaje de seña, las fechas comprometidas y el estado de la orden
 
-  @wip
   Scenario: 05-FCH Visualizar reporte de cierre del prestador y reseña del cliente
     Given que el prestador concluyó el trabajo y el cliente dejó su valoración
     When reviso la sección de finalización en la ficha

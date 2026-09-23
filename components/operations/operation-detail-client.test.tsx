@@ -157,4 +157,40 @@ describe("OperationDetailClient", () => {
 
     expect(screen.getByTestId("operation-order-card")).toBeInTheDocument();
   });
+
+  it("renders completion card when completion report and review are present", async () => {
+    const detailWithCompletion: UnifiedOperationDetail = {
+      ...mockDetail,
+      status: "completed",
+      order: {
+        id: 301,
+        status: "completed",
+        scheduledFor: "2026-09-25T09:00:00Z",
+        completionReport: {
+          completedAt: "2026-09-25T15:30:00Z",
+          notes: "Reparación exitosa.",
+          photos: ["https://example.com/photo.jpg"],
+        },
+        review: {
+          rating: 5,
+          comment: "Gran servicio.",
+          createdAt: "2026-09-25T17:00:00Z",
+        },
+      },
+    };
+
+    vi.mocked(getOperationDetailAction).mockResolvedValueOnce({
+      success: true,
+      data: detailWithCompletion,
+    });
+
+    render(<OperationDetailClient id="op-101" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("operation-completion-card")).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId("operation-review-card")).toBeInTheDocument();
+    expect(screen.getByText("Reparación exitosa.")).toBeInTheDocument();
+  });
 });

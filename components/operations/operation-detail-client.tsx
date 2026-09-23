@@ -9,6 +9,7 @@ import { OperationTimeline } from "./operation-timeline";
 import { OperationRequestCard } from "./operation-request-card";
 import { OperationProposalCard } from "./operation-proposal-card";
 import { OperationOrderCard } from "./operation-order-card";
+import { OperationCompletionCard } from "./operation-completion-card";
 
 export interface OperationDetailClientProps {
   id: string;
@@ -92,6 +93,33 @@ function useOperationDetail(id: string) {
   return { operation, isLoading, error, isNotFound, isForbidden, retry: loadOperation };
 }
 
+function OperationDetailContent({
+  operation,
+}: {
+  operation: UnifiedOperationDetail;
+}) {
+  return (
+    <div className="space-y-6">
+      <OperationHeader
+        id={operation.id}
+        status={operation.status}
+        category={operation.category}
+        consumer={operation.consumer}
+        provider={operation.provider}
+        currentAddress={operation.currentAddress}
+      />
+      <OperationRequestCard request={operation.request} />
+      <OperationProposalCard proposals={operation.proposals} />
+      <OperationOrderCard order={operation.order} />
+      <OperationCompletionCard
+        completionReport={operation.order?.completionReport}
+        review={operation.order?.review}
+      />
+      <OperationTimeline milestones={operation.timeline} />
+    </div>
+  );
+}
+
 export function OperationDetailClient({ id }: OperationDetailClientProps) {
   const { operation, isLoading, error, isNotFound, isForbidden, retry } = useOperationDetail(id);
 
@@ -133,20 +161,5 @@ export function OperationDetailClient({ id }: OperationDetailClientProps) {
 
   if (!operation) return null;
 
-  return (
-    <div className="space-y-6">
-      <OperationHeader
-        id={operation.id}
-        status={operation.status}
-        category={operation.category}
-        consumer={operation.consumer}
-        provider={operation.provider}
-        currentAddress={operation.currentAddress}
-      />
-      <OperationRequestCard request={operation.request} />
-      <OperationProposalCard proposals={operation.proposals} />
-      <OperationOrderCard order={operation.order} />
-      <OperationTimeline milestones={operation.timeline} />
-    </div>
-  );
+  return <OperationDetailContent operation={operation} />;
 }
