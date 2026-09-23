@@ -150,10 +150,20 @@ Given("que la carga de las operaciones toma unos momentos", async function (this
 Then(
   "se presenta una vista de carga con indicadores visuales mientras se obtiene la información",
   async function (this: CustomWorld) {
-    const skeleton = this.page.getByTestId("operations-skeleton");
+    const skeleton = this.page
+      .getByTestId("operation-detail-skeleton")
+      .or(this.page.getByTestId("operations-skeleton"));
     await skeleton.waitFor({ state: "visible" });
-    const shimmerRows = skeleton.locator("[data-testid='skeleton-row']");
-    assert.ok((await shimmerRows.count()) >= 1);
+
+    const isDetail = (await this.page.getByTestId("operation-detail-skeleton").count()) > 0;
+    if (isDetail) {
+      assert.equal(await skeleton.getAttribute("aria-busy"), "true");
+      const indicators = this.page.locator("[data-testid='skeleton-indicator']");
+      assert.ok((await indicators.count()) >= 3);
+    } else {
+      const shimmerRows = skeleton.locator("[data-testid='skeleton-row']");
+      assert.ok((await shimmerRows.count()) >= 1);
+    }
   },
 );
 
@@ -739,5 +749,27 @@ Then(
   },
 );
 
+Given(
+  "que la carga del detalle del servicio toma unos momentos",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/operations/op-101",
+      status: 200,
+      body: sampleOperationDetail,
+      delayMs: 3000,
+    });
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/operations/op-101",
+      status: 200,
+      body: sampleOperationDetail,
+      delayMs: 3000,
+    });
+  },
+);
 
-
+When("accedo a la ficha de la contratación", async function (this: CustomWorld) {
+  const detailRoute = ROUTES.operationDetail("op-101");
+  await this.page.goto(new URL(detailRoute, this.appUrl).href);
+});
