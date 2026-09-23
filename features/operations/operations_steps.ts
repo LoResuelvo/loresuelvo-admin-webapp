@@ -487,5 +487,40 @@ Then(
   },
 );
 
+Given(
+  "que la contratación ha transitado desde la solicitud inicial hasta la orden de trabajo",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/operations/op-101", sampleOperationDetail);
+    await this.stubGet("/operations/op-101", sampleOperationDetail);
+  },
+);
+
+Then(
+  "visualizo una línea de tiempo cronológica con cada evento ocurrido, la fecha y hora registrada y su avance",
+  async function (this: CustomWorld) {
+    const timeline = this.page.getByTestId("operation-timeline");
+    await timeline.waitFor({ state: "visible", timeout: 5000 });
+
+    const milestones = timeline.locator("[data-testid='timeline-milestone']");
+    assert.equal(await milestones.count(), 3);
+
+    const firstMilestone = await milestones.nth(0).innerText();
+    assert.ok(firstMilestone.includes("Solicitud creada"));
+
+    const secondMilestone = await milestones.nth(1).innerText();
+    assert.ok(secondMilestone.includes("Presupuesto enviado"));
+
+    const thirdMilestone = await milestones.nth(2).innerText();
+    assert.ok(thirdMilestone.includes("Orden de trabajo confirmada"));
+
+    assert.ok(firstMilestone.includes("18") || firstMilestone.includes("2026"));
+    assert.ok(secondMilestone.includes("19") || secondMilestone.includes("2026"));
+    assert.ok(thirdMilestone.includes("20") || thirdMilestone.includes("2026"));
+
+    const progressIndicators = timeline.locator("[data-testid='milestone-step']");
+    assert.equal(await progressIndicators.count(), 3);
+  },
+);
+
 
 
