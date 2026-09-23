@@ -103,5 +103,26 @@ describe("UsersPageClient", () => {
       expect(within(table).getByText("Plomería")).toBeInTheDocument();
     });
   });
+
+  it("displays forbidden alert when getProvidersAction returns forbidden", async () => {
+    vi.mocked(actions.getConsumersAction).mockResolvedValue({
+      success: true,
+      data: [],
+    });
+    vi.mocked(actions.getProvidersAction).mockResolvedValue({
+      success: false,
+      error: "Acceso restringido: no tenés permisos para consultar el directorio de prestadores",
+      isForbidden: true,
+    });
+
+    render(<UsersPageClient />);
+
+    const providersTab = screen.getByRole("tab", { name: "Prestadores" });
+    await userEvent.click(providersTab);
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent("Acceso restringido: no tenés permisos");
+    });
+  });
 });
 

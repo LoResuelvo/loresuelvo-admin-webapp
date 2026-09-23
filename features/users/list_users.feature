@@ -72,7 +72,6 @@ Feature: Listar usuarios registrados
     When aplico los filtros en el directorio de prestadores
     Then veo un mensaje indicando que no hay prestadores disponibles
 
-  @wip
   Scenario: 11-USR Informar permisos insuficientes al consultar prestadores
     Given que mi cuenta no tiene el permiso "read:providers"
     When intento ingresar al directorio de prestadores
