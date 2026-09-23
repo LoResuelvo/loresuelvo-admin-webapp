@@ -180,3 +180,39 @@ Then(
     assert.ok((await emptyState.innerText()).includes("No se encontraron operaciones disponibles"));
   },
 );
+
+Given(
+  "que existen contrataciones con solicitudes demoradas por más de 24 horas y otras al día",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/operations", sampleOperations);
+    await this.stubGet("/operations", sampleOperations);
+  },
+);
+
+When(
+  "filtro las operaciones seleccionando la alerta {string}",
+  async function (this: CustomWorld, alertLabel: string) {
+    const operationsRoute = (ROUTES as { operations?: string }).operations || "/operaciones";
+    if (!this.page.url().includes(operationsRoute)) {
+      await this.page.goto(new URL(operationsRoute, this.appUrl).href);
+    }
+    const alertSelect = this.page.getByRole("combobox", { name: /alerta/i });
+    await alertSelect.waitFor({ state: "visible" });
+    await alertSelect.selectOption({ label: alertLabel });
+  },
+);
+
+Then(
+  "se presentan únicamente los trabajos que requieren atención por llevar más de un día sin avance",
+  async function (this: CustomWorld) {
+    const table = this.page.getByRole("table");
+    await table.waitFor();
+    const rows = this.page.locator("tbody tr");
+    await rows.first().waitFor();
+    assert.equal(await rows.count(), 1);
+
+    const row0Text = await rows.nth(0).innerText();
+    assert.ok(row0Text.includes("Juan") && row0Text.includes("Pérez"));
+    assert.ok(row0Text.includes("Estancada") || row0Text.includes("Sin avance"));
+  },
+);
