@@ -1,11 +1,13 @@
 import { translations } from "@/infrastructure/i18n/translations";
+import { UsersPageClient } from "@/components/users/users-page-client";
 
 export default function UsersPage() {
   return (
-    <section aria-label={translations.navigation.users} className="max-w-6xl">
+    <section aria-label={translations.navigation.users} className="max-w-6xl space-y-6">
       <h1 className="text-2xl font-semibold tracking-tight text-[#1A2B48]">
         {translations.navigation.users}
       </h1>
+      <UsersPageClient />
     </section>
   );
 }

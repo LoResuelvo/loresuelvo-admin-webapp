@@ -8,7 +8,6 @@ Feature: Listar usuarios registrados
 
   # --- Directorio de Consumidores ---
 
-  @wip
   Scenario: 01-USR Visualizar directorio de consumidores con datos completos
     Given que existen los siguientes consumidores registrados:
       | nombre  | apellido | correo              | fecha_registro |
