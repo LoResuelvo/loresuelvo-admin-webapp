@@ -11,7 +11,6 @@ Feature: Ficha unificada de contratación y trazabilidad operativa
     When consulto la ficha de la contratación
     Then visualizo los datos de contacto del cliente, los del prestador, el rubro y el domicilio registrado
 
-  @wip
   Scenario: 02-FCH Visualizar línea de tiempo del recorrido del servicio
     Given que la contratación ha transitado desde la solicitud inicial hasta la orden de trabajo
     When consulto la ficha de la contratación
