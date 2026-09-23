@@ -35,7 +35,6 @@ Feature: Listar usuarios registrados
     When ingreso al directorio de consumidores
     Then veo un mensaje indicando que no hay consumidores disponibles
 
-  @wip
   Scenario: 05-USR Informar permisos insuficientes al consultar consumidores
     Given que mi cuenta no tiene el permiso "read:consumers"
     When intento ingresar al directorio de consumidores
