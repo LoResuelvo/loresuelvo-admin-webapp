@@ -31,7 +31,6 @@ Feature: Ficha unificada de contratación y trazabilidad operativa
     When reviso la sección de finalización en la ficha
     Then visualizo el informe del trabajo realizado con las fotos de evidencia y la reseña con calificación del cliente
 
-  @wip
   Scenario: 06-FCH Mostrar estado de espera mientras se carga la ficha
     Given que la carga del detalle del servicio toma unos momentos
     When accedo a la ficha de la contratación

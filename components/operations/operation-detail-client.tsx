@@ -10,17 +10,10 @@ import { OperationRequestCard } from "./operation-request-card";
 import { OperationProposalCard } from "./operation-proposal-card";
 import { OperationOrderCard } from "./operation-order-card";
 import { OperationCompletionCard } from "./operation-completion-card";
+import { OperationDetailSkeleton } from "./operation-detail-skeleton";
 
 export interface OperationDetailClientProps {
   id: string;
-}
-
-function DetailLoading() {
-  return (
-    <div data-testid="operation-detail-skeleton" className="space-y-4 animate-pulse">
-      <div className="h-44 rounded-2xl bg-[#F4F1EE]" />
-    </div>
-  );
 }
 
 function DetailAlert({
@@ -123,7 +116,7 @@ function OperationDetailContent({
 export function OperationDetailClient({ id }: OperationDetailClientProps) {
   const { operation, isLoading, error, isNotFound, isForbidden, retry } = useOperationDetail(id);
 
-  if (isLoading) return <DetailLoading />;
+  if (isLoading) return <OperationDetailSkeleton />;
 
   if (isForbidden) {
     return (
