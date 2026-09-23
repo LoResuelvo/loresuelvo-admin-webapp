@@ -1,7 +1,13 @@
 export const operationsTranslations = {
   title: "Bandeja de Operaciones",
   subtitle: "Monitoreo transversal de contrataciones y cuellos de botella",
+  detail: {
+    title: "Ficha de Operación",
+    subtitle: "Detalle completo del servicio",
+    backToList: "Volver a la bandeja",
+  },
   table: {
+
     caption: "Bandeja de operaciones",
     columns: {
       consumer: "Cliente",

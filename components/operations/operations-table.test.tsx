@@ -105,4 +105,16 @@ describe("OperationsTable", () => {
     await user.click(screen.getByText("Juan Pérez"));
     expect(handleSelect).toHaveBeenCalledWith(mockOperations[0]);
   });
+
+  it("calls onSelectOperation when Enter key is pressed on a row", async () => {
+    const user = userEvent.setup();
+    const handleSelect = vi.fn();
+    render(<OperationsTable operations={mockOperations} onSelectOperation={handleSelect} />);
+
+    const rows = screen.getAllByRole("row");
+    rows[1].focus();
+    await user.keyboard("{Enter}");
+    expect(handleSelect).toHaveBeenCalledWith(mockOperations[0]);
+  });
 });
+

@@ -25,17 +25,21 @@ describe("Sidebar", () => {
     expect(within(banner).getByText("ana@example.com")).toBeVisible();
   });
 
-  it("renders navigation links to Users Directory and Categories Catalog", () => {
+  it("renders navigation links to Users Directory, Categories Catalog, and Operations Center", () => {
     render(<Sidebar profile={profile} />);
 
     const usersLink = screen.getByRole("link", { name: "Directorio de Usuarios" });
     const categoriesLink = screen.getByRole("link", { name: "Catálogo de Rubros" });
+    const operationsLink = screen.getByRole("link", { name: "Centro de Operaciones" });
 
     expect(usersLink).toBeVisible();
     expect(usersLink).toHaveAttribute("href", "/usuarios");
     expect(categoriesLink).toBeVisible();
     expect(categoriesLink).toHaveAttribute("href", "/rubros");
+    expect(operationsLink).toBeVisible();
+    expect(operationsLink).toHaveAttribute("href", "/operaciones");
   });
+
 
   it("renders the logout option pointing to the logout route", () => {
     render(<Sidebar profile={profile} />);

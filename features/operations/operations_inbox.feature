@@ -41,7 +41,6 @@ Feature: Bandeja transversal de operaciones y contrataciones
     When intento consultar la sección de operaciones
     Then se presenta un aviso informando el inconveniente con la posibilidad de reintentar la carga
 
-  @wip
   Scenario: 08-OP Acceder a los detalles de una contratación desde el listado
     Given que visualizo una contratación en la bandeja de operaciones
     When selecciono la contratación para inspeccionarla

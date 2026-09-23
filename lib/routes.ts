@@ -6,5 +6,7 @@ export const ROUTES = {
   users: "/usuarios",
   categories: "/rubros",
   operations: "/operaciones",
+  operationDetail: (id: string | number) => `/operaciones/${id}`,
   logout: "/auth/logout",
 } as const;
+

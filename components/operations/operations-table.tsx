@@ -67,8 +67,16 @@ export function OperationsTable({ operations, onSelectOperation }: OperationsTab
             <tr
               key={op.id}
               onClick={() => onSelectOperation?.(op)}
-              className={`transition-colors hover:bg-[#F4F1EE]/30 ${onSelectOperation ? "cursor-pointer" : ""}`.trim()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelectOperation?.(op);
+                }
+              }}
+              tabIndex={onSelectOperation ? 0 : undefined}
+              className={`transition-colors hover:bg-[#F4F1EE]/30 ${onSelectOperation ? "cursor-pointer focus:bg-[#F4F1EE]/50 focus:outline-none focus:ring-1 focus:ring-[#147560]" : ""}`.trim()}
             >
+
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="font-medium text-[#1A2B48]">
                   {op.consumer.name} {op.consumer.surname}

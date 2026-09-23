@@ -1,15 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { OperationSummary, BottleneckType } from "@/domain/operations/operation-summary";
 import type { OperationFilters } from "@/ports/operations/operation-repository";
 import { translations } from "@/infrastructure/i18n/translations";
+import { ROUTES } from "@/lib/routes";
 import { getOperationsAction } from "@/app/(dashboard)/operaciones/actions";
 import { getCategoriesAction } from "@/app/(dashboard)/rubros/actions";
 import { OperationsTable } from "./operations-table";
 import { OperationsSkeleton } from "./operations-skeleton";
 import { OperationsEmptyState } from "./operations-empty-state";
 import { OperationsFilterBar, type CategoryOption } from "./operations-filter-bar";
+
 
 export interface OperationsInboxClientProps {
   initialFilters?: OperationFilters;
@@ -97,13 +100,8 @@ function OperationsError({ error, onRetry }: { error: string; onRetry: () => voi
   );
 }
 
-export function OperationsInboxClient({
-  initialFilters,
-  initialCategories,
-}: OperationsInboxClientProps) {
+function useOperationFilters(initialFilters?: OperationFilters) {
   const [filters, setFilters] = useState<OperationFilters>(initialFilters ?? {});
-  const { operations, isLoading, error, isForbidden, retry } = useOperations(filters);
-  const categories = useCategories(initialCategories);
 
   const handleSearchChange = (query: string) => {
     setFilters((prev) => ({
@@ -126,10 +124,27 @@ export function OperationsInboxClient({
     }));
   };
 
+  return {
+    filters,
+    handleSearchChange,
+    handleCategoryChange,
+    handleBottleneckChange,
+  };
+}
+
+export function OperationsInboxClient({
+  initialFilters,
+  initialCategories,
+}: OperationsInboxClientProps) {
+  const router = useRouter();
+  const { filters, handleSearchChange, handleCategoryChange, handleBottleneckChange } =
+    useOperationFilters(initialFilters);
+  const { operations, isLoading, error, isForbidden, retry } = useOperations(filters);
+  const categories = useCategories(initialCategories);
+
   if (isLoading && operations.length === 0) return <OperationsSkeleton />;
   if (isForbidden) return <OperationsForbidden message={error ?? translations.operations.forbidden} />;
   if (error) return <OperationsError error={error} onRetry={retry} />;
-
 
   return (
     <div className="space-y-6">
@@ -148,8 +163,13 @@ export function OperationsInboxClient({
       ) : operations.length === 0 ? (
         <OperationsEmptyState />
       ) : (
-        <OperationsTable operations={operations} />
+        <OperationsTable
+          operations={operations}
+          onSelectOperation={(op) => router.push(ROUTES.operationDetail(op.id))}
+        />
       )}
     </div>
   );
 }
+
+

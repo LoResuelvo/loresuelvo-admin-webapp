@@ -5,7 +5,15 @@ import { OperationsInboxClient } from "./operations-inbox-client";
 import * as actions from "@/app/(dashboard)/operaciones/actions";
 import type { OperationSummary } from "@/domain/operations/operation-summary";
 
+const mockPush = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: mockPush,
+  }),
+}));
+
 vi.mock("@/app/(dashboard)/operaciones/actions", () => ({
+
   getOperationsAction: vi.fn(),
 }));
 
@@ -194,6 +202,24 @@ describe("OperationsInboxClient", () => {
     });
     expect(screen.getByText("Juan Pérez")).toBeInTheDocument();
   });
+
+  it("navigates to operation detail when an operation row is clicked", async () => {
+    const user = userEvent.setup();
+    vi.mocked(actions.getOperationsAction).mockResolvedValue({
+      success: true,
+      data: mockOperations,
+    });
+
+    render(<OperationsInboxClient />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByText("Juan Pérez"));
+    expect(mockPush).toHaveBeenCalledWith("/operaciones/op-1");
+  });
 });
+
 
 
