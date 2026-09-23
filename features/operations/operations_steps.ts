@@ -563,5 +563,86 @@ Then(
   },
 );
 
+const sampleOperationWithProposalAndOrder = {
+  ...sampleOperationDetail,
+  id: "op-101",
+  status: "in_progress",
+  proposals: [
+    {
+      id: 201,
+      amount_cents: 4500000,
+      booking_deposit_cents: 900000,
+      estimated_duration: "3 días",
+      description: "Desmonte de bacha, recambio de cañería averiada y sellado siliconado.",
+      status: "accepted",
+      created_at: "2026-09-19T11:30:00Z",
+    },
+  ],
+  order: {
+    id: 301,
+    status: "scheduled",
+    scheduled_for: "2026-09-25T09:00:00Z",
+    completion_report: null,
+    review: null,
+  },
+};
+
+Given(
+  "que la contratación posee un presupuesto acordado y una orden programada",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/operations/op-101", sampleOperationWithProposalAndOrder);
+    await this.stubGet("/operations/op-101", sampleOperationWithProposalAndOrder);
+  },
+);
+
+When(
+  "reviso la sección de presupuesto y orden en la ficha",
+  async function (this: CustomWorld) {
+    const detailRoute = ROUTES.operationDetail("op-101");
+    if (!this.page.url().includes(detailRoute)) {
+      await this.page.goto(new URL(detailRoute, this.appUrl).href);
+    }
+    const proposalSection = this.page.getByTestId("operation-proposal-card");
+    await proposalSection.waitFor({ state: "visible", timeout: 5000 });
+  },
+);
+
+Then(
+  "visualizo el valor total acordado, el porcentaje de seña, las fechas comprometidas y el estado de la orden",
+  async function (this: CustomWorld) {
+    const proposalSection = this.page.getByTestId("operation-proposal-card");
+    await proposalSection.waitFor({ state: "visible", timeout: 5000 });
+    const proposalText = await proposalSection.innerText();
+
+    assert.ok(proposalText.includes("45.000") || proposalText.includes("45,000"));
+    assert.ok(
+      proposalText.includes("20%") ||
+        proposalText.includes("20 %") ||
+        proposalText.includes("Seña") ||
+        proposalText.includes("seña"),
+    );
+    assert.ok(
+      proposalText.includes("3 días") ||
+        proposalText.includes("19") ||
+        proposalText.includes("2026"),
+    );
+
+    const orderSection = this.page.getByTestId("operation-order-card");
+    await orderSection.waitFor({ state: "visible", timeout: 5000 });
+    const orderText = await orderSection.innerText();
+    assert.ok(
+      orderText.includes("Programada") ||
+        orderText.includes("Agendada") ||
+        orderText.includes("scheduled") ||
+        orderText.includes("En progreso"),
+    );
+    assert.ok(
+      orderText.includes("25") ||
+        orderText.includes("2026") ||
+        orderText.includes("09:00"),
+    );
+  },
+);
+
 
 
