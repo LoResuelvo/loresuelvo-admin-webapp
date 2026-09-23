@@ -295,3 +295,43 @@ Then(
     assert.ok(row0Text.includes("Plomería"));
   },
 );
+
+Given(
+  "que mi cuenta de usuario no posee permisos para gestionar operaciones",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/operations",
+      status: 403,
+      body: { error: "Forbidden" },
+    });
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/operations",
+      status: 403,
+      body: { error: "Forbidden" },
+    });
+  },
+);
+
+When(
+  "intento ingresar a la sección de operaciones",
+  async function (this: CustomWorld) {
+    const operationsRoute = (ROUTES as { operations?: string }).operations || "/operaciones";
+    await this.page.goto(new URL(operationsRoute, this.appUrl).href);
+  },
+);
+
+Then(
+  "el sistema me informa que el acceso está restringido",
+  async function (this: CustomWorld) {
+    const alert = this.page.getByRole("alert").filter({
+      hasText: /restringido|permisos/i,
+    });
+    await alert.waitFor({ state: "visible" });
+    assert.ok(await alert.isVisible());
+    const retryButton = this.page.getByRole("button", { name: /reintentar/i });
+    assert.equal(await retryButton.count(), 0);
+  },
+);
+
