@@ -165,5 +165,35 @@ describe("OperationsInboxClient", () => {
     expect(screen.getByText(/permisos|restringido/i)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /reintentar/i })).not.toBeInTheDocument();
   });
+
+  it("renders error alert with retry button and retries loading when clicked", async () => {
+    const user = userEvent.setup();
+    vi.mocked(actions.getOperationsAction)
+      .mockResolvedValueOnce({
+        success: false,
+        error: "Ocurrió un error al cargar las operaciones. Por favor intente nuevamente.",
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        data: mockOperations,
+      });
+
+    render(<OperationsInboxClient />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toBeInTheDocument();
+    });
+
+    const retryButton = screen.getByRole("button", { name: "Reintentar" });
+    expect(retryButton).toBeInTheDocument();
+
+    await user.click(retryButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Juan Pérez")).toBeInTheDocument();
+  });
 });
+
 

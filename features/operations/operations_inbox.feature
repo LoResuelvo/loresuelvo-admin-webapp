@@ -36,7 +36,6 @@ Feature: Bandeja transversal de operaciones y contrataciones
     When intento ingresar a la sección de operaciones
     Then el sistema me informa que el acceso está restringido
 
-  @wip
   Scenario: 07-OP Manejar problemas de conexión al consultar operaciones
     Given que el sistema experimenta dificultades de conexión con el servidor
     When intento consultar la sección de operaciones
