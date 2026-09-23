@@ -374,4 +374,39 @@ Then(
   },
 );
 
+Given(
+  "que visualizo una contratación en la bandeja de operaciones",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/operations", sampleOperations);
+    await this.stubGet("/operations", sampleOperations);
+    const operationsRoute = (ROUTES as { operations?: string }).operations || "/operaciones";
+    await this.page.goto(new URL(operationsRoute, this.appUrl).href);
+    const table = this.page.getByRole("table");
+    await table.waitFor({ state: "visible" });
+    const rows = this.page.locator("tbody tr");
+    await rows.first().waitFor({ state: "visible" });
+  },
+);
+
+When(
+  "selecciono la contratación para inspeccionarla",
+  async function (this: CustomWorld) {
+    const firstRow = this.page.locator("tbody tr").first();
+    await firstRow.click();
+  },
+);
+
+Then(
+  "accedo a la ficha con el detalle completo del servicio",
+  async function (this: CustomWorld) {
+    await this.page.waitForURL(/\/operaciones\/.+/);
+    const heading = this.page.getByRole("heading", {
+      name: /ficha|detalle/i,
+    });
+    await heading.waitFor({ state: "visible" });
+    assert.ok(await heading.isVisible());
+  },
+);
+
+
 
