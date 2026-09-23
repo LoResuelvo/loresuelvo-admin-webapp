@@ -34,6 +34,20 @@ export const operationsTranslations = {
     platform: "Plataforma",
     none: "—",
   },
+  filters: {
+    bottleneck: {
+      label: "Alerta Operativa",
+      all: "Todas las alertas",
+    },
+    category: {
+      label: "Rubro",
+      all: "Todos los rubros",
+    },
+    search: {
+      label: "Buscar participante",
+      placeholder: "Buscar por cliente o prestador...",
+    },
+  },
   loading: "Cargando operaciones...",
   empty: {
     title: "No se encontraron operaciones disponibles",
