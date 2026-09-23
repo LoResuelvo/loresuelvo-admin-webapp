@@ -68,3 +68,29 @@ Given(
   },
 );
 
+When(
+  "busco en el directorio de consumidores con el texto {string}",
+  async function (this: CustomWorld, query: string) {
+    if (!this.page.url().includes(ROUTES.users)) {
+      await this.page.goto(new URL(ROUTES.users, this.appUrl).href);
+    }
+    const searchInput = this.page.getByRole("searchbox").or(this.page.getByLabel(/buscar/i));
+    await searchInput.waitFor({ state: "visible" });
+    await searchInput.fill(query);
+  },
+);
+
+Then(
+  "el listado contiene únicamente a {string}",
+  async function (this: CustomWorld, expectedEmail: string) {
+    const table = this.page.getByRole("table");
+    await table.waitFor({ state: "visible" });
+    const rows = this.page.locator("tbody tr");
+    await rows.first().waitFor({ state: "visible" });
+    assert.equal(await rows.count(), 1);
+    const text = await rows.first().innerText();
+    assert.ok(text.includes(expectedEmail));
+  },
+);
+
+
