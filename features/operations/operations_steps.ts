@@ -644,5 +644,100 @@ Then(
   },
 );
 
+const sampleOperationWithCompletionAndReview = {
+  ...sampleOperationDetail,
+  id: "op-101",
+  status: "completed",
+  proposals: [
+    {
+      id: 201,
+      amount_cents: 4500000,
+      booking_deposit_cents: 900000,
+      estimated_duration: "3 días",
+      description: "Desmonte y sellado siliconado.",
+      status: "accepted",
+      created_at: "2026-09-19T11:30:00Z",
+    },
+  ],
+  order: {
+    id: 301,
+    status: "completed",
+    scheduled_for: "2026-09-25T09:00:00Z",
+    completion_report: {
+      completed_at: "2026-09-25T15:30:00Z",
+      notes:
+        "Se reparó con éxito la pérdida del sifón y se colocó caño corrugado nuevo con junta de estanqueidad.",
+      photos: [
+        "https://example.com/photos/evidence-1.jpg",
+        "https://example.com/photos/evidence-2.jpg",
+      ],
+    },
+    review: {
+      rating: 5,
+      comment:
+        "Excelente trabajo de Carlos, muy prolijo y puntual. Resolvió todo en el tiempo pactado.",
+      created_at: "2026-09-25T17:00:00Z",
+    },
+  },
+};
+
+Given(
+  "que el prestador concluyó el trabajo y el cliente dejó su valoración",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/operations/op-101", sampleOperationWithCompletionAndReview);
+    await this.stubGet("/operations/op-101", sampleOperationWithCompletionAndReview);
+  },
+);
+
+When(
+  "reviso la sección de finalización en la ficha",
+  async function (this: CustomWorld) {
+    const detailRoute = ROUTES.operationDetail("op-101");
+    if (!this.page.url().includes(detailRoute)) {
+      await this.page.goto(new URL(detailRoute, this.appUrl).href);
+    }
+    const completionSection = this.page.getByTestId("operation-completion-card");
+    await completionSection.waitFor({ state: "visible", timeout: 5000 });
+  },
+);
+
+Then(
+  "visualizo el informe del trabajo realizado con las fotos de evidencia y la reseña con calificación del cliente",
+  async function (this: CustomWorld) {
+    const completionSection = this.page.getByTestId("operation-completion-card");
+    await completionSection.waitFor({ state: "visible", timeout: 5000 });
+    const completionText = await completionSection.innerText();
+
+    assert.ok(
+      completionText.includes("Se reparó con éxito") ||
+        completionText.includes("pérdida del sifón") ||
+        completionText.includes("junta de estanqueidad"),
+    );
+
+    const photos = completionSection
+      .locator("[data-testid='evidence-photo']")
+      .or(completionSection.locator("img"));
+    assert.ok((await photos.count()) >= 2);
+
+    const reviewSection = this.page
+      .getByTestId("operation-review-card")
+      .or(completionSection.locator("[data-testid='operation-review-card']"));
+    const reviewOrCompletionText =
+      (await reviewSection.count()) > 0
+        ? await reviewSection.first().innerText()
+        : completionText;
+
+    assert.ok(
+      reviewOrCompletionText.includes("Excelente trabajo de Carlos") ||
+        reviewOrCompletionText.includes("muy prolijo y puntual"),
+    );
+    assert.ok(
+      reviewOrCompletionText.includes("5") ||
+        reviewOrCompletionText.includes("★") ||
+        reviewOrCompletionText.includes("Calificación"),
+    );
+  },
+);
+
 
 
