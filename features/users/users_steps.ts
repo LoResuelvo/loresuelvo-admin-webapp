@@ -54,3 +54,17 @@ Then("la vista no incluye a prestadores ni administradores", async function (thi
   assert.ok(!text.toLowerCase().includes("prestador"));
   assert.ok(!text.toLowerCase().includes("administrador"));
 });
+
+Given(
+  "que la consulta del directorio de consumidores tarda en responder",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/consumers",
+      status: 200,
+      body: [],
+      delayMs: 3000,
+    });
+  },
+);
+
