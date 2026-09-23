@@ -11,7 +11,6 @@ Feature: Bandeja transversal de operaciones y contrataciones
     When ingreso a la sección de operaciones
     Then visualizo el listado de contrataciones con el cliente, prestador, rubro, estado actual, la alerta operativa detectada y el responsable de avanzar el servicio
 
-  @wip
   Scenario: 02-OP Mostrar estado de espera mientras se cargan las operaciones
     Given que la carga de las operaciones toma unos momentos
     When ingreso a la sección de operaciones

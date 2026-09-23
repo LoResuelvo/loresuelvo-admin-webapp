@@ -6,6 +6,7 @@ import type { OperationFilters } from "@/ports/operations/operation-repository";
 import { translations } from "@/infrastructure/i18n/translations";
 import { getOperationsAction } from "@/app/(dashboard)/operaciones/actions";
 import { OperationsTable } from "./operations-table";
+import { OperationsSkeleton } from "./operations-skeleton";
 
 export interface OperationsInboxClientProps {
   initialFilters?: OperationFilters;
@@ -40,20 +41,6 @@ function useOperations(initialFilters?: OperationFilters) {
   return { operations, isLoading, error, retry: loadOperations };
 }
 
-function OperationsLoading() {
-  return (
-    <div role="status" aria-live="polite" className="flex flex-col items-center justify-center py-16 text-center">
-      <span
-        aria-hidden="true"
-        className="mb-4 block size-8 rounded-full border-2 border-[#147560]/20 border-t-[#147560] motion-safe:animate-spin"
-      />
-      <p className="text-sm font-medium text-[#1A2B48]/70">
-        {translations.operations.loading}
-      </p>
-    </div>
-  );
-}
-
 function OperationsError({ error, onRetry }: { error: string; onRetry: () => void }) {
   return (
     <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
@@ -82,7 +69,7 @@ function OperationsEmpty() {
 export function OperationsInboxClient({ initialFilters }: OperationsInboxClientProps) {
   const { operations, isLoading, error, retry } = useOperations(initialFilters);
 
-  if (isLoading) return <OperationsLoading />;
+  if (isLoading) return <OperationsSkeleton />;
   if (error) return <OperationsError error={error} onRetry={retry} />;
   if (operations.length === 0) return <OperationsEmpty />;
 
