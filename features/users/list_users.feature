@@ -17,7 +17,6 @@ Feature: Listar usuarios registrados
     Then veo el listado de consumidores con su foto, nombre, apellido, correo y fecha de registro
     And la vista no incluye a prestadores ni administradores
 
-  @wip
   Scenario: 02-USR Mostrar estado de carga al consultar consumidores
     Given que la consulta del directorio de consumidores tarda en responder
     When ingreso al directorio de consumidores
