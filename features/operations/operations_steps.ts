@@ -156,3 +156,27 @@ Then(
     assert.ok((await shimmerRows.count()) >= 1);
   },
 );
+
+Given(
+  "que no existen contrataciones que coincidan con el criterio seleccionado",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/operations", []);
+    await this.stubGet("/operations", []);
+  },
+);
+
+When("aplico el filtro en la bandeja de operaciones", async function (this: CustomWorld) {
+  const operationsRoute = (ROUTES as { operations?: string }).operations || "/operaciones";
+  if (!this.page.url().includes(operationsRoute)) {
+    await this.page.goto(new URL(operationsRoute, this.appUrl).href);
+  }
+});
+
+Then(
+  "se presenta un mensaje indicando que no se encontraron operaciones disponibles",
+  async function (this: CustomWorld) {
+    const emptyState = this.page.getByTestId("operations-empty-state");
+    await emptyState.waitFor({ state: "visible" });
+    assert.ok((await emptyState.innerText()).includes("No se encontraron operaciones disponibles"));
+  },
+);
