@@ -37,6 +37,8 @@ describe("OperationDetailClient", () => {
       status: "in_progress",
       photos: [],
     },
+    proposals: [],
+    order: null,
     timeline: [],
   };
 

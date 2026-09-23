@@ -1,13 +1,21 @@
 import type { OperationSummary } from "@/domain/operations/operation-summary";
 import type {
+  CompletionReport,
+  OrderDetail,
   OperationPartyDetail,
+  ProposalDetail,
   RequestDetail,
+  ServiceReview,
   TimelineMilestone,
   UnifiedOperationDetail,
 } from "@/domain/operations/unified-operation-detail";
 import {
+  type ApiCompletionReport,
+  type ApiOrderDetail,
   type ApiOperationPartyDetail,
+  type ApiProposalDetail,
   type ApiRequestDetail,
+  type ApiServiceReview,
   type ApiTimelineMilestone,
   apiOperationsResponseSchema,
   apiUnifiedOperationDetailResponseSchema,
@@ -84,6 +92,51 @@ function mapMilestone(m: ApiTimelineMilestone): TimelineMilestone {
   };
 }
 
+function mapProposal(p: ApiProposalDetail): ProposalDetail {
+  return {
+    id: p.id,
+    amountCents: p.amountCents ?? p.amount_cents ?? 0,
+    bookingDepositCents: p.bookingDepositCents ?? p.booking_deposit_cents ?? 0,
+    estimatedDuration: p.estimatedDuration ?? p.estimated_duration ?? "",
+    description: p.description ?? "",
+    status: p.status ?? "",
+    createdAt: p.createdAt ?? p.created_at ?? "",
+  };
+}
+
+function mapCompletionReport(
+  report: ApiCompletionReport | null | undefined,
+): CompletionReport | null {
+  if (!report) return null;
+  return {
+    completedAt: report.completedAt ?? report.completed_at ?? "",
+    notes: report.notes ?? "",
+    photos: report.photos ?? [],
+  };
+}
+
+function mapServiceReview(
+  review: ApiServiceReview | null | undefined,
+): ServiceReview | null {
+  if (!review) return null;
+  return {
+    rating: review.rating ?? 0,
+    comment: review.comment ?? "",
+    createdAt: review.createdAt ?? review.created_at ?? "",
+  };
+}
+
+function mapOrder(order: ApiOrderDetail | null | undefined): OrderDetail | null {
+  if (!order) return null;
+  return {
+    id: order.id,
+    status: order.status,
+    scheduledFor: order.scheduledFor ?? order.scheduled_for ?? null,
+    completionReport: mapCompletionReport(order.completionReport ?? order.completion_report),
+    review: mapServiceReview(order.review),
+  };
+}
+
 export function mapUnifiedOperationDetail(raw: unknown): UnifiedOperationDetail {
   const parsed = apiUnifiedOperationDetailResponseSchema.safeParse(raw);
   if (!parsed.success) {
@@ -109,8 +162,8 @@ export function mapUnifiedOperationDetail(raw: unknown): UnifiedOperationDetail 
     provider: mapParty(item.provider),
     currentAddress: item.currentAddress ?? item.current_address ?? "",
     request: mapRequest(item.request),
-    proposals: item.proposals,
-    order: item.order,
+    proposals: (item.proposals ?? []).map(mapProposal),
+    order: mapOrder(item.order),
     paymentMilestones: item.paymentMilestones ?? item.payment_milestones,
     timeline: item.timeline.map(mapMilestone),
   };

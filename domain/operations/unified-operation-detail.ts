@@ -24,6 +24,36 @@ export interface RequestDetail {
   readonly photos: readonly string[];
 }
 
+export interface ProposalDetail {
+  readonly id: number;
+  readonly amountCents: number;
+  readonly bookingDepositCents: number;
+  readonly estimatedDuration: string;
+  readonly description: string;
+  readonly status: string;
+  readonly createdAt: string;
+}
+
+export interface CompletionReport {
+  readonly completedAt: string;
+  readonly notes: string;
+  readonly photos: readonly string[];
+}
+
+export interface ServiceReview {
+  readonly rating: number;
+  readonly comment: string;
+  readonly createdAt: string;
+}
+
+export interface OrderDetail {
+  readonly id: number;
+  readonly status: string;
+  readonly scheduledFor?: string | null;
+  readonly completionReport?: CompletionReport | null;
+  readonly review?: ServiceReview | null;
+}
+
 export interface UnifiedOperationDetail {
   readonly id: string;
   readonly status: OperationStatus;
@@ -33,8 +63,8 @@ export interface UnifiedOperationDetail {
   readonly provider: OperationPartyDetail;
   readonly currentAddress: string;
   readonly request: RequestDetail;
-  readonly proposals?: readonly unknown[];
-  readonly order?: unknown;
+  readonly proposals: readonly ProposalDetail[];
+  readonly order?: OrderDetail | null;
   readonly paymentMilestones?: unknown;
   readonly timeline: readonly TimelineMilestone[];
 }

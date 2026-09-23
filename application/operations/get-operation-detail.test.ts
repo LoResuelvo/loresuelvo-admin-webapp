@@ -32,6 +32,8 @@ describe("getOperationDetail use case", () => {
       status: "in_progress",
       photos: [],
     },
+    proposals: [],
+    order: null,
     timeline: [],
   };
 

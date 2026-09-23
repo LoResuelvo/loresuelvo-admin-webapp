@@ -193,6 +193,52 @@ export const apiRequestDetailSchema = z.object({
 
 export type ApiRequestDetail = z.infer<typeof apiRequestDetailSchema>;
 
+export const apiProposalDetailSchema = z.object({
+  id: z.number().int().positive(),
+  amount_cents: z.number().int().nonnegative().optional(),
+  amountCents: z.number().int().nonnegative().optional(),
+  booking_deposit_cents: z.number().int().nonnegative().optional(),
+  bookingDepositCents: z.number().int().nonnegative().optional(),
+  estimated_duration: z.string().optional().default(""),
+  estimatedDuration: z.string().optional(),
+  description: z.string().optional().default(""),
+  status: z.string().optional().default("sent"),
+  created_at: z.string().optional().default(""),
+  createdAt: z.string().optional(),
+});
+
+export type ApiProposalDetail = z.infer<typeof apiProposalDetailSchema>;
+
+export const apiCompletionReportSchema = z.object({
+  completed_at: z.string().optional().default(""),
+  completedAt: z.string().optional(),
+  notes: z.string().optional().default(""),
+  photos: z.array(z.string()).default([]),
+});
+
+export type ApiCompletionReport = z.infer<typeof apiCompletionReportSchema>;
+
+export const apiServiceReviewSchema = z.object({
+  rating: z.number().min(0).max(5).default(0),
+  comment: z.string().optional().default(""),
+  created_at: z.string().optional().default(""),
+  createdAt: z.string().optional(),
+});
+
+export type ApiServiceReview = z.infer<typeof apiServiceReviewSchema>;
+
+export const apiOrderDetailSchema = z.object({
+  id: z.number().int().positive(),
+  status: z.string().min(1),
+  scheduled_for: z.string().nullish(),
+  scheduledFor: z.string().nullish(),
+  completion_report: apiCompletionReportSchema.nullish(),
+  completionReport: apiCompletionReportSchema.nullish(),
+  review: apiServiceReviewSchema.nullish(),
+});
+
+export type ApiOrderDetail = z.infer<typeof apiOrderDetailSchema>;
+
 export const apiUnifiedOperationDetailItemSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   status: apiOperationStatusSchema,
@@ -204,8 +250,8 @@ export const apiUnifiedOperationDetailItemSchema = z.object({
   current_address: z.string().optional(),
   currentAddress: z.string().optional(),
   request: apiRequestDetailSchema,
-  proposals: z.array(z.unknown()).optional(),
-  order: z.unknown().optional(),
+  proposals: z.array(apiProposalDetailSchema).default([]),
+  order: apiOrderDetailSchema.nullish(),
   payment_milestones: z.unknown().optional(),
   paymentMilestones: z.unknown().optional(),
   timeline: z.array(apiTimelineMilestoneSchema).default([]),

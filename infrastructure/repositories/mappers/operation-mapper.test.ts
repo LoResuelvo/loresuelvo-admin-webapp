@@ -240,6 +240,8 @@ describe("mapUnifiedOperationDetail", () => {
     expect(result.request.photos).toEqual(["https://example.com/photos/leak-1.jpg"]);
     expect(result.timeline).toHaveLength(1);
     expect(result.timeline[0].type).toBe("job_requested");
+    expect(result.proposals).toEqual([]);
+    expect(result.order).toBeNull();
   });
 
   it("maps camelCase detail payload and converts numeric id to string", () => {
@@ -251,6 +253,99 @@ describe("mapUnifiedOperationDetail", () => {
     expect(result.provider.profilePhotoUrl).toBeNull();
     expect(result.currentAddress).toBe("Belgrano 567, CABA");
     expect(result.timeline).toHaveLength(0);
+    expect(result.proposals).toEqual([]);
+    expect(result.order).toBeNull();
+  });
+
+  it("maps proposals and order with snake_case and nested completion/review correctly", () => {
+    const detailWithOrder = {
+      ...sampleSnakeDetail,
+      proposals: [
+        {
+          id: 201,
+          amount_cents: 4500000,
+          booking_deposit_cents: 900000,
+          estimated_duration: "3 días",
+          description: "Desmonte y sellado",
+          status: "accepted",
+          created_at: "2026-09-19T11:30:00Z",
+        },
+      ],
+      order: {
+        id: 301,
+        status: "completed",
+        scheduled_for: "2026-09-25T09:00:00Z",
+        completion_report: {
+          completed_at: "2026-09-25T14:00:00Z",
+          notes: "Trabajo realizado exitosamente sin pérdidas.",
+          photos: ["https://example.com/photo-after.jpg"],
+        },
+        review: {
+          rating: 5,
+          comment: "Excelente servicio, muy puntual.",
+          created_at: "2026-09-25T15:00:00Z",
+        },
+      },
+    };
+
+    const result = mapUnifiedOperationDetail(detailWithOrder);
+    expect(result.proposals).toHaveLength(1);
+    expect(result.proposals[0]).toEqual({
+      id: 201,
+      amountCents: 4500000,
+      bookingDepositCents: 900000,
+      estimatedDuration: "3 días",
+      description: "Desmonte y sellado",
+      status: "accepted",
+      createdAt: "2026-09-19T11:30:00Z",
+    });
+
+    expect(result.order).toEqual({
+      id: 301,
+      status: "completed",
+      scheduledFor: "2026-09-25T09:00:00Z",
+      completionReport: {
+        completedAt: "2026-09-25T14:00:00Z",
+        notes: "Trabajo realizado exitosamente sin pérdidas.",
+        photos: ["https://example.com/photo-after.jpg"],
+      },
+      review: {
+        rating: 5,
+        comment: "Excelente servicio, muy puntual.",
+        createdAt: "2026-09-25T15:00:00Z",
+      },
+    });
+  });
+
+  it("maps proposals and order with camelCase fields correctly", () => {
+    const detailWithCamelOrder = {
+      ...sampleCamelDetail,
+      proposals: [
+        {
+          id: 202,
+          amountCents: 3000000,
+          bookingDepositCents: 600000,
+          estimatedDuration: "1 día",
+          description: "Revisión térmica",
+          status: "pending",
+          createdAt: "2026-09-20T08:00:00Z",
+        },
+      ],
+      order: {
+        id: 302,
+        status: "scheduled",
+        scheduledFor: "2026-09-26T10:00:00Z",
+        completionReport: null,
+        review: null,
+      },
+    };
+
+    const result = mapUnifiedOperationDetail(detailWithCamelOrder);
+    expect(result.proposals[0].amountCents).toBe(3000000);
+    expect(result.proposals[0].bookingDepositCents).toBe(600000);
+    expect(result.order?.scheduledFor).toBe("2026-09-26T10:00:00Z");
+    expect(result.order?.completionReport).toBeNull();
+    expect(result.order?.review).toBeNull();
   });
 
   it("maps wrapped detail responses ({ operation: ... } and { data: ... })", () => {
