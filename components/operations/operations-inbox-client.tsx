@@ -1,19 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { OperationSummary } from "@/domain/operations/operation-summary";
+import type { OperationSummary, BottleneckType } from "@/domain/operations/operation-summary";
 import type { OperationFilters } from "@/ports/operations/operation-repository";
 import { translations } from "@/infrastructure/i18n/translations";
 import { getOperationsAction } from "@/app/(dashboard)/operaciones/actions";
 import { OperationsTable } from "./operations-table";
 import { OperationsSkeleton } from "./operations-skeleton";
 import { OperationsEmptyState } from "./operations-empty-state";
+import { OperationsFilterBar } from "./operations-filter-bar";
 
 export interface OperationsInboxClientProps {
   initialFilters?: OperationFilters;
 }
 
-function useOperations(initialFilters?: OperationFilters) {
+function useOperations(filters?: OperationFilters) {
   const [operations, setOperations] = useState<OperationSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +23,7 @@ function useOperations(initialFilters?: OperationFilters) {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await getOperationsAction(initialFilters);
+      const result = await getOperationsAction(filters);
       if (result.success) {
         setOperations(result.data);
       } else {
@@ -33,7 +34,7 @@ function useOperations(initialFilters?: OperationFilters) {
     } finally {
       setIsLoading(false);
     }
-  }, [initialFilters]);
+  }, [filters]);
 
   useEffect(() => {
     loadOperations();
@@ -58,11 +59,33 @@ function OperationsError({ error, onRetry }: { error: string; onRetry: () => voi
 }
 
 export function OperationsInboxClient({ initialFilters }: OperationsInboxClientProps) {
-  const { operations, isLoading, error, retry } = useOperations(initialFilters);
+  const [filters, setFilters] = useState<OperationFilters>(initialFilters ?? {});
+  const { operations, isLoading, error, retry } = useOperations(filters);
 
-  if (isLoading) return <OperationsSkeleton />;
+  const handleBottleneckChange = (bottleneck: BottleneckType | "") => {
+    setFilters((prev) => ({
+      ...prev,
+      bottleneck: bottleneck || undefined,
+    }));
+  };
+
+  if (isLoading && operations.length === 0) return <OperationsSkeleton />;
   if (error) return <OperationsError error={error} onRetry={retry} />;
-  if (operations.length === 0) return <OperationsEmptyState />;
 
-  return <OperationsTable operations={operations} />;
+  return (
+    <div className="space-y-6">
+      <OperationsFilterBar
+        selectedBottleneck={filters.bottleneck}
+        onBottleneckChange={handleBottleneckChange}
+      />
+
+      {isLoading ? (
+        <OperationsSkeleton />
+      ) : operations.length === 0 ? (
+        <OperationsEmptyState />
+      ) : (
+        <OperationsTable operations={operations} />
+      )}
+    </div>
+  );
 }

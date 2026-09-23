@@ -16,7 +16,6 @@ Feature: Bandeja transversal de operaciones y contrataciones
     When ingreso a la sección de operaciones
     Then se presenta una vista de carga con indicadores visuales mientras se obtiene la información
 
-  @wip
   Scenario: 03-OP Filtrar contrataciones por alertas de cuello de botella
     Given que existen contrataciones con solicitudes demoradas por más de 24 horas y otras al día
     When filtro las operaciones seleccionando la alerta "Estancada > 24h"
