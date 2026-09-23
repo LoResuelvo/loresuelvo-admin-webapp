@@ -443,11 +443,11 @@ test("selectGate: modificar features/support/hooks.ts selecciona Gate C", () => 
 });
 
 test("selectGate: step definition utilizado por una única feature selecciona Gate B", () => {
-  // login_steps.ts is used ONLY by login.feature
+  // operations_steps.ts is used ONLY by operations_inbox.feature
   const result = selectGate({
     intent: "prepare_commit",
     snapshot: {
-      stagedFiles: ["features/auth/login_steps.ts"],
+      stagedFiles: ["features/operations/operations_steps.ts"],
     },
   });
 
@@ -461,10 +461,10 @@ test("selectGate: step definition utilizado por una única feature selecciona Ga
   assert.ok(result.impact.consumerCount > 0);
   assert.strictEqual(
     result.gate.parameters.featureFile,
-    "features/auth/login.feature"
+    "features/operations/operations_inbox.feature"
   );
   assert.deepStrictEqual(result.gate.checks, [
-    "make test-e2e-managed E2E_FILE=features/auth/login.feature",
+    "make test-e2e-managed E2E_FILE=features/operations/operations_inbox.feature",
   ]);
 });
 

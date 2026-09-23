@@ -296,7 +296,7 @@ test("characterization: selección de gate por impacto Cucumber sobre steps exis
     intent: "prepare_commit",
     snapshot: {
       stagedFiles: [
-        "features/auth/login_steps.ts",
+        "features/operations/operations_steps.ts",
       ],
     },
     policy,
@@ -308,7 +308,7 @@ test("characterization: selección de gate por impacto Cucumber sobre steps exis
   assert.strictEqual(resultSingle.impact.gate, "B");
   assert.strictEqual(
     resultSingle.gate.parameters.featureFile,
-    "features/auth/login.feature"
+    "features/operations/operations_inbox.feature"
   );
 
   // 4. Step nuevo sin consumidores -> Gate 0

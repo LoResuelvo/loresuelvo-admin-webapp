@@ -85,6 +85,11 @@ Then(
   async function (this: CustomWorld, expectedEmail: string) {
     const table = this.page.getByRole("table");
     await table.waitFor({ state: "visible" });
+    await this.page.waitForFunction(
+      () => document.querySelectorAll("tbody tr").length === 1,
+      null,
+      { timeout: 5000 },
+    );
     const rows = this.page.locator("tbody tr");
     await rows.first().waitFor({ state: "visible" });
     assert.equal(await rows.count(), 1);
