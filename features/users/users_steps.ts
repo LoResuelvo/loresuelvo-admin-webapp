@@ -93,4 +93,19 @@ Then(
   },
 );
 
+Given("que no existen consumidores registrados", async function (this: CustomWorld) {
+  await this.stubGet("/admin/consumers", []);
+});
+
+Then(
+  "veo un mensaje indicando que no hay consumidores disponibles",
+  async function (this: CustomWorld) {
+    const emptyMessage = this.page.getByRole("status").filter({
+      hasText: "No hay consumidores disponibles",
+    });
+    await emptyMessage.waitFor({ state: "visible" });
+  },
+);
+
+
 
