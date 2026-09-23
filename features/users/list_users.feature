@@ -68,7 +68,6 @@ Feature: Listar usuarios registrados
     When filtro los prestadores por el rubro "Plomería" y el estado "approved"
     Then el listado contiene únicamente a "juan@example.com"
 
-  @wip
   Scenario: 10-USR Informar ausencia de prestadores o sin coincidencias de filtros
     Given que no existen prestadores que coincidan con los filtros aplicados
     When aplico los filtros en el directorio de prestadores
