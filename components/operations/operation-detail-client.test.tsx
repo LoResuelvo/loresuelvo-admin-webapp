@@ -120,4 +120,41 @@ describe("OperationDetailClient", () => {
       expect(screen.getByTestId("operation-header")).toBeInTheDocument();
     });
   });
+
+  it("renders proposal and order cards when data is present", async () => {
+    const detailWithProposalAndOrder: UnifiedOperationDetail = {
+      ...mockDetail,
+      proposals: [
+        {
+          id: 201,
+          amountCents: 4500000,
+          bookingDepositCents: 900000,
+          estimatedDuration: "3 días",
+          description: "Trabajo cotizado",
+          status: "accepted",
+          createdAt: "2026-09-19T11:30:00Z",
+        },
+      ],
+      order: {
+        id: 301,
+        status: "scheduled",
+        scheduledFor: "2026-09-25T09:00:00Z",
+        completionReport: null,
+        review: null,
+      },
+    };
+
+    vi.mocked(getOperationDetailAction).mockResolvedValueOnce({
+      success: true,
+      data: detailWithProposalAndOrder,
+    });
+
+    render(<OperationDetailClient id="op-101" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("operation-proposal-card")).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId("operation-order-card")).toBeInTheDocument();
+  });
 });

@@ -7,6 +7,8 @@ import { translations } from "@/infrastructure/i18n/translations";
 import { OperationHeader } from "./operation-header";
 import { OperationTimeline } from "./operation-timeline";
 import { OperationRequestCard } from "./operation-request-card";
+import { OperationProposalCard } from "./operation-proposal-card";
+import { OperationOrderCard } from "./operation-order-card";
 
 export interface OperationDetailClientProps {
   id: string;
@@ -142,6 +144,8 @@ export function OperationDetailClient({ id }: OperationDetailClientProps) {
         currentAddress={operation.currentAddress}
       />
       <OperationRequestCard request={operation.request} />
+      <OperationProposalCard proposals={operation.proposals} />
+      <OperationOrderCard order={operation.order} />
       <OperationTimeline milestones={operation.timeline} />
     </div>
   );

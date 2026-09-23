@@ -21,7 +21,6 @@ Feature: Ficha unificada de contratación y trazabilidad operativa
     When reviso la sección de solicitud en la ficha
     Then visualizo el diagnóstico del problema sugerido por el asistente, la descripción y las fotos adjuntas
 
-  @wip
   Scenario: 04-FCH Visualizar condiciones pactadas y estado de la orden
     Given que la contratación posee un presupuesto acordado y una orden programada
     When reviso la sección de presupuesto y orden en la ficha
