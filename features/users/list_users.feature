@@ -54,7 +54,6 @@ Feature: Listar usuarios registrados
     When ingreso al directorio de prestadores
     Then veo el listado de prestadores con su rubro, zonas de cobertura y estado de verificación
 
-  @wip
   Scenario: 08-USR Mostrar estado de carga al consultar prestadores
     Given que la consulta del directorio de prestadores tarda en responder
     When ingreso al directorio de prestadores
