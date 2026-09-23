@@ -123,6 +123,37 @@ describe("OperationDetailClient", () => {
     });
   });
 
+  it("handles connection error with description and allows retry", async () => {
+    vi.mocked(getOperationDetailAction)
+      .mockResolvedValueOnce({
+        success: false,
+        error: "Error al cargar la ficha de la contratación",
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        data: mockDetail,
+      });
+
+    render(<OperationDetailClient id="op-101" />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Error al cargar la ficha de la contratación")).toBeInTheDocument();
+    expect(
+      screen.getByText("El sistema experimenta dificultades de conexión con el servidor."),
+    ).toBeInTheDocument();
+
+    const retryBtn = screen.getByRole("button", { name: /reintentar/i });
+    expect(retryBtn).toBeInTheDocument();
+    await userEvent.click(retryBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("operation-header")).toBeInTheDocument();
+    });
+  });
+
   it("renders proposal and order cards when data is present", async () => {
     const detailWithProposalAndOrder: UnifiedOperationDetail = {
       ...mockDetail,

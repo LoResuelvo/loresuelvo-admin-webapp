@@ -46,7 +46,6 @@ Feature: Ficha unificada de contratación y trazabilidad operativa
     When intento ingresar a la ficha de una contratación
     Then el sistema me informa que el acceso está restringido
 
-  @wip
   Scenario: 09-FCH Manejar problemas de conexión al cargar la ficha
     Given que el sistema experimenta dificultades de conexión con el servidor
     When intento cargar la ficha de la contratación
