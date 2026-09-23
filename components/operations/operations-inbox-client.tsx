@@ -7,6 +7,7 @@ import { translations } from "@/infrastructure/i18n/translations";
 import { getOperationsAction } from "@/app/(dashboard)/operaciones/actions";
 import { OperationsTable } from "./operations-table";
 import { OperationsSkeleton } from "./operations-skeleton";
+import { OperationsEmptyState } from "./operations-empty-state";
 
 export interface OperationsInboxClientProps {
   initialFilters?: OperationFilters;
@@ -56,22 +57,12 @@ function OperationsError({ error, onRetry }: { error: string; onRetry: () => voi
   );
 }
 
-function OperationsEmpty() {
-  return (
-    <div role="status" className="rounded-2xl border border-[#1A2B48]/10 bg-white p-12 text-center shadow-xs">
-      <p className="text-base font-medium text-[#1A2B48]/80">
-        {translations.operations.empty.title}
-      </p>
-    </div>
-  );
-}
-
 export function OperationsInboxClient({ initialFilters }: OperationsInboxClientProps) {
   const { operations, isLoading, error, retry } = useOperations(initialFilters);
 
   if (isLoading) return <OperationsSkeleton />;
   if (error) return <OperationsError error={error} onRetry={retry} />;
-  if (operations.length === 0) return <OperationsEmpty />;
+  if (operations.length === 0) return <OperationsEmptyState />;
 
   return <OperationsTable operations={operations} />;
 }

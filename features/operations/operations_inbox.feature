@@ -28,7 +28,6 @@ Feature: Bandeja transversal de operaciones y contrataciones
     When busco por el apellido "Pérez" y selecciono el rubro "Plomería"
     Then el listado muestra exclusivamente los servicios que coinciden con el rubro y el participante buscado
 
-  @wip
   Scenario: 05-OP Informar ausencia de operaciones registradas o sin coincidencias
     Given que no existen contrataciones que coincidan con el criterio seleccionado
     When aplico el filtro en la bandeja de operaciones
