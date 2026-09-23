@@ -408,5 +408,84 @@ Then(
   },
 );
 
+const sampleOperationDetail = {
+  id: "op-101",
+  status: "in_progress",
+  created_at: "2026-09-18T10:00:00Z",
+  category: {
+    id: 1,
+    name: "Plomería",
+  },
+  consumer: {
+    id: 10,
+    name: "Ana",
+    surname: "Martínez",
+    email: "ana.martinez@example.com",
+    profile_photo_url: null,
+  },
+  provider: {
+    id: 20,
+    name: "Carlos",
+    surname: "López",
+    email: "carlos.lopez@example.com",
+    profile_photo_url: null,
+  },
+  current_address: "Av. Corrientes 1234, CABA",
+  request: {
+    id: 501,
+    title: "Reparación de cañería en cocina",
+    description: "Pérdida continua de agua bajo la bacha de la cocina.",
+    status: "in_progress",
+    source_assessment_id: "asm-77",
+    diagnostic_summary: "Posible fisura en sifón de desagüe con goteo constante.",
+    photos: ["https://example.com/photos/leak-1.jpg", "https://example.com/photos/leak-2.jpg"],
+  },
+  timeline: [
+    {
+      type: "job_requested",
+      title: "Solicitud creada",
+      timestamp: "2026-09-18T10:00:00Z",
+    },
+    {
+      type: "proposal_sent",
+      title: "Presupuesto enviado",
+      timestamp: "2026-09-19T11:30:00Z",
+    },
+    {
+      type: "order_created",
+      title: "Orden de trabajo confirmada",
+      timestamp: "2026-09-20T14:00:00Z",
+    },
+  ],
+};
+
+Given(
+  "que existe una contratación registrada entre un cliente y un prestador",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/operations/op-101", sampleOperationDetail);
+    await this.stubGet("/operations/op-101", sampleOperationDetail);
+  },
+);
+
+When("consulto la ficha de la contratación", async function (this: CustomWorld) {
+  const detailRoute = ROUTES.operationDetail("op-101");
+  await this.page.goto(new URL(detailRoute, this.appUrl).href);
+});
+
+Then(
+  "visualizo los datos de contacto del cliente, los del prestador, el rubro y el domicilio registrado",
+  async function (this: CustomWorld) {
+    const header = this.page.getByTestId("operation-header");
+    await header.waitFor({ state: "visible", timeout: 5000 });
+    const headerText = await header.innerText();
+    assert.ok(headerText.includes("Ana") && headerText.includes("Martínez"));
+    assert.ok(headerText.includes("ana.martinez@example.com"));
+    assert.ok(headerText.includes("Carlos") && headerText.includes("López"));
+    assert.ok(headerText.includes("carlos.lopez@example.com"));
+    assert.ok(headerText.includes("Plomería"));
+    assert.ok(headerText.includes("Av. Corrientes 1234, CABA"));
+  },
+);
+
 
 
