@@ -223,3 +223,17 @@ Then(
     assert.ok(text0.includes("Verificado"));
   },
 );
+
+Given(
+  "que la consulta del directorio de prestadores tarda en responder",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/providers",
+      status: 200,
+      body: [],
+      delayMs: 3000,
+    });
+  },
+);
+
