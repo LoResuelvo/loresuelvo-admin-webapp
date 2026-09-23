@@ -335,3 +335,43 @@ Then(
   },
 );
 
+Given(
+  "que el sistema experimenta dificultades de conexión con el servidor",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/operations",
+      status: 500,
+      body: { error: "Internal Server Error" },
+    });
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/operations",
+      status: 500,
+      body: { error: "Internal Server Error" },
+    });
+  },
+);
+
+When(
+  "intento consultar la sección de operaciones",
+  async function (this: CustomWorld) {
+    const operationsRoute = (ROUTES as { operations?: string }).operations || "/operaciones";
+    await this.page.goto(new URL(operationsRoute, this.appUrl).href);
+  },
+);
+
+Then(
+  "se presenta un aviso informando el inconveniente con la posibilidad de reintentar la carga",
+  async function (this: CustomWorld) {
+    const errorAlert = this.page.getByRole("alert").filter({
+      hasText: /error|inconveniente|problema/i,
+    });
+    await errorAlert.waitFor({ state: "visible" });
+    const retryButton = this.page.getByRole("button", { name: /reintentar/i });
+    await retryButton.waitFor({ state: "visible" });
+    assert.ok(await retryButton.isVisible());
+  },
+);
+
+
