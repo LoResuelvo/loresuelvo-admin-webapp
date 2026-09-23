@@ -20,15 +20,20 @@ function useOperations(filters?: OperationFilters) {
   const [operations, setOperations] = useState<OperationSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isForbidden, setIsForbidden] = useState(false);
 
   const loadOperations = useCallback(async () => {
     setIsLoading(true);
     setError(null);
+    setIsForbidden(false);
     try {
       const result = await getOperationsAction(filters);
       if (result.success) {
         setOperations(result.data);
       } else {
+        if (result.isForbidden) {
+          setIsForbidden(true);
+        }
         setError(result.error);
       }
     } catch {
@@ -42,7 +47,7 @@ function useOperations(filters?: OperationFilters) {
     loadOperations();
   }, [loadOperations]);
 
-  return { operations, isLoading, error, retry: loadOperations };
+  return { operations, isLoading, error, isForbidden, retry: loadOperations };
 }
 
 function useCategories(initialCategories?: readonly CategoryOption[]) {
@@ -66,6 +71,17 @@ function useCategories(initialCategories?: readonly CategoryOption[]) {
   return categories;
 }
 
+function OperationsForbidden({ message }: { message: string }) {
+  return (
+    <div
+      role="alert"
+      className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-amber-800"
+    >
+      <p className="font-medium">{message}</p>
+    </div>
+  );
+}
+
 function OperationsError({ error, onRetry }: { error: string; onRetry: () => void }) {
   return (
     <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
@@ -86,7 +102,7 @@ export function OperationsInboxClient({
   initialCategories,
 }: OperationsInboxClientProps) {
   const [filters, setFilters] = useState<OperationFilters>(initialFilters ?? {});
-  const { operations, isLoading, error, retry } = useOperations(filters);
+  const { operations, isLoading, error, isForbidden, retry } = useOperations(filters);
   const categories = useCategories(initialCategories);
 
   const handleSearchChange = (query: string) => {
@@ -111,7 +127,9 @@ export function OperationsInboxClient({
   };
 
   if (isLoading && operations.length === 0) return <OperationsSkeleton />;
+  if (isForbidden) return <OperationsForbidden message={error ?? translations.operations.forbidden} />;
   if (error) return <OperationsError error={error} onRetry={retry} />;
+
 
   return (
     <div className="space-y-6">

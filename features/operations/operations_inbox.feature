@@ -31,7 +31,6 @@ Feature: Bandeja transversal de operaciones y contrataciones
     When aplico el filtro en la bandeja de operaciones
     Then se presenta un mensaje indicando que no se encontraron operaciones disponibles
 
-  @wip
   Scenario: 06-OP Informar falta de permisos para supervisar operaciones
     Given que mi cuenta de usuario no posee permisos para gestionar operaciones
     When intento ingresar a la sección de operaciones

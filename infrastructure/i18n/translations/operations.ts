@@ -55,5 +55,6 @@ export const operationsTranslations = {
   },
   error: "Ocurrió un error al cargar las operaciones. Por favor intente nuevamente.",
   retry: "Reintentar",
-  forbidden: "No tiene permisos para supervisar operaciones.",
+  forbidden: "Acceso restringido. No tienes permisos para acceder al Centro de Operaciones.",
 } as const;
+

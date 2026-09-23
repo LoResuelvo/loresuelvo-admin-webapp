@@ -148,4 +148,22 @@ describe("OperationsInboxClient", () => {
 
     expect(screen.getByRole("combobox", { name: "Alerta Operativa" })).toBeInTheDocument();
   });
+
+  it("renders restricted access alert without retry button when isForbidden is true", async () => {
+    vi.mocked(actions.getOperationsAction).mockResolvedValue({
+      success: false,
+      error: "No tiene permisos para supervisar operaciones.",
+      isForbidden: true,
+    });
+
+    render(<OperationsInboxClient />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/permisos|restringido/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /reintentar/i })).not.toBeInTheDocument();
+  });
 });
+
