@@ -216,3 +216,82 @@ Then(
     assert.ok(row0Text.includes("Estancada") || row0Text.includes("Sin avance"));
   },
 );
+
+Given(
+  "que existen contrataciones en diversos rubros y con distintos clientes",
+  async function (this: CustomWorld) {
+    const diverseOperations = [
+      ...sampleOperations,
+      {
+        id: "op-4",
+        job_request_id: 104,
+        consumer: {
+          id: 7,
+          name: "Gonzalo",
+          surname: "Pérez",
+          email: "gonzalo.perez@example.com",
+        },
+        provider: {
+          id: 8,
+          name: "Esteban",
+          surname: "Quito",
+          email: "esteban.quito@example.com",
+        },
+        category: {
+          id: 2,
+          name: "Electricidad",
+        },
+        status: "requested",
+        bottleneck: "none",
+        next_action_by: "none",
+        created_at: "2026-09-23T08:00:00Z",
+        updated_at: "2026-09-23T08:00:00Z",
+      },
+    ];
+
+    await this.stubGet("/categories", [
+      { id: 1, name: "Plomería" },
+      { id: 2, name: "Electricidad" },
+      { id: 3, name: "Gas" },
+    ]);
+    await this.stubGet("/admin/operations", diverseOperations);
+    await this.stubGet("/operations", diverseOperations);
+  },
+);
+
+When(
+  "busco por el apellido {string} y selecciono el rubro {string}",
+  async function (this: CustomWorld, apellido: string, rubro: string) {
+    const operationsRoute = (ROUTES as { operations?: string }).operations || "/operaciones";
+    if (!this.page.url().includes(operationsRoute)) {
+      await this.page.goto(new URL(operationsRoute, this.appUrl).href);
+    }
+
+    const searchInput = this.page.getByRole("searchbox").or(this.page.getByLabel(/buscar/i));
+    await searchInput.waitFor({ state: "visible" });
+    await searchInput.fill(apellido);
+
+    const categorySelect = this.page.getByRole("combobox", { name: /rubro/i });
+    await categorySelect.waitFor({ state: "visible" });
+    await categorySelect.selectOption({ label: rubro });
+  },
+);
+
+Then(
+  "el listado muestra exclusivamente los servicios que coinciden con el rubro y el participante buscado",
+  async function (this: CustomWorld) {
+    const table = this.page.getByRole("table");
+    await table.waitFor({ state: "visible" });
+    await this.page.waitForFunction(
+      () => document.querySelectorAll("tbody tr").length === 1,
+      null,
+      { timeout: 5000 },
+    );
+    const rows = this.page.locator("tbody tr");
+    assert.equal(await rows.count(), 1);
+
+    const row0Text = await rows.nth(0).innerText();
+    assert.ok(row0Text.includes("Pérez"));
+    assert.ok(row0Text.includes("Plomería"));
+  },
+);
