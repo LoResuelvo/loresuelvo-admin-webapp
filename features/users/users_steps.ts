@@ -267,3 +267,29 @@ Then(
     await emptyMessage.waitFor({ state: "visible" });
   },
 );
+
+When(
+  "filtro los prestadores por el rubro {string} y el estado {string}",
+  async function (this: CustomWorld, rubro: string, estado: string) {
+    if (!this.page.url().includes(ROUTES.users)) {
+      await this.page.goto(new URL(ROUTES.users, this.appUrl).href);
+    }
+    const providersTab = this.page.getByRole("tab", { name: /prestadores/i });
+    await providersTab.waitFor({ state: "visible" });
+    if ((await providersTab.getAttribute("aria-selected")) !== "true") {
+      await providersTab.click();
+    }
+
+    const categorySelect = this.page
+      .getByLabel(/filtrar por rubro|rubro/i)
+      .or(this.page.getByRole("combobox", { name: /rubro/i }));
+    await categorySelect.waitFor({ state: "visible", timeout: 3000 });
+    await categorySelect.selectOption(rubro);
+
+    const statusSelect = this.page
+      .getByLabel(/filtrar por estado|estado/i)
+      .or(this.page.getByRole("combobox", { name: /estado/i }));
+    await statusSelect.waitFor({ state: "visible", timeout: 3000 });
+    await statusSelect.selectOption(estado);
+  },
+);
