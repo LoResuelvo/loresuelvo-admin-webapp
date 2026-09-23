@@ -1,5 +1,17 @@
 import type { OperationSummary } from "@/domain/operations/operation-summary";
-import { apiOperationsResponseSchema } from "@/infrastructure/api/types";
+import type {
+  OperationPartyDetail,
+  RequestDetail,
+  TimelineMilestone,
+  UnifiedOperationDetail,
+} from "@/domain/operations/unified-operation-detail";
+import {
+  type ApiOperationPartyDetail,
+  type ApiRequestDetail,
+  type ApiTimelineMilestone,
+  apiOperationsResponseSchema,
+  apiUnifiedOperationDetailResponseSchema,
+} from "@/infrastructure/api/types";
 
 export function mapOperations(raw: unknown): OperationSummary[] {
   const parsed = apiOperationsResponseSchema.safeParse(raw);
@@ -40,4 +52,66 @@ export function mapOperations(raw: unknown): OperationSummary[] {
     createdAt: item.createdAt ?? item.created_at ?? "",
     updatedAt: item.updatedAt ?? item.updated_at ?? "",
   }));
+}
+
+function mapParty(party: ApiOperationPartyDetail): OperationPartyDetail {
+  return {
+    id: party.id,
+    name: party.name,
+    surname: party.surname,
+    email: party.email,
+    profilePhotoUrl: party.profilePhotoUrl ?? party.profile_photo_url ?? null,
+  };
+}
+
+function mapRequest(req: ApiRequestDetail): RequestDetail {
+  return {
+    id: req.id,
+    title: req.title,
+    description: req.description,
+    status: req.status,
+    sourceAssessmentId: req.sourceAssessmentId ?? req.source_assessment_id ?? null,
+    diagnosticSummary: req.diagnosticSummary ?? req.diagnostic_summary ?? null,
+    photos: req.photos,
+  };
+}
+
+function mapMilestone(m: ApiTimelineMilestone): TimelineMilestone {
+  return {
+    type: m.type,
+    title: m.title,
+    timestamp: m.timestamp,
+  };
+}
+
+export function mapUnifiedOperationDetail(raw: unknown): UnifiedOperationDetail {
+  const parsed = apiUnifiedOperationDetailResponseSchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new Error("Invalid operation detail data");
+  }
+
+  const item =
+    "operation" in parsed.data
+      ? parsed.data.operation
+      : "data" in parsed.data
+        ? parsed.data.data
+        : parsed.data;
+
+  return {
+    id: String(item.id),
+    status: item.status,
+    createdAt: item.createdAt ?? item.created_at ?? "",
+    category: {
+      id: item.category.id,
+      name: item.category.name,
+    },
+    consumer: mapParty(item.consumer),
+    provider: mapParty(item.provider),
+    currentAddress: item.currentAddress ?? item.current_address ?? "",
+    request: mapRequest(item.request),
+    proposals: item.proposals,
+    order: item.order,
+    paymentMilestones: item.paymentMilestones ?? item.payment_milestones,
+    timeline: item.timeline.map(mapMilestone),
+  };
 }

@@ -1,4 +1,5 @@
 import type { BottleneckType, OperationSummary } from "@/domain/operations/operation-summary";
+import type { UnifiedOperationDetail } from "@/domain/operations/unified-operation-detail";
 
 export interface OperationFilters {
   bottleneck?: BottleneckType;
@@ -8,4 +9,6 @@ export interface OperationFilters {
 
 export interface OperationRepository {
   getOperations(token: string, filters?: OperationFilters): Promise<OperationSummary[]>;
+  getOperationById?(token: string, id: string): Promise<UnifiedOperationDetail>;
 }
+

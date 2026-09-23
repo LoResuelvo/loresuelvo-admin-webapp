@@ -159,3 +159,67 @@ export const apiOperationsResponseSchema = z.union([
 ]);
 
 export type ApiOperationsResponse = z.infer<typeof apiOperationsResponseSchema>;
+
+export const apiTimelineMilestoneSchema = z.object({
+  type: z.string().min(1),
+  title: z.string().min(1),
+  timestamp: z.string().min(1),
+});
+
+export type ApiTimelineMilestone = z.infer<typeof apiTimelineMilestoneSchema>;
+
+export const apiOperationPartyDetailSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string().trim().min(1),
+  surname: z.string().trim().min(1),
+  email: z.string().email(),
+  profile_photo_url: z.string().nullish(),
+  profilePhotoUrl: z.string().nullish(),
+});
+
+export type ApiOperationPartyDetail = z.infer<typeof apiOperationPartyDetailSchema>;
+
+export const apiRequestDetailSchema = z.object({
+  id: z.number().int().positive(),
+  title: z.string().min(1),
+  description: z.string().min(1),
+  status: z.string().min(1),
+  source_assessment_id: z.string().nullish(),
+  sourceAssessmentId: z.string().nullish(),
+  diagnostic_summary: z.string().nullish(),
+  diagnosticSummary: z.string().nullish(),
+  photos: z.array(z.string()).default([]),
+});
+
+export type ApiRequestDetail = z.infer<typeof apiRequestDetailSchema>;
+
+export const apiUnifiedOperationDetailItemSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  status: apiOperationStatusSchema,
+  created_at: z.string().optional(),
+  createdAt: z.string().optional(),
+  category: apiOperationCategorySchema,
+  consumer: apiOperationPartyDetailSchema,
+  provider: apiOperationPartyDetailSchema,
+  current_address: z.string().optional(),
+  currentAddress: z.string().optional(),
+  request: apiRequestDetailSchema,
+  proposals: z.array(z.unknown()).optional(),
+  order: z.unknown().optional(),
+  payment_milestones: z.unknown().optional(),
+  paymentMilestones: z.unknown().optional(),
+  timeline: z.array(apiTimelineMilestoneSchema).default([]),
+});
+
+export type ApiUnifiedOperationDetailItem = z.infer<typeof apiUnifiedOperationDetailItemSchema>;
+
+export const apiUnifiedOperationDetailResponseSchema = z.union([
+  apiUnifiedOperationDetailItemSchema,
+  z.object({ operation: apiUnifiedOperationDetailItemSchema }),
+  z.object({ data: apiUnifiedOperationDetailItemSchema }),
+]);
+
+export type ApiUnifiedOperationDetailResponse = z.infer<
+  typeof apiUnifiedOperationDetailResponseSchema
+>;
+

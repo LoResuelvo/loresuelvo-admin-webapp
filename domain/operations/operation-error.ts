@@ -1,4 +1,4 @@
-export type OperationErrorCode = "forbidden" | "unavailable" | "unknown";
+export type OperationErrorCode = "forbidden" | "unavailable" | "not_found" | "unknown";
 
 export class OperationError extends Error {
   constructor(readonly code: OperationErrorCode, message?: string) {

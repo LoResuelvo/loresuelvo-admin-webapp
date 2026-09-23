@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapOperations } from "./operation-mapper";
+import { mapOperations, mapUnifiedOperationDetail } from "./operation-mapper";
 
 describe("operation-mapper", () => {
   const sampleSnakeCaseItem = {
@@ -146,3 +146,126 @@ describe("operation-mapper", () => {
     expect(() => mapOperations([{ id: 1 }])).toThrow("Invalid operations data");
   });
 });
+
+describe("mapUnifiedOperationDetail", () => {
+  const sampleSnakeDetail = {
+    id: "op-101",
+    status: "in_progress" as const,
+    created_at: "2026-09-18T10:00:00Z",
+    category: {
+      id: 1,
+      name: "Plomería",
+    },
+    consumer: {
+      id: 10,
+      name: "Ana",
+      surname: "Martínez",
+      email: "ana.martinez@example.com",
+      profile_photo_url: null,
+    },
+    provider: {
+      id: 20,
+      name: "Carlos",
+      surname: "López",
+      email: "carlos.lopez@example.com",
+      profile_photo_url: "https://example.com/carlos.jpg",
+    },
+    current_address: "Av. Corrientes 1234, CABA",
+    request: {
+      id: 501,
+      title: "Reparación de cañería en cocina",
+      description: "Pérdida continua de agua bajo la bacha de la cocina.",
+      status: "in_progress",
+      source_assessment_id: "asm-77",
+      diagnostic_summary: "Posible fisura en sifón de desagüe.",
+      photos: ["https://example.com/photos/leak-1.jpg"],
+    },
+    timeline: [
+      {
+        type: "job_requested",
+        title: "Solicitud creada",
+        timestamp: "2026-09-18T10:00:00Z",
+      },
+    ],
+  };
+
+  const sampleCamelDetail = {
+    id: 102,
+    status: "quoted" as const,
+    createdAt: "2026-09-19T10:00:00Z",
+    category: {
+      id: 2,
+      name: "Electricidad",
+    },
+    consumer: {
+      id: 11,
+      name: "María",
+      surname: "Gómez",
+      email: "maria.gomez@example.com",
+      profilePhotoUrl: "https://example.com/maria.jpg",
+    },
+    provider: {
+      id: 21,
+      name: "Roberto",
+      surname: "Díaz",
+      email: "roberto.diaz@example.com",
+    },
+    currentAddress: "Belgrano 567, CABA",
+    request: {
+      id: 502,
+      title: "Cortocircuito en disyuntor",
+      description: "Salta la térmica al encender el horno eléctrico.",
+      status: "quoted",
+      sourceAssessmentId: null,
+      diagnosticSummary: null,
+      photos: [],
+    },
+    timeline: [],
+  };
+
+  it("maps snake_case detail payload correctly", () => {
+    const result = mapUnifiedOperationDetail(sampleSnakeDetail);
+    expect(result.id).toBe("op-101");
+    expect(result.status).toBe("in_progress");
+    expect(result.createdAt).toBe("2026-09-18T10:00:00Z");
+    expect(result.category).toEqual({ id: 1, name: "Plomería" });
+    expect(result.consumer.name).toBe("Ana");
+    expect(result.consumer.profilePhotoUrl).toBeNull();
+    expect(result.provider.name).toBe("Carlos");
+    expect(result.provider.profilePhotoUrl).toBe("https://example.com/carlos.jpg");
+    expect(result.currentAddress).toBe("Av. Corrientes 1234, CABA");
+    expect(result.request.title).toBe("Reparación de cañería en cocina");
+    expect(result.request.sourceAssessmentId).toBe("asm-77");
+    expect(result.request.diagnosticSummary).toBe("Posible fisura en sifón de desagüe.");
+    expect(result.request.photos).toEqual(["https://example.com/photos/leak-1.jpg"]);
+    expect(result.timeline).toHaveLength(1);
+    expect(result.timeline[0].type).toBe("job_requested");
+  });
+
+  it("maps camelCase detail payload and converts numeric id to string", () => {
+    const result = mapUnifiedOperationDetail(sampleCamelDetail);
+    expect(result.id).toBe("102");
+    expect(result.status).toBe("quoted");
+    expect(result.category.name).toBe("Electricidad");
+    expect(result.consumer.profilePhotoUrl).toBe("https://example.com/maria.jpg");
+    expect(result.provider.profilePhotoUrl).toBeNull();
+    expect(result.currentAddress).toBe("Belgrano 567, CABA");
+    expect(result.timeline).toHaveLength(0);
+  });
+
+  it("maps wrapped detail responses ({ operation: ... } and { data: ... })", () => {
+    const wrappedOp = mapUnifiedOperationDetail({ operation: sampleSnakeDetail });
+    expect(wrappedOp.id).toBe("op-101");
+
+    const wrappedData = mapUnifiedOperationDetail({ data: sampleCamelDetail });
+    expect(wrappedData.id).toBe("102");
+  });
+
+  it("throws on invalid detail data", () => {
+    expect(() => mapUnifiedOperationDetail(null)).toThrow("Invalid operation detail data");
+    expect(() => mapUnifiedOperationDetail({ id: "invalid-missing-fields" })).toThrow(
+      "Invalid operation detail data",
+    );
+  });
+});
+
