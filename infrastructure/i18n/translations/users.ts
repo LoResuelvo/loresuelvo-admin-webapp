@@ -24,6 +24,16 @@ export const usersTranslations = {
   error: "No se pudieron obtener los consumidores. Intentá nuevamente más tarde",
   retry: "Reintentar",
   providers: {
+    filters: {
+      category: {
+        label: "Filtrar por rubro",
+        all: "Todos los rubros",
+      },
+      status: {
+        label: "Filtrar por estado",
+        all: "Todos los estados",
+      },
+    },
     search: {
       label: "Buscar prestadores",
       placeholder: "Buscar por nombre, apellido o correo...",

@@ -1,6 +1,8 @@
-import type { Provider } from "@/domain/users/provider";
+import { useMemo } from "react";
+import type { Provider, VerificationStatus } from "@/domain/users/provider";
 import { translations } from "@/infrastructure/i18n/translations";
-import { VerificationBadge } from "./verification-badge";
+import { ProvidersFilterBar } from "./providers-filter-bar";
+import { ProvidersTable } from "./providers-table";
 
 export interface ProvidersViewProps {
   providers?: Provider[];
@@ -9,26 +11,12 @@ export interface ProvidersViewProps {
   isForbidden?: boolean;
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
+  selectedCategory?: string;
+  onCategoryChange?: (category: string) => void;
+  categories?: string[];
+  selectedStatus?: VerificationStatus | "";
+  onStatusChange?: (status: VerificationStatus | "") => void;
   onRetry?: () => void;
-}
-
-function SearchIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="size-4 text-[#536176]"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-      />
-    </svg>
-  );
 }
 
 function ProvidersLoading() {
@@ -99,67 +87,6 @@ function ProvidersEmpty() {
   );
 }
 
-function ProviderRow({ provider }: { provider: Provider }) {
-  const initials = `${provider.name.charAt(0)}${provider.surname.charAt(0)}`.toUpperCase();
-  const zonesText = provider.coverageZones.map((z) => z.name).join(", ");
-
-  return (
-    <tr className="transition-colors hover:bg-[#F4F1EE]/30">
-      <td className="px-6 py-4 whitespace-nowrap">
-        {provider.profilePhotoUrl ? (
-          <img
-            src={provider.profilePhotoUrl}
-            alt={`${provider.name} ${provider.surname}`}
-            className="size-10 rounded-full object-cover border border-[#1A2B48]/10"
-          />
-        ) : (
-          <div
-            aria-label={`${provider.name} ${provider.surname}`}
-            className="flex size-10 items-center justify-center rounded-full bg-[#1A2B48]/10 font-semibold text-xs text-[#1A2B48]"
-          >
-            {initials}
-          </div>
-        )}
-      </td>
-      <td className="px-6 py-4 font-medium text-[#1A2B48]">{provider.name}</td>
-      <td className="px-6 py-4 font-medium text-[#1A2B48]">{provider.surname}</td>
-      <td className="px-6 py-4 text-[#536176]">{provider.email}</td>
-      <td className="px-6 py-4 text-[#1A2B48] font-medium">{provider.category.name}</td>
-      <td className="px-6 py-4 text-[#536176]">{zonesText}</td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <VerificationBadge status={provider.identityVerificationStatus} />
-      </td>
-    </tr>
-  );
-}
-
-function ProvidersTable({ providers }: { providers: readonly Provider[] }) {
-  const { columns } = translations.users.providers.table;
-
-  return (
-    <div className="overflow-hidden rounded-2xl border border-[#1A2B48]/10 bg-white shadow-xs">
-      <table aria-label={translations.users.providers.table.caption} className="w-full text-left text-sm text-[#1A2B48]">
-        <thead className="border-b border-[#1A2B48]/10 bg-[#F4F1EE]/50 text-xs font-semibold uppercase tracking-wider text-[#1A2B48]/60">
-          <tr>
-            <th scope="col" className="px-6 py-4 w-20">{columns.photo}</th>
-            <th scope="col" className="px-6 py-4">{columns.name}</th>
-            <th scope="col" className="px-6 py-4">{columns.surname}</th>
-            <th scope="col" className="px-6 py-4">{columns.email}</th>
-            <th scope="col" className="px-6 py-4">{columns.category}</th>
-            <th scope="col" className="px-6 py-4">{columns.coverageZones}</th>
-            <th scope="col" className="px-6 py-4">{columns.verificationStatus}</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-[#1A2B48]/5">
-          {providers.map((provider) => (
-            <ProviderRow key={provider.id} provider={provider} />
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 export function ProvidersView({
   providers = [],
   isLoading = false,
@@ -167,9 +94,22 @@ export function ProvidersView({
   isForbidden = false,
   searchQuery = "",
   onSearchChange,
+  selectedCategory = "",
+  onCategoryChange,
+  categories,
+  selectedStatus = "",
+  onStatusChange,
   onRetry,
 }: ProvidersViewProps) {
-  const { search } = translations.users.providers;
+  const categoryOptions = useMemo(() => {
+    const set = new Set(categories ?? []);
+    for (const p of providers) {
+      if (p.category?.name) {
+        set.add(p.category.name);
+      }
+    }
+    return Array.from(set).sort();
+  }, [categories, providers]);
 
   return (
     <div
@@ -178,37 +118,24 @@ export function ProvidersView({
       aria-labelledby="tab-providers"
       className="space-y-6"
     >
-      <div className="flex items-center justify-between gap-4">
-        <div className="relative w-full max-w-md">
-          <label htmlFor="provider-search" className="sr-only">
-            {search.label}
-          </label>
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <SearchIcon />
-          </div>
-          <input
-            id="provider-search"
-            type="search"
-            value={searchQuery}
-            onChange={(e) => onSearchChange?.(e.target.value)}
-            placeholder={search.placeholder}
-            className="w-full rounded-xl border border-[#1A2B48]/15 bg-white py-2.5 pl-10 pr-4 text-sm text-[#1A2B48] placeholder-[#536176] transition-colors focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
-          />
-        </div>
-      </div>
+      <ProvidersFilterBar
+        searchQuery={searchQuery}
+        onSearchChange={onSearchChange}
+        selectedCategory={selectedCategory}
+        onCategoryChange={onCategoryChange}
+        categoryOptions={categoryOptions}
+        selectedStatus={selectedStatus}
+        onStatusChange={onStatusChange}
+      />
 
       {isLoading && <ProvidersLoading />}
-
       {!isLoading && isForbidden && <ProvidersForbidden />}
-
       {!isLoading && !isForbidden && error && (
         <ProvidersError error={error} onRetry={onRetry} />
       )}
-
       {!isLoading && !isForbidden && !error && providers.length === 0 && (
         <ProvidersEmpty />
       )}
-
       {!isLoading && !isForbidden && !error && providers.length > 0 && (
         <ProvidersTable providers={providers} />
       )}

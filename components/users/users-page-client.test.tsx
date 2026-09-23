@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as actions from "@/app/(dashboard)/usuarios/actions";
@@ -97,9 +97,10 @@ describe("UsersPageClient", () => {
 
     await waitFor(() => {
       expect(actions.getProvidersAction).toHaveBeenCalled();
-      expect(screen.getByText("Juan")).toBeInTheDocument();
-      expect(screen.getByText("Gómez")).toBeInTheDocument();
-      expect(screen.getByText("Plomería")).toBeInTheDocument();
+      const table = screen.getByRole("table");
+      expect(within(table).getByText("Juan")).toBeInTheDocument();
+      expect(within(table).getByText("Gómez")).toBeInTheDocument();
+      expect(within(table).getByText("Plomería")).toBeInTheDocument();
     });
   });
 });

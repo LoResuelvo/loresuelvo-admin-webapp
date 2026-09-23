@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { Provider } from "@/domain/users/provider";
@@ -43,22 +43,23 @@ describe("ProvidersView", () => {
     expect(screen.getByRole("columnheader", { name: "Zonas de cobertura" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Estado de verificación" })).toBeInTheDocument();
 
+    const table = screen.getByRole("table");
     expect(screen.getByAltText("Juan Gómez")).toBeInTheDocument();
-    expect(screen.getByText("Juan")).toBeInTheDocument();
-    expect(screen.getByText("Gómez")).toBeInTheDocument();
-    expect(screen.getByText("juan@example.com")).toBeInTheDocument();
-    expect(screen.getByText("Plomería")).toBeInTheDocument();
-    expect(screen.getByText("Comuna 6, Comuna 14")).toBeInTheDocument();
-    expect(screen.getByText("Verificado")).toBeInTheDocument();
+    expect(within(table).getByText("Juan")).toBeInTheDocument();
+    expect(within(table).getByText("Gómez")).toBeInTheDocument();
+    expect(within(table).getByText("juan@example.com")).toBeInTheDocument();
+    expect(within(table).getByText("Plomería")).toBeInTheDocument();
+    expect(within(table).getByText("Comuna 6, Comuna 14")).toBeInTheDocument();
+    expect(within(table).getByText("Verificado")).toBeInTheDocument();
 
     // Laura without photo displays initials LD
     expect(screen.getByLabelText("Laura Díaz")).toHaveTextContent("LD");
-    expect(screen.getByText("Laura")).toBeInTheDocument();
-    expect(screen.getByText("Díaz")).toBeInTheDocument();
-    expect(screen.getByText("laura@example.com")).toBeInTheDocument();
-    expect(screen.getByText("Electricidad")).toBeInTheDocument();
-    expect(screen.getByText("Comuna 1")).toBeInTheDocument();
-    expect(screen.getByText("En revisión")).toBeInTheDocument();
+    expect(within(table).getByText("Laura")).toBeInTheDocument();
+    expect(within(table).getByText("Díaz")).toBeInTheDocument();
+    expect(within(table).getByText("laura@example.com")).toBeInTheDocument();
+    expect(within(table).getByText("Electricidad")).toBeInTheDocument();
+    expect(within(table).getByText("Comuna 1")).toBeInTheDocument();
+    expect(within(table).getByText("En revisión")).toBeInTheDocument();
   });
 
   it("renders loading indicator when isLoading is true", () => {
@@ -100,4 +101,41 @@ describe("ProvidersView", () => {
     await userEvent.type(searchInput, "juan");
     expect(onSearchChange).toHaveBeenCalled();
   });
+
+  it("renders category and status filter controls with default options", () => {
+    render(<ProvidersView providers={sampleProviders} />);
+
+    const categorySelect = screen.getByLabelText("Filtrar por rubro");
+    expect(categorySelect).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Todos los rubros" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Plomería" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Electricidad" })).toBeInTheDocument();
+
+    const statusSelect = screen.getByLabelText("Filtrar por estado");
+    expect(statusSelect).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Todos los estados" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Verificado" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "En revisión" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Rechazado" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Sin verificar" })).toBeInTheDocument();
+  });
+
+  it("calls onCategoryChange when selecting a category option", async () => {
+    const onCategoryChange = vi.fn();
+    render(<ProvidersView providers={sampleProviders} onCategoryChange={onCategoryChange} />);
+
+    const categorySelect = screen.getByLabelText("Filtrar por rubro");
+    await userEvent.selectOptions(categorySelect, "Plomería");
+    expect(onCategoryChange).toHaveBeenCalledWith("Plomería");
+  });
+
+  it("calls onStatusChange when selecting a verification status option", async () => {
+    const onStatusChange = vi.fn();
+    render(<ProvidersView providers={sampleProviders} onStatusChange={onStatusChange} />);
+
+    const statusSelect = screen.getByLabelText("Filtrar por estado");
+    await userEvent.selectOptions(statusSelect, "approved");
+    expect(onStatusChange).toHaveBeenCalledWith("approved");
+  });
 });
+
