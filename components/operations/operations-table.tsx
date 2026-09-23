@@ -1,29 +1,20 @@
-import { BottleneckBadge, type BottleneckType } from "./bottleneck-badge";
-import { ResponsibleBadge, type ActionResponsible } from "./responsible-badge";
+import type {
+  ActionResponsible,
+  BottleneckType,
+  OperationParty,
+  OperationStatus,
+  OperationSummary,
+} from "@/domain/operations/operation-summary";
+import { BottleneckBadge } from "./bottleneck-badge";
+import { ResponsibleBadge } from "./responsible-badge";
 
-export type OperationStatus = "requested" | "quoted" | "in_progress" | "completed" | "cancelled";
-
-export interface OperationParty {
-  readonly id: number;
-  readonly name: string;
-  readonly surname: string;
-  readonly email: string;
-}
-
-export interface OperationSummary {
-  readonly id: string;
-  readonly jobRequestId?: number;
-  readonly serviceProposalId?: number;
-  readonly workOrderId?: number;
-  readonly consumer: OperationParty;
-  readonly provider: OperationParty;
-  readonly category: { readonly id: number; readonly name: string };
-  readonly status: OperationStatus;
-  readonly bottleneck: BottleneckType;
-  readonly nextActionBy: ActionResponsible;
-  readonly createdAt: string;
-  readonly updatedAt: string;
-}
+export type {
+  ActionResponsible,
+  BottleneckType,
+  OperationParty,
+  OperationStatus,
+  OperationSummary,
+};
 
 export interface OperationsTableProps {
   operations: readonly OperationSummary[];

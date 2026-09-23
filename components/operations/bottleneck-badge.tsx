@@ -1,11 +1,6 @@
-export type BottleneckType =
-  | "pending_proposal_24h"
-  | "pending_booking_deposit"
-  | "scheduled_today"
-  | "delayed_service"
-  | "pending_final_payment"
-  | "stalled"
-  | "none";
+import type { BottleneckType } from "@/domain/operations/operation-summary";
+
+export type { BottleneckType };
 
 export interface BottleneckBadgeProps {
   bottleneck: BottleneckType;

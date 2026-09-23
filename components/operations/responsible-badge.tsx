@@ -1,4 +1,6 @@
-export type ActionResponsible = "consumer" | "provider" | "platform" | "none";
+import type { ActionResponsible } from "@/domain/operations/operation-summary";
+
+export type { ActionResponsible };
 
 export interface ResponsibleBadgeProps {
   responsible: ActionResponsible;

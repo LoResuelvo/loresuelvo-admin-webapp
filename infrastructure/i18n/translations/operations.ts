@@ -1,0 +1,45 @@
+export const operationsTranslations = {
+  title: "Bandeja de Operaciones",
+  subtitle: "Monitoreo transversal de contrataciones y cuellos de botella",
+  table: {
+    caption: "Bandeja de operaciones",
+    columns: {
+      consumer: "Cliente",
+      provider: "Prestador",
+      category: "Rubro",
+      status: "Estado",
+      bottleneck: "Alerta Operativa",
+      responsible: "Responsable",
+    },
+  },
+  status: {
+    requested: "Solicitado",
+    quoted: "Cotizado",
+    in_progress: "En progreso",
+    completed: "Completado",
+    cancelled: "Cancelado",
+  },
+  bottleneck: {
+    pending_proposal_24h: "Propuesta demorada > 24h",
+    pending_booking_deposit: "Pago de seña pendiente",
+    scheduled_today: "Agendado para hoy",
+    delayed_service: "Servicio demorado",
+    pending_final_payment: "Pago final pendiente",
+    stalled: "Estancada > 24h",
+    none: "Al día",
+  },
+  responsible: {
+    consumer: "Cliente",
+    provider: "Prestador",
+    platform: "Plataforma",
+    none: "—",
+  },
+  loading: "Cargando operaciones...",
+  empty: {
+    title: "No se encontraron operaciones disponibles",
+    message: "No existen contrataciones registradas o que coincidan con los criterios seleccionados.",
+  },
+  error: "Ocurrió un error al cargar las operaciones. Por favor intente nuevamente.",
+  retry: "Reintentar",
+  forbidden: "No tiene permisos para supervisar operaciones.",
+} as const;

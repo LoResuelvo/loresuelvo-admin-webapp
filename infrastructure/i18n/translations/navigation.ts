@@ -3,6 +3,7 @@ export const navigationTranslations = {
   area: "Administración",
   users: "Directorio de Usuarios",
   categories: "Catálogo de Rubros",
+  operations: "Centro de Operaciones",
   signOut: "Cerrar sesión",
   logout: "Cerrar sesión",
   mainNav: "Navegación de administración",
