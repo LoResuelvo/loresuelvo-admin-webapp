@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { translations } from "@/infrastructure/i18n/translations";
 import { ROUTES } from "@/lib/routes";
+import { OperationDetailClient } from "@/components/operations/operation-detail-client";
 
 export interface OperationDetailPageProps {
   params: Promise<{ id: string }>;
@@ -31,23 +32,16 @@ export default async function OperationDetailPage({ params }: OperationDetailPag
         </Link>
       </div>
 
-      <div className="rounded-2xl border border-[#1A2B48]/10 bg-white p-6 shadow-xs">
-        <header className="border-b border-[#1A2B48]/10 pb-4">
-          <h1 className="text-2xl font-semibold tracking-tight text-[#1A2B48]">
-            {copy.title}
-          </h1>
-          <p className="mt-1 text-sm text-[#536176]">
-            {copy.subtitle}
-          </p>
-        </header>
+      <header className="border-b border-[#1A2B48]/10 pb-4">
+        <h1 className="text-2xl font-semibold tracking-tight text-[#1A2B48]">
+          {copy.title}
+        </h1>
+        <p className="mt-1 text-sm text-[#536176]">
+          {copy.subtitle} — <span className="font-mono">{id}</span>
+        </p>
+      </header>
 
-        <div className="mt-6 space-y-4">
-          <div className="flex items-center justify-between rounded-xl bg-[#F4F1EE]/50 p-4">
-            <span className="text-sm font-medium text-[#536176]">ID de contratación</span>
-            <span className="font-mono text-sm font-semibold text-[#1A2B48]">{id}</span>
-          </div>
-        </div>
-      </div>
+      <OperationDetailClient id={id} />
     </section>
   );
 }

@@ -6,7 +6,6 @@ Feature: Ficha unificada de contratación y trazabilidad operativa
   Background:
     Given que he iniciado sesión en el panel de administración
 
-  @wip
   Scenario: 01-FCH Visualizar datos principales de las partes y el servicio
     Given que existe una contratación registrada entre un cliente y un prestador
     When consulto la ficha de la contratación
