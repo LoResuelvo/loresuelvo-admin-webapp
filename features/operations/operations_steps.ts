@@ -129,3 +129,30 @@ Then(
     assert.ok(row1Text.includes("Cliente"));
   },
 );
+
+Given("que la carga de las operaciones toma unos momentos", async function (this: CustomWorld) {
+  await this.addApiStub({
+    method: "GET",
+    endpoint: "/admin/operations",
+    status: 200,
+    body: [],
+    delayMs: 3000,
+  });
+  await this.addApiStub({
+    method: "GET",
+    endpoint: "/operations",
+    status: 200,
+    body: [],
+    delayMs: 3000,
+  });
+});
+
+Then(
+  "se presenta una vista de carga con indicadores visuales mientras se obtiene la información",
+  async function (this: CustomWorld) {
+    const skeleton = this.page.getByTestId("operations-skeleton");
+    await skeleton.waitFor({ state: "visible" });
+    const shimmerRows = skeleton.locator("[data-testid='skeleton-row']");
+    assert.ok((await shimmerRows.count()) >= 1);
+  },
+);
