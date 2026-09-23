@@ -79,6 +79,7 @@ describe("OperationDetailClient", () => {
     });
 
     expect(screen.getByText("Acceso restringido.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /reintentar/i })).not.toBeInTheDocument();
   });
 
   it("handles not found error", async () => {

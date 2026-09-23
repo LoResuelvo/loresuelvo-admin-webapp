@@ -41,7 +41,6 @@ Feature: Ficha unificada de contratación y trazabilidad operativa
     When accedo al enlace de la contratación
     Then se presenta un mensaje claro indicando que el servicio no fue encontrado
 
-  @wip
   Scenario: 08-FCH Informar falta de permisos para consultar el detalle de contrataciones
     Given que mi cuenta de usuario no posee permisos para ver el detalle de operaciones
     When intento ingresar a la ficha de una contratación
