@@ -59,20 +59,20 @@ function mapOperationErrorToDetailResult(error: OperationError): GetOperationDet
   if (error.code === "not_found") {
     return {
       success: false,
-      error: "La contratación solicitada no existe.",
+      error: translations.operations.detail.notFound,
       isNotFound: true,
     };
   }
   if (error.code === "forbidden") {
     return {
       success: false,
-      error: translations.operations.forbidden,
+      error: translations.operations.detail.forbidden,
       isForbidden: true,
     };
   }
   return {
     success: false,
-    error: translations.operations.error,
+    error: translations.operations.detail.error,
   };
 }
 
@@ -87,7 +87,7 @@ export async function getOperationDetailAction(
     if (error instanceof OperationError) {
       return mapOperationErrorToDetailResult(error);
     }
-    const message = error instanceof Error ? error.message : translations.operations.error;
+    const message = error instanceof Error ? error.message : translations.operations.detail.error;
     return { success: false, error: message };
   }
 }

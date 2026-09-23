@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import type { UnifiedOperationDetail } from "@/domain/operations/unified-operation-detail";
 import { getOperationDetailAction } from "@/app/(dashboard)/operaciones/actions";
 import { translations } from "@/infrastructure/i18n/translations";
+import { ROUTES } from "@/lib/routes";
 import { OperationHeader } from "./operation-header";
 import { OperationTimeline } from "./operation-timeline";
 import { OperationRequestCard } from "./operation-request-card";
@@ -18,23 +20,38 @@ export interface OperationDetailClientProps {
 
 function DetailAlert({
   message,
+  description,
   borderColor,
   bgColor,
   textColor,
   onRetry,
+  backLink,
 }: {
   message: string;
+  description?: string;
   borderColor: string;
   bgColor: string;
   textColor: string;
   onRetry?: () => void;
+  backLink?: { href: string; label: string };
 }) {
   return (
     <div
       role="alert"
       className={`rounded-2xl border ${borderColor} ${bgColor} p-6 text-center ${textColor}`}
     >
-      <p className="font-medium">{message}</p>
+      <p className="font-semibold text-lg">{message}</p>
+      {description && <p className="mt-1 text-sm opacity-90">{description}</p>}
+      {backLink && (
+        <div className="mt-4">
+          <Link
+            href={backLink.href}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#147560]/20 bg-white px-4 py-2 text-sm font-medium text-[#147560] shadow-2xs hover:bg-[#147560]/5 transition-colors"
+          >
+            {backLink.label}
+          </Link>
+        </div>
+      )}
       {onRetry && (
         <button
           type="button"
@@ -73,7 +90,7 @@ function useOperationDetail(id: string) {
         setError(result.error);
       }
     } catch {
-      setError(translations.operations.error);
+      setError(translations.operations.detail.error);
     } finally {
       setIsLoading(false);
     }
@@ -121,7 +138,8 @@ export function OperationDetailClient({ id }: OperationDetailClientProps) {
   if (isForbidden) {
     return (
       <DetailAlert
-        message={error ?? translations.operations.forbidden}
+        message={error ?? translations.operations.detail.forbidden}
+        description={translations.operations.detail.forbiddenDescription}
         borderColor="border-amber-200"
         bgColor="bg-amber-50"
         textColor="text-amber-800"
@@ -132,10 +150,15 @@ export function OperationDetailClient({ id }: OperationDetailClientProps) {
   if (isNotFound) {
     return (
       <DetailAlert
-        message={error ?? "La contratación solicitada no existe."}
+        message={error ?? translations.operations.detail.notFound}
+        description={translations.operations.detail.notFoundDescription}
         borderColor="border-slate-200"
         bgColor="bg-slate-50"
         textColor="text-slate-700"
+        backLink={{
+          href: ROUTES.operations,
+          label: translations.operations.detail.backToList,
+        }}
       />
     );
   }
@@ -144,6 +167,7 @@ export function OperationDetailClient({ id }: OperationDetailClientProps) {
     return (
       <DetailAlert
         message={error}
+        description={translations.operations.detail.errorDescription}
         borderColor="border-red-200"
         bgColor="bg-red-50"
         textColor="text-red-700"

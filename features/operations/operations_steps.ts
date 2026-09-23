@@ -800,7 +800,9 @@ When("accedo al enlace de la contratación", async function (this: CustomWorld) 
 Then(
   "se presenta un mensaje claro indicando que el servicio no fue encontrado",
   async function (this: CustomWorld) {
-    const alert = this.page.getByRole("alert");
+    const alert = this.page.getByRole("alert").filter({
+      hasText: /encontrado|contratación/i,
+    });
     await alert.waitFor({ state: "visible", timeout: 5000 });
     const text = await alert.innerText();
     assert.ok(

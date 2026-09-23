@@ -84,7 +84,7 @@ describe("OperationDetailClient", () => {
   it("handles not found error", async () => {
     vi.mocked(getOperationDetailAction).mockResolvedValueOnce({
       success: false,
-      error: "La contratación solicitada no existe.",
+      error: "El servicio no fue encontrado",
       isNotFound: true,
     });
 
@@ -94,7 +94,8 @@ describe("OperationDetailClient", () => {
       expect(screen.getByRole("alert")).toBeInTheDocument();
     });
 
-    expect(screen.getByText("La contratación solicitada no existe.")).toBeInTheDocument();
+    expect(screen.getByText("El servicio no fue encontrado")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /volver a la bandeja/i })).toBeInTheDocument();
   });
 
   it("handles generic error and allows retry", async () => {

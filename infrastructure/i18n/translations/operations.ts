@@ -5,6 +5,13 @@ export const operationsTranslations = {
     title: "Ficha de Operación",
     subtitle: "Detalle completo del servicio",
     backToList: "Volver a la bandeja",
+    loading: "Cargando ficha de contratación...",
+    notFound: "El servicio no fue encontrado",
+    notFoundDescription: "La contratación que intenta consultar no se encuentra registrada o fue eliminada.",
+    forbidden: "Acceso restringido",
+    forbiddenDescription: "No posee permisos para ver el detalle de operaciones.",
+    error: "Error al cargar la ficha de la contratación",
+    errorDescription: "El sistema experimenta dificultades de conexión con el servidor.",
   },
   table: {
 

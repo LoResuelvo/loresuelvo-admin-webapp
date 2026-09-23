@@ -36,7 +36,6 @@ Feature: Ficha unificada de contratación y trazabilidad operativa
     When accedo a la ficha de la contratación
     Then se presenta una vista de carga con indicadores visuales mientras se obtiene la información
 
-  @wip
   Scenario: 07-FCH Informar cuando la contratación solicitada no existe
     Given que intento consultar una contratación que no se encuentra registrada
     When accedo al enlace de la contratación
