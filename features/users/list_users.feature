@@ -30,7 +30,6 @@ Feature: Listar usuarios registrados
     When busco en el directorio de consumidores con el texto "perez"
     Then el listado contiene únicamente a "ana.perez@test.com"
 
-  @wip
   Scenario: 04-USR Informar ausencia de consumidores o sin coincidencias de búsqueda
     Given que no existen consumidores registrados
     When ingreso al directorio de consumidores
