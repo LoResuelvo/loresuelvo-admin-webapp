@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Consumer } from "@/domain/users/consumer";
-import type { Provider } from "@/domain/users/provider";
+import type { Provider, VerificationStatus } from "@/domain/users/provider";
+import type { ProviderFilters } from "@/ports/users/user-repository";
 import { UsersTabs, type UsersTab } from "./users-tabs";
 import { ConsumersView } from "./consumers-view";
 import { ProvidersView } from "./providers-view";
@@ -60,27 +61,55 @@ function ConsumersTabContent() {
   );
 }
 
+function buildProviderFilters(
+  q?: string,
+  cat?: string,
+  status?: VerificationStatus | "",
+): ProviderFilters | undefined {
+  const filters: ProviderFilters = {};
+  if (q) filters.q = q;
+  if (cat) filters.category = cat;
+  if (status) filters.verificationStatus = status;
+  return Object.keys(filters).length > 0 ? filters : undefined;
+}
+
 function ProvidersTabContent() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<VerificationStatus | "">("");
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [state, setState] = useState<TabState<Provider>>(initialTabState);
 
-  const load = useCallback(async (query?: string) => {
-    setState((prev) => ({ ...prev, isLoading: true, error: null, isForbidden: false }));
-    try {
-      const result = await getProvidersAction(query ? { q: query } : undefined);
-      if (result.success) {
-        setState({ data: result.data, isLoading: false, error: null, isForbidden: false });
-      } else {
-        setState({ data: [], isLoading: false, error: result.error, isForbidden: result.isForbidden ?? false });
+  const load = useCallback(
+    async (q?: string, cat?: string, status?: VerificationStatus | "") => {
+      setState((prev) => ({ ...prev, isLoading: true, error: null, isForbidden: false }));
+      try {
+        const filters = buildProviderFilters(q, cat, status);
+        const result = await getProvidersAction(filters);
+        if (result.success) {
+          setState({ data: result.data, isLoading: false, error: null, isForbidden: false });
+          if (result.data.length > 0) {
+            setAvailableCategories((prev) => {
+              const next = new Set(prev);
+              for (const p of result.data) {
+                if (p.category?.name) next.add(p.category.name);
+              }
+              return Array.from(next).sort();
+            });
+          }
+        } else {
+          setState({ data: [], isLoading: false, error: result.error, isForbidden: result.isForbidden ?? false });
+        }
+      } catch {
+        setState({ data: [], isLoading: false, error: "Error al cargar prestadores", isForbidden: false });
       }
-    } catch {
-      setState({ data: [], isLoading: false, error: "Error al cargar prestadores", isForbidden: false });
-    }
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
-    load(searchQuery);
-  }, [load, searchQuery]);
+    load(searchQuery, selectedCategory, selectedStatus);
+  }, [load, searchQuery, selectedCategory, selectedStatus]);
 
   return (
     <ProvidersView
@@ -90,7 +119,12 @@ function ProvidersTabContent() {
       isForbidden={state.isForbidden}
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
-      onRetry={() => load(searchQuery)}
+      selectedCategory={selectedCategory}
+      onCategoryChange={setSelectedCategory}
+      categories={availableCategories}
+      selectedStatus={selectedStatus}
+      onStatusChange={setSelectedStatus}
+      onRetry={() => load(searchQuery, selectedCategory, selectedStatus)}
     />
   );
 }

@@ -59,7 +59,6 @@ Feature: Listar usuarios registrados
     When ingreso al directorio de prestadores
     Then veo un indicador de carga mientras se obtienen los datos
 
-  @wip
   Scenario: 09-USR Filtrar prestadores por atributos operativos y búsqueda
     Given que existen los siguientes prestadores registrados:
       | nombre | apellido | correo            | rubro        | zona      | estado_verificacion |

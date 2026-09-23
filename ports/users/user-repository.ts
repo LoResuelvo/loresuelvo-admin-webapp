@@ -3,6 +3,7 @@ import type { Provider, VerificationStatus } from "@/domain/users/provider";
 
 export interface ProviderFilters {
   q?: string;
+  category?: string;
   categoryId?: number;
   coverageZoneId?: number;
   verificationStatus?: VerificationStatus;

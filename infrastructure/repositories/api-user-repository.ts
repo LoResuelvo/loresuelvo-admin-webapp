@@ -135,6 +135,10 @@ async function resolveProvidersFromStub(stub: ApiStub, filters?: ProviderFilters
   if (filters?.categoryId && stub.endpoint === "/admin/providers") {
     result = result.filter((p) => p.category.id === filters.categoryId);
   }
+  if (filters?.category && stub.endpoint === "/admin/providers") {
+    const catQuery = filters.category.toLowerCase();
+    result = result.filter((p) => p.category.name.toLowerCase() === catQuery);
+  }
   if (filters?.coverageZoneId && stub.endpoint === "/admin/providers") {
     result = result.filter((p) => p.coverageZones.some((z) => z.id === filters.coverageZoneId));
   }
@@ -148,6 +152,7 @@ function buildProvidersUrl(baseUrl: string, filters?: ProviderFilters): URL {
   const url = new URL(`${baseUrl.replace(/\/$/, "")}/admin/providers`);
   if (filters?.q) url.searchParams.set("q", filters.q);
   if (filters?.categoryId) url.searchParams.set("category_id", String(filters.categoryId));
+  if (filters?.category) url.searchParams.set("category", filters.category);
   if (filters?.coverageZoneId) url.searchParams.set("coverage_zone_id", String(filters.coverageZoneId));
   if (filters?.verificationStatus) url.searchParams.set("identity_verification_status", filters.verificationStatus);
   return url;

@@ -280,15 +280,11 @@ When(
       await providersTab.click();
     }
 
-    const categorySelect = this.page
-      .getByLabel(/filtrar por rubro|rubro/i)
-      .or(this.page.getByRole("combobox", { name: /rubro/i }));
+    const categorySelect = this.page.getByRole("combobox", { name: /rubro/i });
     await categorySelect.waitFor({ state: "visible", timeout: 3000 });
     await categorySelect.selectOption(rubro);
 
-    const statusSelect = this.page
-      .getByLabel(/filtrar por estado|estado/i)
-      .or(this.page.getByRole("combobox", { name: /estado/i }));
+    const statusSelect = this.page.getByRole("combobox", { name: /estado/i });
     await statusSelect.waitFor({ state: "visible", timeout: 3000 });
     await statusSelect.selectOption(estado);
   },
