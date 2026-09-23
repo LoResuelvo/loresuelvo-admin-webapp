@@ -38,3 +38,17 @@ export const apiCreateCategoryResponseSchema = z.object({
 });
 
 export type ApiCreateCategoryResponse = z.infer<typeof apiCreateCategoryResponseSchema>;
+
+export const apiConsumerListItemSchema = z.object({
+  id: z.number().int().positive(),
+  role: z.string().optional().default("consumer"),
+  name: z.string().trim().min(1),
+  surname: z.string().trim().min(1),
+  email: z.string().email(),
+  profile_photo_url: z.string().nullish(),
+  created_on: z.string().min(1),
+});
+
+export const apiConsumersListSchema = z.array(apiConsumerListItemSchema);
+
+export type ApiConsumerListItem = z.infer<typeof apiConsumerListItemSchema>;
