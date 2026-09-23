@@ -522,5 +522,46 @@ Then(
   },
 );
 
+Given(
+  "que la solicitud del cliente fue generada mediante el asistente de diagnóstico virtual",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/operations/op-101", sampleOperationDetail);
+    await this.stubGet("/operations/op-101", sampleOperationDetail);
+  },
+);
+
+When(
+  "reviso la sección de solicitud en la ficha",
+  async function (this: CustomWorld) {
+    const detailRoute = ROUTES.operationDetail("op-101");
+    if (!this.page.url().includes(detailRoute)) {
+      await this.page.goto(new URL(detailRoute, this.appUrl).href);
+    }
+    const requestSection = this.page.getByTestId("operation-request-card");
+    await requestSection.waitFor({ state: "visible", timeout: 5000 });
+  },
+);
+
+Then(
+  "visualizo el diagnóstico del problema sugerido por el asistente, la descripción y las fotos adjuntas",
+  async function (this: CustomWorld) {
+    const requestSection = this.page.getByTestId("operation-request-card");
+    await requestSection.waitFor({ state: "visible", timeout: 5000 });
+    const text = await requestSection.innerText();
+
+    assert.ok(
+      text.includes("Posible fisura en sifón de desagüe") || text.includes("goteo constante"),
+    );
+    assert.ok(
+      text.includes("Pérdida continua de agua bajo la bacha de la cocina."),
+    );
+
+    const photos = requestSection
+      .locator("[data-testid='request-photo']")
+      .or(requestSection.locator("img"));
+    assert.ok((await photos.count()) >= 2);
+  },
+);
+
 
 
