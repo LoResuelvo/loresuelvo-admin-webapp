@@ -237,3 +237,33 @@ Given(
   },
 );
 
+Given(
+  "que no existen prestadores que coincidan con los filtros aplicados",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/providers", []);
+  },
+);
+
+When(
+  "aplico los filtros en el directorio de prestadores",
+  async function (this: CustomWorld) {
+    if (!this.page.url().includes(ROUTES.users)) {
+      await this.page.goto(new URL(ROUTES.users, this.appUrl).href);
+    }
+    const providersTab = this.page.getByRole("tab", { name: /prestadores/i });
+    await providersTab.waitFor({ state: "visible" });
+    await providersTab.click();
+  },
+);
+
+Then(
+  "veo un mensaje indicando que no hay prestadores disponibles",
+  async function (this: CustomWorld) {
+    const panel = this.page.locator("#panel-providers");
+    await panel.waitFor({ state: "visible" });
+    const emptyMessage = panel.getByRole("status").filter({
+      hasText: "No hay prestadores disponibles",
+    });
+    await emptyMessage.waitFor({ state: "visible" });
+  },
+);
