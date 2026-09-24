@@ -266,3 +266,24 @@ Then(
     );
   },
 );
+
+Given(
+  "que la consulta del diagnóstico del prestador toma unos momentos",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/providers/201/diagnostic",
+      status: 200,
+      body: defaultProviderDiagnostic,
+      delayMs: 3000,
+    });
+  },
+);
+
+When(
+  "accedo a la ficha de diagnóstico del prestador",
+  async function (this: CustomWorld) {
+    await this.page.goto(new URL(ROUTES.providerDetail(201), this.appUrl).href);
+  },
+);
+
