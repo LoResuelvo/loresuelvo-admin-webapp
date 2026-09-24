@@ -59,3 +59,49 @@ export const apiProviderDiagnosticResponseSchema = z.object({
 });
 
 export type ApiProviderDiagnosticResponse = z.infer<typeof apiProviderDiagnosticResponseSchema>;
+
+export const apiConsumerCoverageZoneSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string().trim().min(1),
+});
+
+export const apiConsumerHistoryProviderSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string().trim().min(1),
+  profile_photo_url: z.string().nullish(),
+});
+
+export const apiConsumerHistoryItemSchema = z.object({
+  resource_id: z.number().int().positive(),
+  operation_id: z.number().int().positive(),
+  resource_type: z.string().trim().min(1),
+  category_name: z.string().trim().min(1),
+  provider: apiConsumerHistoryProviderSchema,
+  status: z.string().trim().min(1),
+  total_amount_cents: z.number().int().nonnegative(),
+  created_at: z.string().trim().min(1),
+});
+
+export const apiConsumerHistoryPaginationSchema = z.object({
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+  total_pages: z.number().int().nonnegative(),
+});
+
+export const apiConsumerHistoryResponseSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string().trim().min(1),
+  surname: z.string().trim().min(1),
+  email: z.string().email(),
+  phone: z.string().trim().min(1),
+  profile_photo_url: z.string().nullish(),
+  registered_at: z.string().trim().min(1),
+  current_address: z.string().trim().min(1),
+  coverage_zone: apiConsumerCoverageZoneSchema,
+  history: z.array(apiConsumerHistoryItemSchema),
+  pagination: apiConsumerHistoryPaginationSchema,
+});
+
+export type ApiConsumerHistoryResponse = z.infer<typeof apiConsumerHistoryResponseSchema>;
+

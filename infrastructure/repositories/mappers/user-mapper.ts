@@ -1,5 +1,58 @@
 import type { ProviderDiagnostic } from "@/domain/users/provider-diagnostic";
-import { apiProviderDiagnosticResponseSchema } from "@/infrastructure/api/user-types";
+import type { ConsumerDetail, ConsumerHistoryItem } from "@/domain/users/consumer-history";
+import {
+  apiProviderDiagnosticResponseSchema,
+  apiConsumerHistoryResponseSchema,
+  type ApiConsumerHistoryResponse,
+} from "@/infrastructure/api/user-types";
+
+function mapConsumerHistoryItem(
+  item: ApiConsumerHistoryResponse["history"][number],
+): ConsumerHistoryItem {
+  return {
+    resourceId: item.resource_id,
+    operationId: item.operation_id,
+    resourceType: item.resource_type,
+    categoryName: item.category_name,
+    provider: {
+      id: item.provider.id,
+      name: item.provider.name,
+      profilePhotoUrl: item.provider.profile_photo_url ?? undefined,
+    },
+    status: item.status,
+    totalAmountCents: item.total_amount_cents,
+    createdAt: item.created_at,
+  };
+}
+
+export function mapConsumerDetail(data: unknown): ConsumerDetail {
+  const parsed = apiConsumerHistoryResponseSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new Error("Invalid consumer history data");
+  }
+  const dto = parsed.data;
+  return {
+    id: dto.id,
+    name: dto.name,
+    surname: dto.surname,
+    email: dto.email,
+    phone: dto.phone,
+    profilePhotoUrl: dto.profile_photo_url ?? undefined,
+    registeredAt: dto.registered_at,
+    currentAddress: dto.current_address,
+    coverageZone: {
+      id: dto.coverage_zone.id,
+      name: dto.coverage_zone.name,
+    },
+    history: dto.history.map(mapConsumerHistoryItem),
+    pagination: {
+      page: dto.pagination.page,
+      limit: dto.pagination.limit,
+      total: dto.pagination.total,
+      totalPages: dto.pagination.total_pages,
+    },
+  };
+}
 
 export function mapProviderDiagnostic(data: unknown): ProviderDiagnostic {
   const parsed = apiProviderDiagnosticResponseSchema.safeParse(data);
