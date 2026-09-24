@@ -63,3 +63,32 @@ Then(
     assert.ok(text.includes("01/09/2026"), "Debe mostrar la fecha de registro formateada");
   },
 );
+
+Given(
+  "que el consumidor registra actividad de contrataciones en la plataforma",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/consumers/301/history", defaultConsumerHistory);
+  },
+);
+
+When("consulto el historial en la ficha del consumidor", async function (this: CustomWorld) {
+  await this.page.goto(new URL(ROUTES.consumerDetail(301), this.appUrl).href);
+});
+
+Then(
+  "visualizo la lista cronológica de servicios con fecha, rubro, prestador asignado, estado y acceso al detalle operativo",
+  async function (this: CustomWorld) {
+    const list = this.page.getByTestId("consumer-history-list");
+    await list.waitFor({ state: "visible" });
+
+    const text = await list.innerText();
+    assert.ok(text.includes("20/09/2026"), "Debe mostrar la fecha de la orden");
+    assert.ok(text.includes("Plomería"), "Debe mostrar el rubro asignado");
+    assert.ok(text.includes("Juan Gómez"), "Debe mostrar el nombre del prestador");
+    assert.ok(text.toLowerCase().includes("completad"), "Debe mostrar el estado");
+
+    const detailLink = list.locator(`a[href="${ROUTES.operationDetail(105)}"]`);
+    assert.equal(await detailLink.count(), 1, "Debe tener un enlace al detalle operativo en /operaciones/105");
+  },
+);
+
