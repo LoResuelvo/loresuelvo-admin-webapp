@@ -26,6 +26,20 @@ export const paymentsTranslations = {
     pendingNotice: "Pendiente de cobro",
     notAccredited: "No computado como cobro acreditado",
   },
+  filters: {
+    search: {
+      label: "Buscar por referencia o participante",
+      placeholder: "Buscar por referencia o participante...",
+    },
+    purpose: {
+      label: "Filtrar por propósito",
+      all: "Todos los propósitos",
+    },
+    status: {
+      label: "Filtrar por estado",
+      all: "Todos los estados",
+    },
+  },
   loading: "Cargando pagos...",
   empty: "No hay transacciones disponibles",
   error: "Ocurrió un error al cargar los pagos",
