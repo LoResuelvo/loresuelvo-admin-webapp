@@ -182,5 +182,35 @@ Then(
   },
 );
 
+Given(
+  "que el rubro {string} registra órdenes de trabajo activas en curso",
+  async function (this: CustomWorld, categoryName: string) {
+    await this.stubGet("/categories", [{ id: 2, name: categoryName, enabled: true }]);
+    await this.stubGet("/admin/categories/2/impact", {
+      category_id: 2,
+      category_name: categoryName,
+      provider_count: 5,
+      active_orders_count: 3,
+      can_deactivate: false,
+    });
+    await this.page.goto(new URL(ROUTES.categories, this.appUrl).href);
+    const table = this.page.getByRole("table");
+    await table.waitFor({ state: "visible" });
+  },
+);
+
+Then(
+  "se presenta una advertencia de bloqueo operativo indicando la cantidad de órdenes activas que impiden desactivar el rubro",
+  async function (this: CustomWorld) {
+    const alert = this.page.getByRole("alert").filter({
+      hasText: "3 órdenes de trabajo activas",
+    });
+    await alert.waitFor({ state: "visible" });
+    const confirmButton = this.page.getByRole("button", { name: "Confirmar desactivación" });
+    assert.equal(await confirmButton.isVisible(), false);
+  },
+);
+
+
 
 
