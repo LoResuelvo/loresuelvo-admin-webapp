@@ -75,6 +75,7 @@ describe("ConsumerHistoryClient", () => {
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent(/no fue encontrado/i);
     });
+    expect(screen.getByTestId("consumer-not-found")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /volver a usuarios/i })).toHaveAttribute(
       "href",
       "/usuarios",

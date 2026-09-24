@@ -38,6 +38,7 @@ function ConsumerHistoryNotFound() {
   return (
     <div
       role="alert"
+      data-testid="consumer-not-found"
       className="rounded-2xl border border-[#1A2B48]/10 bg-white p-12 text-center shadow-xs"
     >
       <p className="text-base font-medium text-[#1A2B48]/80">{copy.notFound}</p>

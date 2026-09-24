@@ -31,7 +31,6 @@ Feature: Ficha e historial de contrataciones de consumidores
     When accedo a la ficha del consumidor
     Then se presenta una vista de carga con indicadores visuales mientras se obtiene la información
 
-  @wip
   Scenario: 06-CSM Informar consumidor inexistente
     Given que intento consultar un consumidor que no se encuentra registrado
     When accedo al enlace de la ficha del consumidor
