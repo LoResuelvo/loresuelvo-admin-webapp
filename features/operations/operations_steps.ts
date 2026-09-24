@@ -962,4 +962,43 @@ Then(
   },
 );
 
+Given(
+  "que me encuentro en el diálogo de acceso a la conversación",
+  async function (this: CustomWorld) {
+    const inspectButton = this.page
+      .getByRole("button", { name: /inspeccionar conversación/i })
+      .or(this.page.getByTestId("inspect-chat-button"));
+    await inspectButton.waitFor({ state: "visible", timeout: 5000 });
+    await inspectButton.click();
+
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor({ state: "visible", timeout: 5000 });
+  },
+);
+
+When(
+  "intento confirmar sin haber elegido una causa del listado",
+  async function (this: CustomWorld) {
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor({ state: "visible", timeout: 5000 });
+
+    const confirmButton = dialog
+      .getByRole("button", { name: /confirmar acceso|acceder|confirmar/i })
+      .or(dialog.getByTestId("confirm-audit-access-button"));
+    await confirmButton.click();
+  },
+);
+
+Then(
+  "el sistema me indica que debo seleccionar una causa para poder continuar",
+  async function (this: CustomWorld) {
+    const errorMessage = this.page.getByText(
+      /debes seleccionar una causa para poder continuar|selecciona una causa/i,
+    );
+    await errorMessage.waitFor({ state: "visible", timeout: 5000 });
+    assert.ok(await errorMessage.isVisible());
+  },
+);
+
+
 
