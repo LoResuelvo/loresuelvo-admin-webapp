@@ -28,7 +28,6 @@ Feature: Consola de pagos y desglose económico
     When aplico los filtros para ver pagos de seña con estado aprobado
     Then el listado muestra exclusivamente los cobros de seña que se encuentran aprobados
 
-  @wip
   Scenario: 05-PAY Mostrar estado de espera mientras se cargan los pagos
     Given que la consulta de transacciones financieras toma unos momentos
     When accedo a la sección de pagos
