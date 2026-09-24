@@ -1,36 +1,10 @@
+import type { ProviderDiagnostic } from "@/domain/users/provider-diagnostic";
 import { ProviderProfileHeader } from "./provider-profile-header";
 import { OperationalConditionsPanel } from "./operational-conditions-panel";
+import { ProviderActivitySummary } from "./provider-activity-summary";
 
 export interface ProviderDiagnosticViewProps {
-  diagnostic: {
-    id: number;
-    name: string;
-    surname: string;
-    email: string;
-    phone: string;
-    profilePhotoUrl?: string;
-    category: {
-      id: number;
-      name: string;
-    };
-    coverageZones: Array<{
-      id: number;
-      name: string;
-      isActive: boolean;
-    }>;
-    identityVerification: {
-      status: string;
-      verifiedAt?: string;
-    };
-    paymentConnection: {
-      isConnected: boolean;
-      accountId?: string;
-      canReceivePayments: boolean;
-    };
-    calendarConnection: {
-      status: string;
-    };
-  };
+  diagnostic: ProviderDiagnostic;
 }
 
 export function ProviderDiagnosticView({ diagnostic }: ProviderDiagnosticViewProps) {
@@ -54,6 +28,10 @@ export function ProviderDiagnosticView({ diagnostic }: ProviderDiagnosticViewPro
         paymentConnection={diagnostic.paymentConnection}
         coverageZones={diagnostic.coverageZones}
         calendarConnection={diagnostic.calendarConnection}
+      />
+
+      <ProviderActivitySummary
+        activitySummary={diagnostic.activitySummary}
       />
     </div>
   );

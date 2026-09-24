@@ -26,7 +26,6 @@ Feature: Ficha y diagnóstico operativo de prestadores
     When consulto la sección de cobertura en su ficha de diagnóstico
     Then visualizo el listado de zonas asignadas y cuáles se encuentran activas para recibir solicitudes
 
-  @wip
   Scenario: 05-DIA Visualizar resumen de actividad e historial de contrataciones
     Given que el prestador registra actividad previa de solicitudes y órdenes
     When consulto la sección de actividad en la ficha del prestador

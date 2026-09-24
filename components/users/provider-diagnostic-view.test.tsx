@@ -36,5 +36,33 @@ describe("ProviderDiagnosticView", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1, name: "Juan Gómez" })).toBeInTheDocument();
     expect(screen.getByTestId("operational-conditions-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("provider-activity-summary")).toBeInTheDocument();
+  });
+
+  it("renders activity summary metrics and operations when provided", () => {
+    const diagnosticWithActivity = {
+      ...diagnosticMock,
+      activitySummary: {
+        totalRequests: 14,
+        activeOrders: 2,
+        completedOrders: 10,
+        averageRating: 4.8,
+        reviewsCount: 9,
+        recentOperations: [
+          {
+            id: 105,
+            categoryName: "Plomería",
+            consumerName: "Carlos López",
+            status: "in_progress",
+            createdAt: "2026-09-21T09:30:00-03:00",
+          },
+        ],
+      },
+    };
+
+    render(<ProviderDiagnosticView diagnostic={diagnosticWithActivity} />);
+
+    expect(screen.getByTestId("provider-activity-summary")).toBeInTheDocument();
+    expect(screen.getByText("Carlos López")).toBeInTheDocument();
   });
 });
