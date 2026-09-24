@@ -6,6 +6,7 @@ import { OperationError } from "@/domain/operations/operation-error";
 import type { ApiStub } from "@/infrastructure/api/types";
 import { parseE2EStubsFromCookies } from "@/infrastructure/api/e2e-stubs-utils";
 import { mapOperations, mapUnifiedOperationDetail } from "./mappers/operation-mapper";
+import { fetchOrResolveAuditedConversation } from "./api-audited-conversation";
 
 async function getE2EOperationsStub(filters?: OperationFilters): Promise<ApiStub | null> {
   if (process.env.APP_ENV === "production") return null;
@@ -175,15 +176,9 @@ async function resolveOperationDetailFromStub(stub: ApiStub): Promise<UnifiedOpe
 }
 
 function handleOperationDetailHttpError(status: number): never {
-  if (status === 404) {
-    throw new OperationError("not_found", "Operation not found");
-  }
-  if (status === 403) {
-    throw new OperationError("forbidden", "Forbidden");
-  }
-  if (status >= 500) {
-    throw new OperationError("unavailable", `Failed to fetch operation detail: ${status}`);
-  }
+  if (status === 404) throw new OperationError("not_found", "Operation not found");
+  if (status === 403) throw new OperationError("forbidden", "Forbidden");
+  if (status >= 500) throw new OperationError("unavailable", `Failed to fetch operation detail: ${status}`);
   throw new OperationError("unknown", `Failed to fetch operation detail: ${status}`);
 }
 
@@ -236,5 +231,9 @@ export const apiOperationRepository: OperationRepository = {
     }
     return fetchOperationDetailFromApi(token, id);
   },
+
+  getAuditedConversation: fetchOrResolveAuditedConversation,
 };
+
+
 

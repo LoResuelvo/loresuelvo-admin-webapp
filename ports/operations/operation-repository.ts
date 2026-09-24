@@ -11,7 +11,7 @@ export interface OperationFilters {
 export interface OperationRepository {
   getOperations(token: string, filters?: OperationFilters): Promise<OperationSummary[]>;
   getOperationById(token: string, id: string): Promise<UnifiedOperationDetail>;
-  getAuditedConversation?(
+  getAuditedConversation(
     token: string,
     operationId: string,
     reason: string,

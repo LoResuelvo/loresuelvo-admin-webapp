@@ -2,10 +2,12 @@
 
 import type { OperationSummary } from "@/domain/operations/operation-summary";
 import type { UnifiedOperationDetail } from "@/domain/operations/unified-operation-detail";
+import type { AuditedConversationResult } from "@/domain/operations/audited-message";
 import type { OperationFilters } from "@/ports/operations/operation-repository";
 import { OperationError } from "@/domain/operations/operation-error";
 import { getOperations } from "@/application/operations/get-operations";
 import { getOperationDetail } from "@/application/operations/get-operation-detail";
+import { getAuditedConversation } from "@/application/operations/get-audited-conversation";
 import { apiOperationRepository } from "@/infrastructure/repositories/api-operation-repository";
 import { authSession } from "@/infrastructure/auth/auth-session";
 import { translations } from "@/infrastructure/i18n/translations";
@@ -17,6 +19,10 @@ export type GetOperationsResult =
 export type GetOperationDetailResult =
   | { success: true; data: UnifiedOperationDetail }
   | { success: false; error: string; isNotFound?: boolean; isForbidden?: boolean };
+
+export type GetAuditedConversationActionResult =
+  | { success: true; data: AuditedConversationResult }
+  | { success: false; error: string; isForbidden?: boolean };
 
 async function resolveAuthToken(): Promise<string> {
   try {
@@ -91,3 +97,44 @@ export async function getOperationDetailAction(
     return { success: false, error: message };
   }
 }
+
+export async function getAuditedConversationAction(
+  operationId: string,
+  reason: string,
+): Promise<GetAuditedConversationActionResult> {
+  const trimmed = reason.trim();
+  if (trimmed.length < 10) {
+    return {
+      success: false,
+      error: translations.operations.chat.validationError,
+    };
+  }
+
+  try {
+    const token = await resolveAuthToken();
+    const result = await getAuditedConversation(
+      apiOperationRepository,
+      token,
+      operationId,
+      trimmed,
+    );
+    return { success: true, data: result };
+  } catch (error: unknown) {
+    if (error instanceof OperationError) {
+      if (error.code === "forbidden") {
+        return {
+          success: false,
+          error: translations.operations.chat.forbidden,
+          isForbidden: true,
+        };
+      }
+      return {
+        success: false,
+        error: translations.operations.chat.error,
+      };
+    }
+    const message = error instanceof Error ? error.message : translations.operations.chat.error;
+    return { success: false, error: message };
+  }
+}
+

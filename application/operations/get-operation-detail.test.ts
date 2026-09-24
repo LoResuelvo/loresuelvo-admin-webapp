@@ -41,6 +41,7 @@ describe("getOperationDetail use case", () => {
     const mockRepo: OperationRepository = {
       getOperations: vi.fn(),
       getOperationById: vi.fn().mockResolvedValue(mockDetail),
+      getAuditedConversation: vi.fn(),
     };
 
     const result = await getOperationDetail(mockRepo, "test-token", "op-101");
@@ -53,6 +54,7 @@ describe("getOperationDetail use case", () => {
     const mockRepo: OperationRepository = {
       getOperations: vi.fn(),
       getOperationById: vi.fn().mockRejectedValue(new OperationError("not_found", "Not found")),
+      getAuditedConversation: vi.fn(),
     };
 
     await expect(getOperationDetail(mockRepo, "test-token", "op-999")).rejects.toSatisfy(
