@@ -287,3 +287,34 @@ When(
   },
 );
 
+Given(
+  "que intento consultar un prestador que no se encuentra registrado",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/providers/999/diagnostic", { error: "Not Found" }, 404);
+  },
+);
+
+When(
+  "accedo al enlace de diagnóstico del prestador",
+  async function (this: CustomWorld) {
+    await this.page.goto(new URL(ROUTES.providerDetail(999), this.appUrl).href);
+  },
+);
+
+Then(
+  "se presenta un mensaje claro indicando que el prestador no fue encontrado",
+  async function (this: CustomWorld) {
+    const alert = this.page.getByRole("alert");
+    await alert.waitFor({ state: "visible" });
+    const text = await alert.innerText();
+    assert.ok(
+      text.toLowerCase().includes("no fue encontrado") ||
+        text.toLowerCase().includes("no encontrado"),
+      "Debe mostrar un mensaje claro indicando que el prestador no fue encontrado",
+    );
+    const backLink = alert.locator(`a[href="${ROUTES.users}"]`);
+    await backLink.waitFor({ state: "visible" });
+    assert.ok(await backLink.isVisible(), "Debe mostrar el enlace de retorno al directorio");
+  },
+);
+
