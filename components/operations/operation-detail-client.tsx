@@ -118,7 +118,11 @@ function OperationDetailContent({
     async (reason: string) => {
       const result = await getAuditedConversationAction(operation.id, reason);
       if (!result.success) {
-        throw new Error(result.error);
+        const error = new Error(result.error);
+        if (result.isForbidden) {
+          (error as Error & { isForbidden?: boolean }).isForbidden = true;
+        }
+        throw error;
       }
       return result.data;
     },

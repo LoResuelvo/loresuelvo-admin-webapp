@@ -7,59 +7,67 @@ export interface UseAuditedChatDialogStateProps {
   readonly onFetchConversation?: (reason: string) => Promise<AuditedConversationResult>;
 }
 
+interface DialogState {
+  readonly selectedReason: string;
+  readonly validationError: string | null;
+  readonly isLoading: boolean;
+  readonly error: string | null;
+  readonly isForbidden: boolean;
+  readonly conversationResult: AuditedConversationResult | null;
+}
+
+const initialDialogState: DialogState = {
+  selectedReason: "",
+  validationError: null,
+  isLoading: false,
+  error: null,
+  isForbidden: false,
+  conversationResult: null,
+};
+
 export function useAuditedChatDialogState({
   onClose,
   onFetchConversation,
 }: UseAuditedChatDialogStateProps) {
-  const [selectedReason, setSelectedReason] = useState("");
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [conversationResult, setConversationResult] =
-    useState<AuditedConversationResult | null>(null);
+  const [state, setState] = useState<DialogState>(initialDialogState);
 
   const handleClose = () => {
-    setSelectedReason("");
-    setValidationError(null);
-    setIsLoading(false);
-    setError(null);
-    setConversationResult(null);
+    setState(initialDialogState);
     onClose();
   };
 
   const handleConfirmAccess = async () => {
-    const trimmed = selectedReason.trim();
+    const trimmed = state.selectedReason.trim();
     if (!trimmed) {
-      setValidationError(translations.operations.chat.validationError);
+      setState((prev) => ({ ...prev, validationError: translations.operations.chat.validationError }));
       return;
     }
-    setValidationError(null);
-    setIsLoading(true);
-    setError(null);
+    setState((prev) => ({ ...prev, validationError: null, isLoading: true, error: null, isForbidden: false }));
     try {
-      if (onFetchConversation) {
-        const result = await onFetchConversation(trimmed);
-        setConversationResult(result);
-      }
+      const result = onFetchConversation ? await onFetchConversation(trimmed) : null;
+      setState((prev) => ({ ...prev, conversationResult: result, isLoading: false }));
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : translations.operations.chat.error);
-    } finally {
-      setIsLoading(false);
+      const message = err instanceof Error ? err.message : translations.operations.chat.error;
+      const forbidden =
+        (err as { isForbidden?: boolean })?.isForbidden === true ||
+        message === translations.operations.chat.forbidden ||
+        message.toLowerCase().includes("restringido");
+      setState((prev) => ({ ...prev, error: message, isForbidden: forbidden, isLoading: false }));
     }
   };
 
   return {
-    selectedReason,
-    validationError,
-    isLoading,
-    error,
-    conversationResult,
+    ...state,
     handleClose,
     handleConfirmAccess,
     handleReasonChange: (val: string) => {
-      setSelectedReason(val);
-      if (validationError && val) setValidationError(null);
+      setState((prev) => ({
+        ...prev,
+        selectedReason: val,
+        validationError: prev.validationError && val ? null : prev.validationError,
+      }));
     },
-    handleClearError: () => setError(null),
+    handleClearError: () => setState((prev) => ({ ...prev, error: null, isForbidden: false })),
   };
 }
+

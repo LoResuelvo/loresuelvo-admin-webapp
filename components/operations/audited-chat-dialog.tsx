@@ -69,32 +69,48 @@ function AuditedChatReasonForm({
 
 interface ErrorStateProps {
   readonly error: string;
+  readonly isForbidden?: boolean;
   readonly onBack: () => void;
   readonly onRetry: () => void;
 }
 
-function AuditedChatErrorState({ error, onBack, onRetry }: ErrorStateProps) {
+function AuditedChatErrorState({
+  error,
+  isForbidden = false,
+  onBack,
+  onRetry,
+}: ErrorStateProps) {
   return (
     <div
       role="alert"
-      className="rounded-xl border border-red-200 bg-red-50 p-4 text-center text-red-800 space-y-3"
+      className={`rounded-xl border p-4 text-center space-y-3 ${
+        isForbidden
+          ? "border-amber-200 bg-amber-50 text-amber-800"
+          : "border-red-200 bg-red-50 text-red-800"
+      }`}
     >
       <p className="text-sm font-medium">{error}</p>
       <div className="flex justify-center gap-3">
         <button
           type="button"
           onClick={onBack}
-          className="rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-800 hover:bg-red-50"
+          className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
+            isForbidden
+              ? "border border-amber-300 bg-white text-amber-800 hover:bg-amber-50"
+              : "border border-red-300 bg-white text-red-800 hover:bg-red-50"
+          }`}
         >
-          Volver
+          {isForbidden ? translations.operations.chat.close : "Volver"}
         </button>
-        <button
-          type="button"
-          onClick={onRetry}
-          className="rounded-lg bg-red-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-800"
-        >
-          {translations.operations.chat.retry}
-        </button>
+        {!isForbidden && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="rounded-lg bg-red-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-800"
+          >
+            {translations.operations.chat.retry}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -148,6 +164,7 @@ export function AuditedChatDialog({
     validationError,
     isLoading,
     error,
+    isForbidden,
     conversationResult,
     handleClose,
     handleConfirmAccess,
@@ -176,6 +193,7 @@ export function AuditedChatDialog({
         {error && !isLoading && (
           <AuditedChatErrorState
             error={error}
+            isForbidden={isForbidden}
             onBack={handleClearError}
             onRetry={handleConfirmAccess}
           />

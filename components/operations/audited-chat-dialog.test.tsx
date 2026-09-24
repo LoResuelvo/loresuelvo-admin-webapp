@@ -115,5 +115,29 @@ describe("AuditedChatDialog", () => {
       await screen.findByText(/no se registran mensajes en esta contratación/i),
     ).toBeInTheDocument();
   });
+
+  it("displays forbidden alert without retry button when access is restricted", async () => {
+    const user = userEvent.setup();
+    const error = new Error("El acceso a la conversación está restringido.");
+    (error as Error & { isForbidden?: boolean }).isForbidden = true;
+    const handleFetch = vi.fn().mockRejectedValue(error);
+
+    render(
+      <AuditedChatDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        operationId="op-101"
+        onFetchConversation={handleFetch}
+      />,
+    );
+
+    await user.selectOptions(screen.getByRole("combobox"), "Reclamo de cliente");
+    await user.click(screen.getByRole("button", { name: /confirmar acceso/i }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(/el acceso a la conversación está restringido/i);
+    expect(screen.queryByRole("button", { name: /reintentar/i })).not.toBeInTheDocument();
+  });
 });
+
 

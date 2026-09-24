@@ -27,7 +27,6 @@ Feature: Inspección auditada del chat de una contratación
     When selecciono una causa válida y accedo a la conversación
     Then visualizo un mensaje indicando que no se registran mensajes en esta contratación
 
-  @wip
   Scenario: 05-CHT Informar falta de permisos para auditar mensajes
     Given que mi cuenta de usuario no posee permisos de soporte para ver mensajes privados
     When intento acceder a la conversación
