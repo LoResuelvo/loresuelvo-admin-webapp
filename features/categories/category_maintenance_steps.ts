@@ -118,4 +118,69 @@ Then("el formulario de edición permanece abierto", async function (this: Custom
   assert.equal(await modal.isVisible(), true);
 });
 
+Given(
+  "que el rubro {string} no registra órdenes de trabajo activas en curso",
+  async function (this: CustomWorld, categoryName: string) {
+    await this.stubGet("/categories", [{ id: 1, name: categoryName, enabled: true }]);
+    await this.stubGet("/admin/categories/1/impact", {
+      category_id: 1,
+      category_name: categoryName,
+      provider_count: 3,
+      active_orders_count: 0,
+      can_deactivate: true,
+    });
+    await this.page.goto(new URL(ROUTES.categories, this.appUrl).href);
+    const table = this.page.getByRole("table");
+    await table.waitFor({ state: "visible" });
+  },
+);
+
+When(
+  "solicito desactivar el rubro {string}",
+  async function (this: CustomWorld, categoryName: string) {
+    const deactivateButton = this.page.getByRole("button", {
+      name: `Desactivar rubro ${categoryName}`,
+    });
+    await deactivateButton.waitFor({ state: "visible" });
+    await deactivateButton.click();
+    const modal = this.page.getByRole("dialog");
+    await modal.waitFor({ state: "visible" });
+  },
+);
+
+When(
+  "confirmo la desactivación tras revisar el impacto de prestadores asociados",
+  async function (this: CustomWorld) {
+    await this.stubPatch("/categories/1", 200, { id: 1, name: "Cerrajería", enabled: false });
+    const confirmButton = this.page.getByRole("button", { name: "Confirmar desactivación" });
+    await confirmButton.waitFor({ state: "visible" });
+    await confirmButton.click();
+  },
+);
+
+Then("el diálogo de impacto se cierra", async function (this: CustomWorld) {
+  const modal = this.page.getByRole("dialog");
+  await modal.waitFor({ state: "hidden" });
+});
+
+Then("veo un mensaje de confirmación de desactivación", async function (this: CustomWorld) {
+  const confirmation = this.page.getByRole("status").filter({
+    hasText: "Rubro desactivado exitosamente",
+  });
+  await confirmation.waitFor({ state: "visible" });
+});
+
+Then(
+  "el rubro {string} se visualiza como inactivo en el catálogo",
+  async function (this: CustomWorld, categoryName: string) {
+    const table = this.page.getByRole("table");
+    await table.waitFor({ state: "visible" });
+    const row = this.page.locator("tbody tr").filter({ hasText: categoryName });
+    await row.waitFor({ state: "visible" });
+    const statusCell = row.getByText("Inactivo");
+    await statusCell.waitFor({ state: "visible" });
+  },
+);
+
+
 
