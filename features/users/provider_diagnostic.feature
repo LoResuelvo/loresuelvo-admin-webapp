@@ -46,7 +46,6 @@ Feature: Ficha y diagnóstico operativo de prestadores
     When intento ingresar a la ficha de diagnóstico del prestador
     Then el sistema me informa que el acceso está restringido
 
-  @wip
   Scenario: 09-DIA Manejar dificultades de comunicación con el servicio
     Given que el sistema experimenta problemas de conexión con el servidor
     When intento consultar la ficha de diagnóstico del prestador

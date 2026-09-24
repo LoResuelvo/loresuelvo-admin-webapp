@@ -111,4 +111,15 @@ describe("ProviderDiagnosticClient", () => {
 
     expect(actionSpy).toHaveBeenCalledTimes(2);
   });
+
+  it("renders default translation error when action throws", async () => {
+    vi.spyOn(actions, "getProviderDiagnosticAction").mockRejectedValue(new Error("Network failed"));
+
+    render(<ProviderDiagnosticClient id={201} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(/error/i);
+    });
+    expect(screen.getByRole("button", { name: /reintentar/i })).toBeInTheDocument();
+  });
 });

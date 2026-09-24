@@ -144,7 +144,7 @@ export const usersTranslations = {
     skeletonLoading: "Cargando ficha y diagnóstico operativo del prestador...",
     notFound: "El prestador solicitado no fue encontrado",
     forbidden: "Acceso restringido: no tenés permisos para consultar el diagnóstico de prestadores",
-    error: "No se pudo obtener la información de diagnóstico operativo. Intentá nuevamente más tarde",
+    error: "Ocurrió un error al obtener la información de diagnóstico operativo. Intentá nuevamente más tarde",
     retry: "Reintentar",
   },
 } as const;
