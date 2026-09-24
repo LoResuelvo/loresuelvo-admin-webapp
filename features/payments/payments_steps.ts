@@ -170,3 +170,35 @@ Then(
     assert.ok(!text.includes("Juan Pérez"));
   },
 );
+
+Given(
+  "que no existen transacciones que coincidan con el criterio seleccionado",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/payments", samplePaymentsResponse);
+    const paymentsPath = (ROUTES as unknown as Record<string, string>).payments ?? "/pagos";
+    await this.page.goto(new URL(paymentsPath, this.appUrl).href);
+  },
+);
+
+When(
+  "aplico un filtro de búsqueda sin resultados en la sección de pagos",
+  async function (this: CustomWorld) {
+    const searchInput = this.page
+      .getByRole("searchbox", { name: /buscar por referencia o participante/i })
+      .or(this.page.getByPlaceholder(/buscar por referencia o participante/i))
+      .or(this.page.locator("#payments-search"));
+    await searchInput.waitFor({ state: "visible" });
+    await searchInput.fill("NON_EXISTING_TRANSACTION_QUERY_XYZ");
+  },
+);
+
+Then(
+  "se muestra un mensaje informativo indicando que no hay transacciones disponibles",
+  async function (this: CustomWorld) {
+    const emptyState = this.page.getByTestId("payments-empty");
+    await emptyState.waitFor({ state: "visible" });
+    const text = await emptyState.innerText();
+    assert.ok(text.includes("No hay transacciones disponibles"));
+  },
+);
+
