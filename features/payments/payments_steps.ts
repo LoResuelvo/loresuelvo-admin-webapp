@@ -189,3 +189,40 @@ Given(
     });
   },
 );
+
+Given(
+  "que existen pagos registrados vinculados a operaciones del marketplace",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/payments", samplePaymentsResponse);
+    const paymentsPath = (ROUTES as unknown as Record<string, string>).payments ?? "/pagos";
+    await this.page.goto(new URL(paymentsPath, this.appUrl).href);
+  },
+);
+
+When(
+  "realizo una búsqueda por la referencia {string}",
+  async function (this: CustomWorld, reference: string) {
+    const searchInput = this.page
+      .getByRole("searchbox", { name: /buscar por referencia o participante/i })
+      .or(this.page.getByPlaceholder(/buscar por referencia o participante/i))
+      .or(this.page.locator("#payments-search"));
+    await searchInput.waitFor({ state: "visible" });
+    await searchInput.fill(reference);
+  },
+);
+
+Then(
+  "el listado contiene únicamente la transacción vinculada a esa referencia",
+  async function (this: CustomWorld) {
+    const table = this.page.getByRole("table");
+    await table.waitFor();
+    const rows = this.page.locator("tbody tr");
+    await rows.first().waitFor();
+    assert.equal(await rows.count(), 1);
+    const text = await rows.first().innerText();
+    assert.ok(text.includes("MP-REF-45892"));
+    assert.ok(text.includes("Juan Pérez"));
+    assert.ok(!text.includes("MP-REF-45891"));
+  },
+);
+
