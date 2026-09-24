@@ -147,5 +147,43 @@ export const usersTranslations = {
     error: "Ocurrió un error al obtener la información de diagnóstico operativo. Intentá nuevamente más tarde",
     retry: "Reintentar",
   },
+  consumerDetail: {
+    title: "Ficha del Consumidor",
+    backToList: "Volver a usuarios",
+    profile: {
+      title: "Datos del Consumidor",
+      emailLabel: "Correo",
+      phoneLabel: "Teléfono",
+      registeredAtLabel: "Fecha de registro",
+      addressLabel: "Dirección habitual",
+      zoneLabel: "Zona de cobertura",
+    },
+    history: {
+      title: "Historial de Contrataciones",
+      subtitle: "Registro cronológico de servicios contratados en la plataforma",
+      columns: {
+        date: "Fecha",
+        category: "Rubro",
+        provider: "Prestador",
+        status: "Estado",
+        amount: "Importe",
+        actions: "Acciones",
+      },
+      statuses: {
+        completed: "Completada",
+        in_progress: "En progreso",
+        cancelled: "Cancelada",
+        pending: "Pendiente",
+      },
+      viewOperation: "Ver en Centro de Operaciones",
+      empty: "El consumidor no registra contrataciones previas",
+    },
+    loading: "Cargando ficha del consumidor...",
+    skeletonLoading: "Cargando ficha e historial del consumidor...",
+    notFound: "El consumidor no fue encontrado",
+    forbidden: "Acceso restringido: no tenés permisos para consultar la ficha de consumidores",
+    error: "Ocurrió un error al obtener la información del consumidor. Intentá nuevamente más tarde",
+    retry: "Reintentar",
+  },
 } as const;
 
