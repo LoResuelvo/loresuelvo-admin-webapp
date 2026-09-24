@@ -41,7 +41,6 @@ Feature: Consola de pagos y desglose económico
     When intento ingresar a la sección de pagos
     Then el sistema me informa que el acceso está restringido
 
-  @wip
   Scenario: 08-PAY Manejar dificultades de comunicación con el servicio
     Given que el sistema experimenta problemas de conexión con el servidor
     When intento consultar la sección de pagos

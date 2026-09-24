@@ -1214,6 +1214,7 @@ Given(
       status: 500,
       body: { error: "Internal Server Error" },
     });
+    await this.stubGet("/admin/payments", { error: "Internal Server Error" }, 500);
   },
 );
 
