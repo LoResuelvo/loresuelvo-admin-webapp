@@ -1220,6 +1220,7 @@ Given(
     });
     await this.stubGet("/admin/payments", { error: "Internal Server Error" }, 500);
     await this.stubGet("/admin/providers/201/diagnostic", { error: "Internal Server Error" }, 500);
+    await this.stubGet("/admin/consumers/301/history", { error: "Internal Server Error" }, 500);
   },
 );
 

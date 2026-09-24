@@ -282,3 +282,11 @@ When(
   },
 );
 
+When(
+  "intento consultar la ficha del consumidor",
+  async function (this: CustomWorld) {
+    await this.page.goto(new URL(ROUTES.consumerDetail(301), this.appUrl).href);
+  },
+);
+
+
