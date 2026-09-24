@@ -224,5 +224,23 @@ Then(
   },
 );
 
+Given(
+  "que la consulta de los datos del consumidor toma unos momentos",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/consumers/301/history",
+      status: 200,
+      body: defaultConsumerHistory,
+      delayMs: 3000,
+    });
+  },
+);
+
+When("accedo a la ficha del consumidor", async function (this: CustomWorld) {
+  await this.page.goto(new URL(ROUTES.consumerDetail(301), this.appUrl).href);
+});
+
+
 
 

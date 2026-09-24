@@ -154,13 +154,15 @@ Then(
       .getByTestId("operation-detail-skeleton")
       .or(this.page.getByTestId("operations-skeleton"))
       .or(this.page.getByTestId("payments-skeleton"))
-      .or(this.page.getByTestId("diagnostic-skeleton"));
+      .or(this.page.getByTestId("diagnostic-skeleton"))
+      .or(this.page.getByTestId("consumer-skeleton"));
     await skeleton.waitFor({ state: "visible" });
 
     const isDetail = (await this.page.getByTestId("operation-detail-skeleton").count()) > 0;
     const isPayments = (await this.page.getByTestId("payments-skeleton").count()) > 0;
     const isDiagnostic = (await this.page.getByTestId("diagnostic-skeleton").count()) > 0;
-    if (isDetail || isPayments || isDiagnostic) {
+    const isConsumer = (await this.page.getByTestId("consumer-skeleton").count()) > 0;
+    if (isDetail || isPayments || isDiagnostic || isConsumer) {
       assert.equal(await skeleton.getAttribute("aria-busy"), "true");
       const indicators = this.page.locator("[data-testid='skeleton-indicator']");
       assert.ok((await indicators.count()) >= 1);
