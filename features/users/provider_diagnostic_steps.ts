@@ -208,4 +208,61 @@ Then(
     );
   },
 );
+Given(
+  "que el prestador registra actividad previa de solicitudes y órdenes",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/providers/201/diagnostic", {
+      ...defaultProviderDiagnostic,
+      activity_summary: {
+        total_requests: 14,
+        active_orders: 2,
+        completed_orders: 10,
+        average_rating: 4.8,
+        reviews_count: 9,
+        recent_operations: [
+          {
+            id: 105,
+            category_name: "Plomería",
+            consumer_name: "Carlos López",
+            status: "in_progress",
+            created_at: "2026-09-21T09:30:00-03:00",
+          },
+        ],
+      },
+    });
+  },
+);
 
+When(
+  "consulto la sección de actividad en la ficha del prestador",
+  async function (this: CustomWorld) {
+    await this.page.goto(new URL(ROUTES.providerDetail(201), this.appUrl).href);
+  },
+);
+
+Then(
+  "visualizo el resumen de trabajos con accesos directos hacia sus contrataciones en el Centro de Operaciones",
+  async function (this: CustomWorld) {
+    const activitySummary = this.page.getByTestId("provider-activity-summary");
+    await activitySummary.waitFor({ state: "visible" });
+
+    const summaryText = await activitySummary.innerText();
+    assert.ok(
+      summaryText.includes("14") && summaryText.includes("10") && summaryText.includes("2"),
+      "Debe mostrar las métricas de solicitudes y órdenes",
+    );
+    assert.ok(
+      summaryText.includes("Carlos López"),
+      "Debe mostrar el nombre del cliente de la operación reciente",
+    );
+
+    const operationLink = activitySummary.locator(
+      `a[href="${ROUTES.operationDetail(105)}"]`,
+    );
+    await operationLink.waitFor({ state: "visible" });
+    assert.ok(
+      await operationLink.isVisible(),
+      "Debe tener un enlace directo a la operación en el Centro de Operaciones",
+    );
+  },
+);
