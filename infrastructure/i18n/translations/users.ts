@@ -62,4 +62,54 @@ export const usersTranslations = {
     error: "No se pudieron obtener los prestadores. Intentá nuevamente más tarde",
     retry: "Reintentar",
   },
+  diagnostic: {
+    title: "Diagnóstico Operativo",
+    backToList: "Volver a prestadores",
+    profile: {
+      emailLabel: "Correo",
+      phoneLabel: "Teléfono",
+      categoryLabel: "Rubro asignado",
+    },
+    conditions: {
+      title: "Condiciones Operativas",
+      identity: {
+        title: "Identidad",
+        status: {
+          approved: "Verificado",
+          pending: "En revisión",
+          in_review: "En revisión",
+          rejected: "Rechazado",
+          declined: "Rechazado",
+          unverified: "Sin verificar",
+        },
+      },
+      payments: {
+        title: "Cobros",
+        connected: "Conectado",
+        disconnected: "Desconectado",
+        disconnectedAlert: "No puede recibir señas ni pagos",
+        canReceivePayments: "Habilitado para recibir cobros",
+        accountLabel: "Cuenta de cobro",
+      },
+      zones: {
+        title: "Zonas",
+        summary: "Zonas de cobertura",
+        active: "Activa",
+        inactive: "Inactiva",
+        configured: "configuradas",
+        noZones: "Sin zonas asignadas",
+      },
+      calendar: {
+        title: "Calendario",
+        connected: "Conectado",
+        disconnected: "Desconectado",
+      },
+    },
+    loading: "Cargando diagnóstico operativo...",
+    notFound: "El prestador solicitado no fue encontrado",
+    forbidden: "Acceso restringido: no tenés permisos para consultar el diagnóstico de prestadores",
+    error: "No se pudo obtener la información de diagnóstico operativo. Intentá nuevamente más tarde",
+    retry: "Reintentar",
+  },
 } as const;
+
