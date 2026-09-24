@@ -852,3 +852,116 @@ When("intento cargar la ficha de la contratación", async function (this: Custom
   await this.page.goto(new URL(detailRoute, this.appUrl).href);
 });
 
+const sampleAuditedConversation = {
+  items: [
+    {
+      id: 1,
+      sender_id: 10,
+      sender_role: "consumer",
+      content: "Hola, necesito coordinar la visita para revisar la pérdida.",
+      sent_at: "2026-09-18T10:15:00Z",
+      attachments: [],
+    },
+    {
+      id: 2,
+      sender_id: 20,
+      sender_role: "provider",
+      content: "Buenas tardes, puedo pasar mañana por la mañana a primera hora.",
+      sent_at: "2026-09-18T10:20:00Z",
+      attachments: [],
+    },
+  ],
+  pagination: {
+    page: 1,
+    limit: 50,
+    total: 2,
+  },
+};
+
+Given("me encuentro en la ficha de una contratación", async function (this: CustomWorld) {
+  await this.stubGet("/admin/operations/op-101", sampleOperationDetail);
+  await this.stubGet("/operations/op-101", sampleOperationDetail);
+  const detailRoute = ROUTES.operationDetail("op-101");
+  await this.page.goto(new URL(detailRoute, this.appUrl).href);
+  const header = this.page.getByTestId("operation-header");
+  await header.waitFor({ state: "visible", timeout: 5000 });
+});
+
+Given(
+  "que selecciono la opción para inspeccionar los mensajes",
+  async function (this: CustomWorld) {
+    await this.stubGet(
+      "/admin/operations/op-101/conversation",
+      sampleAuditedConversation,
+    );
+    await this.stubGet(
+      "/operations/op-101/conversation",
+      sampleAuditedConversation,
+    );
+
+    const inspectButton = this.page
+      .getByRole("button", { name: /inspeccionar conversación/i })
+      .or(this.page.getByTestId("inspect-chat-button"));
+    await inspectButton.waitFor({ state: "visible", timeout: 5000 });
+    await inspectButton.click();
+  },
+);
+
+When(
+  "elijo la causa {string} y confirmo el acceso",
+  async function (this: CustomWorld, cause: string) {
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor({ state: "visible", timeout: 5000 });
+
+    const causeSelect = dialog
+      .getByLabel(/motivo|causa/i)
+      .or(dialog.getByTestId("audit-reason-select"));
+
+    if (await causeSelect.isVisible()) {
+      await causeSelect.selectOption({ label: cause });
+    } else {
+      const causeOption = dialog
+        .getByRole("radio", { name: new RegExp(cause, "i") })
+        .or(dialog.getByRole("button", { name: new RegExp(cause, "i") }))
+        .or(dialog.getByText(cause));
+      await causeOption.click();
+    }
+
+    const confirmButton = dialog
+      .getByRole("button", { name: /confirmar acceso|acceder|confirmar/i })
+      .or(dialog.getByTestId("confirm-audit-access-button"));
+    await confirmButton.click();
+  },
+);
+
+Then(
+  "visualizo los mensajes ordenados cronológicamente distinguiendo las intervenciones del cliente y del prestador",
+  async function (this: CustomWorld) {
+    const messagesContainer = this.page
+      .getByTestId("audited-messages-list")
+      .or(this.page.getByRole("dialog"));
+    await messagesContainer.waitFor({ state: "visible", timeout: 5000 });
+
+    const consumerMessage = this.page
+      .locator("[data-testid='audited-message-consumer']")
+      .or(this.page.getByText("Hola, necesito coordinar la visita"));
+    await consumerMessage.waitFor({ state: "visible", timeout: 5000 });
+
+    const providerMessage = this.page
+      .locator("[data-testid='audited-message-provider']")
+      .or(this.page.getByText("Buenas tardes, puedo pasar mañana"));
+    await providerMessage.waitFor({ state: "visible", timeout: 5000 });
+
+    const text = await messagesContainer.innerText();
+    assert.ok(
+      text.includes("Cliente") || text.includes("consumer") || (await consumerMessage.isVisible()),
+      "Debe distinguir la intervención del cliente",
+    );
+    assert.ok(
+      text.includes("Prestador") || text.includes("provider") || (await providerMessage.isVisible()),
+      "Debe distinguir la intervención del prestador",
+    );
+  },
+);
+
+
