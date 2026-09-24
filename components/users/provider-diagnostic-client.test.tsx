@@ -41,6 +41,7 @@ describe("ProviderDiagnosticClient", () => {
     render(<ProviderDiagnosticClient id={201} />);
 
     expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(screen.getByTestId("diagnostic-skeleton")).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByRole("heading", { level: 1, name: "Juan Gómez" })).toBeInTheDocument();

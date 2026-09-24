@@ -31,7 +31,6 @@ Feature: Ficha y diagnóstico operativo de prestadores
     When consulto la sección de actividad en la ficha del prestador
     Then visualizo el resumen de trabajos con accesos directos hacia sus contrataciones en el Centro de Operaciones
 
-  @wip
   Scenario: 06-DIA Mostrar estado de espera mientras se carga la ficha del prestador
     Given que la consulta del diagnóstico del prestador toma unos momentos
     When accedo a la ficha de diagnóstico del prestador

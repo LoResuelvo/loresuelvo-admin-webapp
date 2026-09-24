@@ -5,6 +5,7 @@ import type { ProviderDiagnostic } from "@/domain/users/provider-diagnostic";
 import { getProviderDiagnosticAction } from "@/app/(dashboard)/usuarios/actions";
 import { translations } from "@/infrastructure/i18n/translations";
 import { ProviderDiagnosticView } from "./provider-diagnostic-view";
+import { ProviderDiagnosticSkeleton } from "./provider-diagnostic-skeleton";
 
 export interface ProviderDiagnosticClientProps {
   id: string | number;
@@ -16,24 +17,6 @@ interface DiagnosticState {
   error: string | null;
   isForbidden: boolean;
   isNotFound: boolean;
-}
-
-function DiagnosticLoading() {
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="flex flex-col items-center justify-center py-16 text-center"
-    >
-      <span
-        aria-hidden="true"
-        className="mb-4 block size-8 rounded-full border-2 border-[#147560]/20 border-t-[#147560] motion-safe:animate-spin"
-      />
-      <p className="text-sm font-medium text-[#1A2B48]/70">
-        {translations.users.diagnostic.loading}
-      </p>
-    </div>
-  );
 }
 
 function DiagnosticForbidden() {
@@ -144,7 +127,7 @@ export function ProviderDiagnosticClient({ id }: ProviderDiagnosticClientProps) 
   const { state, reload } = useProviderDiagnostic(id);
 
   if (state.isLoading) {
-    return <DiagnosticLoading />;
+    return <ProviderDiagnosticSkeleton />;
   }
 
   if (state.isForbidden) {
