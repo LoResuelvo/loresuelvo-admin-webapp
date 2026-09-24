@@ -241,6 +241,29 @@ When("accedo a la ficha del consumidor", async function (this: CustomWorld) {
   await this.page.goto(new URL(ROUTES.consumerDetail(301), this.appUrl).href);
 });
 
+Given(
+  "que intento consultar un consumidor que no se encuentra registrado",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/consumers/999/history", { error: "Not Found" }, 404);
+  },
+);
 
+When(
+  "accedo al enlace de la ficha del consumidor",
+  async function (this: CustomWorld) {
+    await this.page.goto(new URL(ROUTES.consumerDetail(999), this.appUrl).href);
+  },
+);
 
+Then(
+  "se presenta un mensaje claro indicando que el consumidor no fue encontrado",
+  async function (this: CustomWorld) {
+    const alert = this.page.getByRole("alert").filter({
+      hasText: /no fue encontrado|no encontrado/i,
+    });
+    await alert.waitFor({ state: "visible" });
 
+    const backLink = alert.locator(`a[href="${ROUTES.users}"]`);
+    assert.equal(await backLink.count(), 1, "Debe contener un enlace para volver a usuarios");
+  },
+);
