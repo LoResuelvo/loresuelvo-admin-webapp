@@ -12,6 +12,7 @@ export interface PaymentsViewProps {
   items: PaymentIntentSummary[];
   isLoading?: boolean;
   error?: string | null;
+  isForbidden?: boolean;
   onRetry?: () => void;
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
@@ -27,6 +28,17 @@ function PaymentsHeader({ title, subtitle }: { title: string; subtitle: string }
     <div>
       <h1 className="text-2xl font-semibold tracking-tight text-[#1A2B48]">{title}</h1>
       <p className="mt-1 text-sm text-[#536176]">{subtitle}</p>
+    </div>
+  );
+}
+
+function PaymentsForbiddenAlert({ message }: { message: string }) {
+  return (
+    <div
+      role="alert"
+      className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-center text-amber-800"
+    >
+      <p className="text-sm font-medium">{message}</p>
     </div>
   );
 }
@@ -98,6 +110,7 @@ export function PaymentsView({
   items,
   isLoading = false,
   error = null,
+  isForbidden = false,
   onRetry,
   className = "",
   ...filterProps
@@ -123,7 +136,9 @@ export function PaymentsView({
     <div className={`space-y-6 ${className}`.trim()}>
       <PaymentsHeader title={copy.title} subtitle={copy.subtitle} />
 
-      {error ? (
+      {isForbidden ? (
+        <PaymentsForbiddenAlert message={copy.forbidden} />
+      ) : error ? (
         <PaymentsErrorAlert error={error} retryLabel={copy.retry} onRetry={onRetry} />
       ) : (
         <>

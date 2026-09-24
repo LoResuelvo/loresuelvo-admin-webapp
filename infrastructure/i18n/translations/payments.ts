@@ -44,5 +44,5 @@ export const paymentsTranslations = {
   empty: "No hay transacciones disponibles",
   error: "Ocurrió un error al cargar los pagos",
   retry: "Reintentar",
-  forbidden: "No posees permisos para consultar información financiera",
+  forbidden: "No posees permisos para consultar información financiera. El acceso está restringido.",
 } as const;

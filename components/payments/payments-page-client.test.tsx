@@ -65,4 +65,20 @@ describe("PaymentsPageClient", () => {
       expect(screen.getByRole("alert")).toHaveTextContent("Error de red");
     });
   });
+
+  it("handles forbidden state and passes isForbidden to view", async () => {
+    vi.mocked(actions.getPaymentsAction).mockResolvedValue({
+      success: false,
+      error: "No posees permisos para consultar información financiera. El acceso está restringido.",
+      isForbidden: true,
+    });
+
+    render(<PaymentsPageClient />);
+
+    await waitFor(() => {
+      const alert = screen.getByRole("alert");
+      expect(alert).toHaveTextContent(/restringido|permisos/i);
+      expect(screen.queryByRole("button", { name: "Reintentar" })).not.toBeInTheDocument();
+    });
+  });
 });

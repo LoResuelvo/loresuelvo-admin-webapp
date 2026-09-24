@@ -60,6 +60,7 @@ export function PaymentsPageClient() {
       items={state.items}
       isLoading={state.isLoading}
       error={state.error}
+      isForbidden={state.isForbidden}
       onRetry={load}
     />
   );

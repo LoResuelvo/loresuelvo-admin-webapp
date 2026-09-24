@@ -165,4 +165,11 @@ describe("PaymentsView", () => {
     expect(screen.queryByText("MP-REF-45892")).not.toBeInTheDocument();
     expect(screen.queryByText("MP-REF-45893")).not.toBeInTheDocument();
   });
+
+  it("renders forbidden alert without retry button when isForbidden is true", () => {
+    render(<PaymentsView items={[]} isForbidden={true} />);
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent(/restringido|permisos/i);
+    expect(screen.queryByRole("button", { name: "Reintentar" })).not.toBeInTheDocument();
+  });
 });
