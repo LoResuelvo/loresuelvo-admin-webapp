@@ -267,3 +267,18 @@ Then(
     assert.equal(await backLink.count(), 1, "Debe contener un enlace para volver a usuarios");
   },
 );
+
+Given(
+  "que mi cuenta de usuario no posee permisos para consultar el detalle de consumidores",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/consumers/301/history", { error: "Forbidden" }, 403);
+  },
+);
+
+When(
+  "intento ingresar a la ficha del consumidor",
+  async function (this: CustomWorld) {
+    await this.page.goto(new URL(ROUTES.consumerDetail(301), this.appUrl).href);
+  },
+);
+
