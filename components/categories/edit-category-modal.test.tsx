@@ -127,6 +127,20 @@ describe("EditCategoryModal", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("El rubro ya existe");
   });
 
+  it("displays forbidden error message when user lacks permission", () => {
+    render(
+      <EditCategoryModal
+        isOpen={true}
+        category={sampleCategory}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+        error="No tenés permisos para realizar esta acción"
+      />
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent("No tenés permisos para realizar esta acción");
+  });
+
   it("closes modal when clicking Cancelar button", async () => {
     const onClose = vi.fn();
     render(

@@ -47,8 +47,6 @@ Feature: Mantenimiento y desactivación de rubros con análisis de impacto
     Given que el cálculo de impacto de un rubro toma unos momentos
     When solicito desactivar el rubro "Pintura"
     Then se presenta un indicador de carga mientras se evalúa el impacto en prestadores y órdenes
-
-  @wip
   Scenario: 07-MNT Informar falta de permisos para editar o desactivar rubros
     Given que mi cuenta de usuario no posee permisos de modificación de rubros
     When intento guardar la edición de un rubro
