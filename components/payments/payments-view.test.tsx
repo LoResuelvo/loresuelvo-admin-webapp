@@ -33,6 +33,34 @@ const mockPayments: PaymentIntentSummary[] = [
     createdAt: "2026-09-20T10:00:00Z",
     verifiedAt: "2026-09-20T10:05:00Z",
   },
+  {
+    id: 2,
+    externalPaymentId: "pay_1002",
+    externalReference: "MP-REF-45892",
+    purpose: "balance",
+    status: "approved",
+    serviceProposalId: null,
+    workOrderId: 201,
+    consumer: {
+      id: 3,
+      name: "Juan Pérez",
+      email: "juan.perez@example.com",
+    },
+    provider: {
+      id: 4,
+      name: "Ana Electricista",
+      email: "ana.electricista@example.com",
+    },
+    breakdown: {
+      serviceAmountCents: 5000000,
+      sellerAmountCents: 4250000,
+      platformFeeCents: 750000,
+      totalAmountCents: 5000000,
+      currency: "ARS",
+    },
+    createdAt: "2026-09-21T15:30:00Z",
+    verifiedAt: "2026-09-21T15:35:00Z",
+  },
 ];
 
 describe("PaymentsView", () => {
@@ -40,6 +68,7 @@ describe("PaymentsView", () => {
     render(<PaymentsView items={mockPayments} />);
     expect(screen.getByRole("heading", { name: "Consola de Pagos" })).toBeInTheDocument();
     expect(screen.getByText("MP-REF-45891")).toBeInTheDocument();
+    expect(screen.getByText("MP-REF-45892")).toBeInTheDocument();
   });
 
   it("renders loading skeleton when isLoading is true", () => {
@@ -60,6 +89,32 @@ describe("PaymentsView", () => {
 
   it("renders empty state when no items exist", () => {
     render(<PaymentsView items={[]} />);
+    expect(screen.getByTestId("payments-empty")).toBeInTheDocument();
+    expect(screen.getByText("No hay transacciones disponibles")).toBeInTheDocument();
+  });
+
+  it("filters items by search input query", async () => {
+    const user = userEvent.setup();
+    render(<PaymentsView items={mockPayments} />);
+
+    const searchInput = screen.getByRole("searchbox", {
+      name: "Buscar por referencia o participante",
+    });
+    await user.type(searchInput, "MP-REF-45892");
+
+    expect(screen.getByText("MP-REF-45892")).toBeInTheDocument();
+    expect(screen.queryByText("MP-REF-45891")).not.toBeInTheDocument();
+  });
+
+  it("shows empty state when search query matches no items", async () => {
+    const user = userEvent.setup();
+    render(<PaymentsView items={mockPayments} />);
+
+    const searchInput = screen.getByRole("searchbox", {
+      name: "Buscar por referencia o participante",
+    });
+    await user.type(searchInput, "NO_MATCH");
+
     expect(screen.getByTestId("payments-empty")).toBeInTheDocument();
     expect(screen.getByText("No hay transacciones disponibles")).toBeInTheDocument();
   });

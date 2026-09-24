@@ -16,7 +16,6 @@ Feature: Consola de pagos y desglose económico
     When consulto el listado en la sección de pagos
     Then el pago se visualiza con estado pendiente sin computarse como cobro acreditado
 
-  @wip
   Scenario: 03-PAY Buscar pagos por referencia externa o participante
     Given que existen pagos registrados vinculados a operaciones del marketplace
     When realizo una búsqueda por la referencia "MP-REF-45892"
