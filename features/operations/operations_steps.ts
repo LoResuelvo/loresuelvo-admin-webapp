@@ -1196,3 +1196,36 @@ When(
     await confirmButton.click();
   },
 );
+
+Given(
+  "que el sistema experimenta problemas de conexión con el servidor",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/operations/op-101/conversation",
+      status: 500,
+      body: { error: "Internal Server Error" },
+    });
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/operations/op-101/conversation",
+      status: 500,
+      body: { error: "Internal Server Error" },
+    });
+  },
+);
+
+Then(
+  "se presenta un aviso informando el inconveniente con la opción de reintentar",
+  async function (this: CustomWorld) {
+    const errorAlert = this.page.getByRole("alert").filter({
+      hasText: /error|inconveniente|problema/i,
+    });
+    await errorAlert.waitFor({ state: "visible", timeout: 5000 });
+    assert.ok(await errorAlert.isVisible());
+
+    const retryButton = this.page.getByRole("button", { name: /reintentar/i });
+    await retryButton.waitFor({ state: "visible", timeout: 5000 });
+    assert.ok(await retryButton.isVisible());
+  },
+);
