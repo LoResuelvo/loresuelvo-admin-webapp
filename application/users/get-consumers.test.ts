@@ -18,6 +18,7 @@ describe("getConsumers usecase", () => {
       getConsumers: vi.fn().mockResolvedValue(consumers),
       getProviders: vi.fn(),
       getProviderDiagnostic: vi.fn(),
+      getConsumerHistory: vi.fn(),
     };
 
     const result = await getConsumers(mockRepo, "valid-token", "ana");
@@ -31,6 +32,7 @@ describe("getConsumers usecase", () => {
       getConsumers: vi.fn().mockRejectedValue(new UserError("forbidden", "Forbidden")),
       getProviders: vi.fn(),
       getProviderDiagnostic: vi.fn(),
+      getConsumerHistory: vi.fn(),
     };
 
     await expect(getConsumers(mockRepo, "token")).rejects.toSatisfy(

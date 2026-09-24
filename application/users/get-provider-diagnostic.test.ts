@@ -24,6 +24,7 @@ describe("GetProviderDiagnosticUseCase", () => {
     getConsumers: vi.fn(),
     getProviders: vi.fn(),
     getProviderDiagnostic: vi.fn().mockResolvedValue(mockDiagnostic),
+    getConsumerHistory: vi.fn(),
   };
 
   it("delegates to repository getProviderDiagnostic via class", async () => {

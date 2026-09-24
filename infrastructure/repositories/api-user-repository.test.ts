@@ -172,5 +172,28 @@ describe("apiUserRepository", () => {
       );
     });
   });
+
+  describe("getConsumerHistory", () => {
+    it("delegates to fetchConsumerHistory", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      const sample = {
+        id: 301,
+        name: "Carlos",
+        surname: "López",
+        email: "carlos@example.com",
+        phone: "+54 11 4444-2222",
+        registered_at: "2026-09-01T10:00:00-03:00",
+        current_address: "Av. Rivadavia 4500",
+        coverage_zone: { id: 6, name: "Comuna 6" },
+        history: [],
+        pagination: { page: 1, limit: 20, total: 0, total_pages: 0 },
+      };
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(sample))));
+
+      const result = await apiUserRepository.getConsumerHistory("test-token", 301);
+      expect(result.id).toBe(301);
+      expect(result.name).toBe("Carlos");
+    });
+  });
 });
 

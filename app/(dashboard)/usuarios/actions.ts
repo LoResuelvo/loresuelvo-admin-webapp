@@ -3,11 +3,13 @@
 import type { Consumer } from "@/domain/users/consumer";
 import type { Provider } from "@/domain/users/provider";
 import type { ProviderDiagnostic } from "@/domain/users/provider-diagnostic";
+import type { ConsumerDetail, ConsumerHistoryFilters } from "@/domain/users/consumer-history";
 import type { ProviderFilters } from "@/ports/users/user-repository";
 import { UserError } from "@/domain/users/user-error";
 import { getConsumers } from "@/application/users/get-consumers";
 import { getProviders } from "@/application/users/get-providers";
 import { getProviderDiagnostic } from "@/application/users/get-provider-diagnostic";
+import { getConsumerHistory } from "@/application/users/get-consumer-history";
 import { apiUserRepository } from "@/infrastructure/repositories/api-user-repository";
 import { authSession } from "@/infrastructure/auth/auth-session";
 import { translations } from "@/infrastructure/i18n/translations";
@@ -23,6 +25,11 @@ export type GetProvidersResult =
 export type GetProviderDiagnosticResult =
   | { success: true; data: ProviderDiagnostic }
   | { success: false; error: string; isForbidden?: boolean; isNotFound?: boolean };
+
+export type GetConsumerHistoryResult =
+  | { success: true; data: ConsumerDetail }
+  | { success: false; error: string; isForbidden?: boolean; isNotFound?: boolean };
+
 
 
 async function resolveAuthToken(): Promise<string> {
@@ -117,5 +124,41 @@ export async function getProviderDiagnosticAction(
     return { success: false, error: message };
   }
 }
+
+export async function getConsumerHistoryAction(
+  id: number | string,
+  filters?: ConsumerHistoryFilters,
+): Promise<GetConsumerHistoryResult> {
+  try {
+    const token = await resolveAuthToken();
+    const history = await getConsumerHistory(apiUserRepository, token, id, filters);
+    return { success: true, data: history };
+  } catch (error: unknown) {
+    if (error instanceof UserError) {
+      if (error.code === "forbidden") {
+        return {
+          success: false,
+          error: translations.users.consumerDetail.forbidden,
+          isForbidden: true,
+        };
+      }
+      if (error.code === "not_found") {
+        return {
+          success: false,
+          error: translations.users.consumerDetail.notFound,
+          isNotFound: true,
+        };
+      }
+      return {
+        success: false,
+        error: translations.users.consumerDetail.error,
+      };
+    }
+    const message =
+      error instanceof Error ? error.message : translations.users.consumerDetail.error;
+    return { success: false, error: message };
+  }
+}
+
 
 

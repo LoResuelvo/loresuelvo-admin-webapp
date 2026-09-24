@@ -3,11 +3,13 @@ import type { ProviderFilters, UserRepository } from "@/ports/users/user-reposit
 import type { Consumer } from "@/domain/users/consumer";
 import type { Provider } from "@/domain/users/provider";
 import type { ProviderDiagnostic } from "@/domain/users/provider-diagnostic";
+import type { ConsumerDetail, ConsumerHistoryFilters } from "@/domain/users/consumer-history";
 import { UserError } from "@/domain/users/user-error";
 import type { ApiStub } from "@/infrastructure/api/types";
 import { parseE2EStubsFromCookies } from "@/infrastructure/api/e2e-stubs-utils";
 import { mapConsumers, mapProviders } from "./user-mapper";
 import { fetchProviderDiagnostic } from "./api-provider-diagnostic";
+import { fetchConsumerHistory } from "./api-consumer-history";
 
 async function getE2EConsumersStub(q?: string) {
   if (process.env.APP_ENV === "production") return null;
@@ -215,6 +217,14 @@ export const apiUserRepository: UserRepository = {
 
   async getProviderDiagnostic(token: string, id: number | string): Promise<ProviderDiagnostic> {
     return fetchProviderDiagnostic(token, id);
+  },
+
+  async getConsumerHistory(
+    token: string,
+    id: number | string,
+    filters?: ConsumerHistoryFilters,
+  ): Promise<ConsumerDetail> {
+    return fetchConsumerHistory(token, id, filters);
   },
 };
 

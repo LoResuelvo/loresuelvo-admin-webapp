@@ -22,6 +22,7 @@ describe("getProviders usecase", () => {
       getConsumers: vi.fn(),
       getProviders: vi.fn().mockResolvedValue(sampleProviders),
       getProviderDiagnostic: vi.fn(),
+      getConsumerHistory: vi.fn(),
     };
 
     const filters = { q: "juan", categoryId: 10 };
@@ -36,6 +37,7 @@ describe("getProviders usecase", () => {
       getConsumers: vi.fn(),
       getProviders: vi.fn().mockRejectedValue(new UserError("forbidden", "Forbidden")),
       getProviderDiagnostic: vi.fn(),
+      getConsumerHistory: vi.fn(),
     };
 
     await expect(getProviders(mockRepo, "token")).rejects.toSatisfy(
