@@ -138,6 +138,37 @@ describe("AuditedChatDialog", () => {
     expect(alert).toHaveTextContent(/el acceso a la conversación está restringido/i);
     expect(screen.queryByRole("button", { name: /reintentar/i })).not.toBeInTheDocument();
   });
+
+  it("displays error alert with retry button and retries on click", async () => {
+    const user = userEvent.setup();
+    const handleFetch = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Error al obtener la conversación auditada."))
+      .mockResolvedValueOnce(sampleResult);
+
+    render(
+      <AuditedChatDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        operationId="op-101"
+        onFetchConversation={handleFetch}
+      />,
+    );
+
+    await user.selectOptions(screen.getByRole("combobox"), "Reclamo de cliente");
+    await user.click(screen.getByRole("button", { name: /confirmar acceso/i }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(/error al obtener la conversación auditada/i);
+
+    const retryButton = screen.getByRole("button", { name: /reintentar/i });
+    expect(retryButton).toBeInTheDocument();
+
+    await user.click(retryButton);
+    expect(handleFetch).toHaveBeenCalledTimes(2);
+    expect(await screen.findByText("Hola mundo")).toBeInTheDocument();
+  });
 });
+
 
 

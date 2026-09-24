@@ -32,7 +32,6 @@ Feature: Inspección auditada del chat de una contratación
     When intento acceder a la conversación
     Then el sistema me informa que el acceso está restringido
 
-  @wip
   Scenario: 06-CHT Manejar dificultades de comunicación con el servicio
     Given que el sistema experimenta problemas de conexión con el servidor
     When intento acceder a la conversación
