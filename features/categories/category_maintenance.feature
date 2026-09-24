@@ -6,7 +6,6 @@ Feature: Mantenimiento y desactivación de rubros con análisis de impacto
   Background:
     Given que he iniciado sesión en el panel de administración
 
-  @wip
   Scenario: 01-MNT Editar el nombre de un rubro exitosamente
     Given que existe el rubro "Plomería" en el catálogo
     And abro la edición del rubro "Plomería"

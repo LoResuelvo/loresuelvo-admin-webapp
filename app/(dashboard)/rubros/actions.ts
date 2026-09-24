@@ -3,6 +3,7 @@
 import type { Category } from "@/domain/categories/category";
 import { getCategories } from "@/application/categories/get-categories";
 import { createCategory } from "@/application/categories/create-category";
+import { updateCategory } from "@/application/categories/update-category";
 import { apiCategoryRepository } from "@/infrastructure/repositories/api-category-repository";
 import { authSession } from "@/infrastructure/auth/auth-session";
 import { CategoryError } from "@/domain/categories/category-error";
@@ -13,6 +14,10 @@ export type GetCategoriesResult =
   | { success: false; error: string };
 
 export type CreateCategoryResult =
+  | { success: true; data: Category }
+  | { success: false; error: string };
+
+export type UpdateCategoryResult =
   | { success: true; data: Category }
   | { success: false; error: string };
 
@@ -59,3 +64,24 @@ export async function createCategoryAction(name: string): Promise<CreateCategory
   }
 }
 
+export async function updateCategoryAction(id: number, name: string): Promise<UpdateCategoryResult> {
+  try {
+    const token = await resolveAuthToken();
+    const category = await updateCategory(token, apiCategoryRepository, id, name);
+    return { success: true, data: category };
+  } catch (error: unknown) {
+    if (error instanceof CategoryError) {
+      if (error.code === "duplicate") {
+        return { success: false, error: translations.categories.editModal.errors.duplicate };
+      }
+      if (error.code === "forbidden") {
+        return { success: false, error: translations.categories.editModal.errors.forbidden };
+      }
+      if (error.code === "unavailable") {
+        return { success: false, error: translations.categories.editModal.errors.serverError };
+      }
+    }
+    const message = error instanceof Error ? error.message : translations.categories.editModal.errors.serverError;
+    return { success: false, error: message };
+  }
+}

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Category } from "@/domain/categories/category";
 import { CategoriesPage } from "@/components/categories/categories-page";
 import { translations } from "@/infrastructure/i18n/translations";
-import { getCategoriesAction, createCategoryAction } from "./actions";
+import { getCategoriesAction, createCategoryAction, updateCategoryAction } from "./actions";
 
 export default function RubrosPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -42,6 +42,18 @@ export default function RubrosPage() {
     );
   };
 
+  const handleUpdateCategory = async (id: number, name: string) => {
+    const result = await updateCategoryAction(id, name);
+    if (!result.success) {
+      throw new Error(result.error);
+    }
+    setCategories((prev) =>
+      prev
+        .map((c) => (c.id === id ? result.data : c))
+        .sort((a, b) => a.name.localeCompare(b.name, "es")),
+    );
+  };
+
   return (
     <CategoriesPage
       categories={categories}
@@ -49,6 +61,7 @@ export default function RubrosPage() {
       error={error}
       onRetry={loadCategories}
       onCreateCategory={handleCreateCategory}
+      onUpdateCategory={handleUpdateCategory}
     />
   );
 }
