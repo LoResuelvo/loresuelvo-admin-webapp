@@ -243,8 +243,28 @@ Then(
     await loading.waitFor({ state: "visible" });
   },
 );
+Given(
+  "que mi cuenta de usuario no posee permisos de modificación de rubros",
+  async function (this: CustomWorld) {
+    await this.stubGet("/categories", [{ id: 1, name: "Plomería", enabled: true }]);
+    await this.stubPatch("/categories/1", 403, { error: "Forbidden" });
+    await this.page.goto(new URL(ROUTES.categories, this.appUrl).href);
+    const table = this.page.getByRole("table");
+    await table.waitFor({ state: "visible" });
+  },
+);
 
-
-
+When(
+  "intento guardar la edición de un rubro",
+  async function (this: CustomWorld) {
+    const editButton = this.page.getByRole("button", { name: "Editar rubro Plomería" });
+    await editButton.waitFor({ state: "visible" });
+    await editButton.click();
+    const modal = this.page.getByRole("dialog");
+    await modal.waitFor({ state: "visible" });
+    const submitButton = this.page.getByRole("button", { name: "Guardar cambios" });
+    await submitButton.click();
+  },
+);
 
 
