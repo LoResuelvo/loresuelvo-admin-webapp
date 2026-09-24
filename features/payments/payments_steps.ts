@@ -176,3 +176,16 @@ Then(
     );
   },
 );
+
+Given(
+  "que la consulta de transacciones financieras toma unos momentos",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/payments",
+      status: 200,
+      body: samplePaymentsResponse,
+      delayMs: 3000,
+    });
+  },
+);

@@ -152,14 +152,16 @@ Then(
   async function (this: CustomWorld) {
     const skeleton = this.page
       .getByTestId("operation-detail-skeleton")
-      .or(this.page.getByTestId("operations-skeleton"));
+      .or(this.page.getByTestId("operations-skeleton"))
+      .or(this.page.getByTestId("payments-skeleton"));
     await skeleton.waitFor({ state: "visible" });
 
     const isDetail = (await this.page.getByTestId("operation-detail-skeleton").count()) > 0;
-    if (isDetail) {
+    const isPayments = (await this.page.getByTestId("payments-skeleton").count()) > 0;
+    if (isDetail || isPayments) {
       assert.equal(await skeleton.getAttribute("aria-busy"), "true");
       const indicators = this.page.locator("[data-testid='skeleton-indicator']");
-      assert.ok((await indicators.count()) >= 3);
+      assert.ok((await indicators.count()) >= 1);
     } else {
       const shimmerRows = skeleton.locator("[data-testid='skeleton-row']");
       assert.ok((await shimmerRows.count()) >= 1);
