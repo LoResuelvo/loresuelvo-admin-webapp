@@ -108,3 +108,71 @@ Then(
     assert.ok(text1.includes("Aprobado"));
   },
 );
+
+export const samplePendingPaymentResponse = {
+  items: [
+    {
+      id: 3,
+      external_payment_id: "pay_pending_1003",
+      external_reference: "MP-REF-45893",
+      purpose: "deposit",
+      status: "pending",
+      service_proposal_id: 103,
+      work_order_id: null,
+      consumer: {
+        id: 5,
+        name: "Valeria Rossi",
+        email: "valeria.rossi@example.com",
+      },
+      provider: {
+        id: 6,
+        name: "Esteban Carpintero",
+        email: "esteban.carpintero@example.com",
+      },
+      currency: "ARS",
+      service_amount_cents: 3500000,
+      seller_amount_cents: 2975000,
+      platform_fee_cents: 525000,
+      total_amount_cents: 3500000,
+      created_at: "2026-09-22T11:00:00Z",
+      verified_at: null,
+    },
+  ],
+  pagination: {
+    page: 1,
+    limit: 10,
+    total: 1,
+    total_pages: 1,
+  },
+};
+
+Given(
+  "que existe una transacción con checkout iniciado pero pendiente de cobro",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/payments", samplePendingPaymentResponse);
+  },
+);
+
+When("consulto el listado en la sección de pagos", async function (this: CustomWorld) {
+  const paymentsPath = (ROUTES as unknown as Record<string, string>).payments ?? "/pagos";
+  await this.page.goto(new URL(paymentsPath, this.appUrl).href);
+});
+
+Then(
+  "el pago se visualiza con estado pendiente sin computarse como cobro acreditado",
+  async function (this: CustomWorld) {
+    const table = this.page.getByRole("table");
+    await table.waitFor();
+    const rows = this.page.locator("tbody tr");
+    await rows.first().waitFor();
+    assert.equal(await rows.count(), 1);
+
+    const row = rows.nth(0);
+    const rowText = await row.innerText();
+    assert.ok(rowText.toLowerCase().includes("pendiente"));
+    assert.ok(
+      rowText.toLowerCase().includes("no computado como cobro acreditado") ||
+      rowText.toLowerCase().includes("sin computar"),
+    );
+  },
+);
