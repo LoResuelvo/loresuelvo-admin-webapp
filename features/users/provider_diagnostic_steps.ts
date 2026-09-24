@@ -75,3 +75,40 @@ Then(
     assert.ok(conditionsText.toLowerCase().includes("calendario"), "Debe incluir condición de calendario");
   },
 );
+
+Given(
+  "que el prestador no ha vinculado su cuenta de cobro en la pasarela de pagos",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/providers/201/diagnostic", {
+      ...defaultProviderDiagnostic,
+      payment_connection: {
+        is_connected: false,
+        account_id: null,
+        can_receive_payments: false,
+      },
+    });
+  },
+);
+
+When("consulto su ficha de diagnóstico operativo", async function (this: CustomWorld) {
+  await this.page.goto(new URL(ROUTES.providerDetail(201), this.appUrl).href);
+});
+
+Then(
+  "la condición de cobros se visualiza desconectada indicando que no puede recibir señas ni pagos",
+  async function (this: CustomWorld) {
+    const conditionsPanel = this.page.getByTestId("operational-conditions-panel");
+    await conditionsPanel.waitFor({ state: "visible" });
+
+    const conditionsText = await conditionsPanel.innerText();
+    assert.ok(
+      conditionsText.toLowerCase().includes("desconectado"),
+      "Debe mostrar la condición de cobros desconectada",
+    );
+    assert.ok(
+      conditionsText.includes("No puede recibir señas ni pagos"),
+      "Debe advertir que no puede recibir señas ni pagos",
+    );
+  },
+);
+
