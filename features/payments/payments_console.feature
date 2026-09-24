@@ -31,7 +31,6 @@ Feature: Consola de pagos y desglose económico
     When accedo a la sección de pagos
     Then se presenta una vista de carga con indicadores visuales mientras se obtiene la información
 
-  @wip
   Scenario: 06-PAY Informar ausencia de pagos o sin coincidencias de filtros
     Given que no existen transacciones que coincidan con el criterio seleccionado
     When aplico un filtro de búsqueda sin resultados en la sección de pagos
