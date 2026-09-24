@@ -92,3 +92,97 @@ Then(
   },
 );
 
+Given(
+  "que el consumidor posee múltiples interacciones registradas",
+  async function (this: CustomWorld) {
+    const multipleInteractionsConsumer = {
+      ...defaultConsumerHistory,
+      history: [
+        {
+          resource_id: 105,
+          operation_id: 105,
+          resource_type: "work_order",
+          category_name: "Plomería",
+          status: "completed",
+          total_amount_cents: 2000000,
+          provider: {
+            id: 201,
+            name: "Juan Gómez",
+            profile_photo_url: "https://storage.loresuelvo.internal/profiles/201.jpg",
+          },
+          created_at: "2026-09-20T10:00:00-03:00",
+        },
+        {
+          resource_id: 106,
+          operation_id: 106,
+          resource_type: "job_request",
+          category_name: "Gas",
+          status: "pending",
+          total_amount_cents: 1500000,
+          provider: {
+            id: 202,
+            name: "Pedro Gasista",
+            profile_photo_url: "https://storage.loresuelvo.internal/profiles/202.jpg",
+          },
+          created_at: "2026-09-21T10:00:00-03:00",
+        },
+        {
+          resource_id: 107,
+          operation_id: 107,
+          resource_type: "service_proposal",
+          category_name: "Electricidad",
+          status: "in_progress",
+          total_amount_cents: 3000000,
+          provider: {
+            id: 203,
+            name: "Ana Electricista",
+            profile_photo_url: "https://storage.loresuelvo.internal/profiles/203.jpg",
+          },
+          created_at: "2026-09-22T10:00:00-03:00",
+        },
+      ],
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: 3,
+        total_pages: 1,
+      },
+    };
+    await this.stubGet("/admin/consumers/301/history", multipleInteractionsConsumer);
+  },
+);
+
+When(
+  "aplico los filtros para ver órdenes de trabajo con estado completada",
+  async function (this: CustomWorld) {
+    const targetUrl = new URL(ROUTES.consumerDetail(301), this.appUrl).href;
+    if (this.page.url() !== targetUrl) {
+      await this.page.goto(targetUrl);
+    }
+    const typeSelect = this.page.getByRole("combobox", { name: "Tipo de interacción" });
+    await typeSelect.waitFor({ state: "visible" });
+    await typeSelect.selectOption({ label: "Órdenes de trabajo" });
+
+    const statusSelect = this.page.getByRole("combobox", { name: "Estado" });
+    await statusSelect.waitFor({ state: "visible" });
+    await statusSelect.selectOption({ label: "Completada" });
+  },
+);
+
+Then(
+  "el historial muestra exclusivamente las órdenes finalizadas del consumidor",
+  async function (this: CustomWorld) {
+    const list = this.page.getByTestId("consumer-history-list");
+    await list.waitFor({ state: "visible" });
+
+    const text = await list.innerText();
+    assert.ok(text.includes("Plomería"), "Debe mostrar la orden de Plomería");
+    assert.ok(text.includes("Juan Gómez"), "Debe mostrar al prestador Juan Gómez");
+    assert.ok(!text.includes("Gas"), "No debe mostrar Gas");
+    assert.ok(!text.includes("Pedro Gasista"), "No debe mostrar a Pedro Gasista");
+    assert.ok(!text.includes("Electricidad"), "No debe mostrar Electricidad");
+    assert.ok(!text.includes("Ana Electricista"), "No debe mostrar a Ana Electricista");
+  },
+);
+
+
