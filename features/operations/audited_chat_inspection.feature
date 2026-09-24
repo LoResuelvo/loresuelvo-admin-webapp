@@ -17,7 +17,6 @@ Feature: Inspección auditada del chat de una contratación
     When intento confirmar sin haber elegido una causa del listado
     Then el sistema me indica que debo seleccionar una causa para poder continuar
 
-  @wip
   Scenario: 03-CHT Mostrar estado de espera mientras se obtienen los mensajes
     Given que la obtención de los mensajes toma unos momentos
     When confirmo el acceso a la conversación indicando una causa válida
