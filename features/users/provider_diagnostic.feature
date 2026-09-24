@@ -6,7 +6,6 @@ Feature: Ficha y diagnóstico operativo de prestadores
   Background:
     Given que he iniciado sesión en el panel de administración
 
-  @wip
   Scenario: 01-DIA Visualizar perfil y panel de diagnóstico operativo completo
     Given que existe un prestador registrado en el marketplace
     When consulto la ficha de diagnóstico del prestador

@@ -50,14 +50,15 @@ Given("que existe un prestador registrado en el marketplace", async function (th
 });
 
 When("consulto la ficha de diagnóstico del prestador", async function (this: CustomWorld) {
-  await this.page.goto(new URL("/usuarios/prestadores/201", this.appUrl).href);
+  await this.page.goto(new URL(ROUTES.providerDetail(201), this.appUrl).href);
 });
 
 Then(
   "visualizo sus datos de contacto, rubro asignado y el panel de condiciones operativas con los estados de identidad, cobros, zonas y calendario",
   async function (this: CustomWorld) {
-    const mainSection = this.page.getByRole("region", { name: /diagnóstico operativo/i }).or(this.page.locator("main"));
-    await mainSection.waitFor({ state: "visible" });
+    // Wait for the client component to finish loading and display the panel
+    const conditionsPanel = this.page.getByTestId("operational-conditions-panel");
+    await conditionsPanel.waitFor({ state: "visible" });
 
     // Contact and profile data
     const text = await this.page.locator("body").innerText();
@@ -66,12 +67,7 @@ Then(
     assert.ok(text.includes("+54 11 5555-0101"), "Debe mostrar el teléfono");
     assert.ok(text.includes("Plomería"), "Debe mostrar el rubro");
 
-    // Operational conditions panel
-    const conditionsPanel = this.page.getByTestId("operational-conditions-panel").or(
-      this.page.locator("[data-testid='operational-conditions-panel']")
-    );
-    await conditionsPanel.waitFor({ state: "visible" });
-
+    // Operational conditions panel checks
     const conditionsText = await conditionsPanel.innerText();
     assert.ok(conditionsText.toLowerCase().includes("identidad"), "Debe incluir condición de identidad");
     assert.ok(conditionsText.toLowerCase().includes("cobros"), "Debe incluir condición de cobros");

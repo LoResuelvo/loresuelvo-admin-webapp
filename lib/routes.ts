@@ -4,6 +4,7 @@ export const ROUTES = {
   home: "/",
   signIn: "/auth/login",
   users: "/usuarios",
+  providerDetail: (id: string | number) => `/usuarios/prestadores/${id}`,
   categories: "/rubros",
   operations: "/operaciones",
   operationDetail: (id: string | number) => `/operaciones/${id}`,

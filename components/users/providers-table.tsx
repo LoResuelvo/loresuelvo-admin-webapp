@@ -1,5 +1,7 @@
+import Link from "next/link";
 import type { Provider } from "@/domain/users/provider";
 import { translations } from "@/infrastructure/i18n/translations";
+import { ROUTES } from "@/lib/routes";
 import { VerificationBadge } from "./verification-badge";
 
 function ProviderRow({ provider }: { provider: Provider }) {
@@ -24,7 +26,14 @@ function ProviderRow({ provider }: { provider: Provider }) {
           </div>
         )}
       </td>
-      <td className="px-6 py-4 font-medium text-[#1A2B48]">{provider.name}</td>
+      <td className="px-6 py-4 font-medium text-[#1A2B48]">
+        <Link
+          href={ROUTES.providerDetail(provider.id)}
+          className="hover:underline text-[#147560] font-semibold"
+        >
+          {provider.name}
+        </Link>
+      </td>
       <td className="px-6 py-4 font-medium text-[#1A2B48]">{provider.surname}</td>
       <td className="px-6 py-4 text-[#536176]">{provider.email}</td>
       <td className="px-6 py-4 text-[#1A2B48] font-medium">{provider.category.name}</td>
