@@ -152,3 +152,60 @@ Then(
     );
   },
 );
+
+Given(
+  "que el prestador posee zonas de cobertura configuradas en su cuenta",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/providers/201/diagnostic", {
+      ...defaultProviderDiagnostic,
+      coverage_zones: [
+        { id: 6, name: "Comuna 6", is_active: true },
+        { id: 14, name: "Comuna 14", is_active: false },
+      ],
+    });
+  },
+);
+
+When(
+  "consulto la sección de cobertura en su ficha de diagnóstico",
+  async function (this: CustomWorld) {
+    await this.page.goto(new URL(ROUTES.providerDetail(201), this.appUrl).href);
+  },
+);
+
+Then(
+  "visualizo el listado de zonas asignadas y cuáles se encuentran activas para recibir solicitudes",
+  async function (this: CustomWorld) {
+    const conditionsPanel = this.page.getByTestId("operational-conditions-panel");
+    await conditionsPanel.waitFor({ state: "visible" });
+
+    const zonesCard = conditionsPanel.getByTestId("zones-condition-card");
+    await zonesCard.waitFor({ state: "visible" });
+
+    const zonesText = await zonesCard.innerText();
+    assert.ok(zonesText.includes("Comuna 6"), "Debe mostrar Comuna 6");
+    assert.ok(zonesText.includes("Comuna 14"), "Debe mostrar Comuna 14");
+
+    const activeBadge = zonesCard.locator('[data-zone-active="true"]');
+    await activeBadge.waitFor({ state: "visible" });
+    const activeText = await activeBadge.innerText();
+    assert.ok(
+      activeText.includes("Comuna 6"),
+      "Comuna 6 debe estar marcada como activa",
+    );
+    assert.ok(
+      activeText.toLowerCase().includes("activa") ||
+        activeText.toLowerCase().includes("habilitada"),
+      "Debe indicar que se encuentra activa o habilitada para recibir solicitudes",
+    );
+
+    const inactiveBadge = zonesCard.locator('[data-zone-active="false"]');
+    await inactiveBadge.waitFor({ state: "visible" });
+    const inactiveText = await inactiveBadge.innerText();
+    assert.ok(
+      inactiveText.includes("Comuna 14"),
+      "Comuna 14 debe estar marcada como inactiva",
+    );
+  },
+);
+
