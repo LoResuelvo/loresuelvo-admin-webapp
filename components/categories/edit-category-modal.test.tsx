@@ -141,6 +141,54 @@ describe("EditCategoryModal", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("No tenés permisos para realizar esta acción");
   });
 
+  it("displays server error message with retry button and retries on click", async () => {
+    const onSubmit = vi.fn();
+    render(
+      <EditCategoryModal
+        isOpen={true}
+        category={sampleCategory}
+        onClose={vi.fn()}
+        onSubmit={onSubmit}
+        error="No se pudo actualizar el rubro. Intentá nuevamente más tarde"
+      />
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "No se pudo actualizar el rubro. Intentá nuevamente más tarde"
+    );
+    const retryButton = screen.getByRole("button", { name: "Reintentar" });
+    expect(retryButton).toBeInTheDocument();
+
+    await userEvent.click(retryButton);
+    expect(onSubmit).toHaveBeenCalledWith(1, "Plomería");
+  });
+
+  it("does not display retry button when error is forbidden or duplicate", () => {
+    const { rerender } = render(
+      <EditCategoryModal
+        isOpen={true}
+        category={sampleCategory}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+        error="No tenés permisos para realizar esta acción"
+      />
+    );
+
+    expect(screen.queryByRole("button", { name: "Reintentar" })).not.toBeInTheDocument();
+
+    rerender(
+      <EditCategoryModal
+        isOpen={true}
+        category={sampleCategory}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+        error="El rubro ya existe"
+      />
+    );
+
+    expect(screen.queryByRole("button", { name: "Reintentar" })).not.toBeInTheDocument();
+  });
+
   it("closes modal when clicking Cancelar button", async () => {
     const onClose = vi.fn();
     render(

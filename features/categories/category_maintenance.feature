@@ -51,8 +51,6 @@ Feature: Mantenimiento y desactivación de rubros con análisis de impacto
     Given que mi cuenta de usuario no posee permisos de modificación de rubros
     When intento guardar la edición de un rubro
     Then el sistema me informa que el acceso está restringido
-
-  @wip
   Scenario: 08-MNT Manejar problemas de conexión al actualizar o desactivar rubro
     Given que el servidor experimenta dificultades de comunicación al modificar un rubro
     When intento confirmar la modificación de un rubro
