@@ -1146,3 +1146,53 @@ Then(
   },
 );
 
+Given(
+  "que mi cuenta de usuario no posee permisos de soporte para ver mensajes privados",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/operations/op-101/conversation",
+      status: 403,
+      body: { error: "Forbidden", message: "User lacks read:admin_chat_audit permission" },
+    });
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/operations/op-101/conversation",
+      status: 403,
+      body: { error: "Forbidden", message: "User lacks read:admin_chat_audit permission" },
+    });
+  },
+);
+
+When(
+  "intento acceder a la conversación",
+  async function (this: CustomWorld) {
+    const inspectButton = this.page
+      .getByRole("button", { name: /inspeccionar conversación/i })
+      .or(this.page.getByTestId("inspect-chat-button"));
+    await inspectButton.waitFor({ state: "visible", timeout: 5000 });
+    await inspectButton.click();
+
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor({ state: "visible", timeout: 5000 });
+
+    const causeSelect = dialog
+      .getByLabel(/motivo|causa/i)
+      .or(dialog.getByTestId("audit-reason-select"));
+
+    if (await causeSelect.isVisible()) {
+      await causeSelect.selectOption({ label: "Reclamo de cliente" });
+    } else {
+      const causeOption = dialog
+        .getByRole("radio", { name: /reclamo de cliente/i })
+        .or(dialog.getByRole("button", { name: /reclamo de cliente/i }))
+        .or(dialog.getByText("Reclamo de cliente"));
+      await causeOption.click();
+    }
+
+    const confirmButton = dialog
+      .getByRole("button", { name: /confirmar acceso|acceder|confirmar/i })
+      .or(dialog.getByTestId("confirm-audit-access-button"));
+    await confirmButton.click();
+  },
+);
