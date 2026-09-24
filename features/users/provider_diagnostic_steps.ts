@@ -111,4 +111,44 @@ Then(
     );
   },
 );
+Given(
+  "que el prestador tiene su verificación de identidad pendiente de revisión",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/providers/201/diagnostic", {
+      ...defaultProviderDiagnostic,
+      identity_verification: {
+        status: "in_review",
+        verified_at: null,
+      },
+    });
+  },
+);
 
+Then(
+  "se visualiza el estado real de identidad sin atribuirle una suspensión operativa injustificada",
+  async function (this: CustomWorld) {
+    const conditionsPanel = this.page.getByTestId("operational-conditions-panel");
+    await conditionsPanel.waitFor({ state: "visible" });
+
+    const conditionsText = await conditionsPanel.innerText();
+    assert.ok(
+      conditionsText.includes("En revisión"),
+      "Debe mostrar el estado real de identidad 'En revisión'",
+    );
+
+    const bodyText = await this.page.locator("body").innerText();
+    const lowerBody = bodyText.toLowerCase();
+    assert.ok(
+      !lowerBody.includes("suspendido"),
+      "No debe atribuir una suspensión operativa al prestador",
+    );
+    assert.ok(
+      !lowerBody.includes("suspensión"),
+      "No debe mencionar suspensión en el diagnóstico",
+    );
+    assert.ok(
+      !lowerBody.includes("inhabilitado"),
+      "No debe marcar al prestador como inhabilitado",
+    );
+  },
+);
