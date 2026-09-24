@@ -214,3 +214,23 @@ When("intento ingresar a la sección de pagos", async function (this: CustomWorl
   await this.page.goto(new URL(paymentsPath, this.appUrl).href);
 });
 
+When("intento consultar la sección de pagos", async function (this: CustomWorld) {
+  const paymentsPath = (ROUTES as unknown as Record<string, string>).payments ?? "/pagos";
+  await this.page.goto(new URL(paymentsPath, this.appUrl).href);
+});
+
+Then(
+  "se presenta un aviso informando el inconveniente con la opción de reintentar la carga",
+  async function (this: CustomWorld) {
+    const errorAlert = this.page.getByRole("alert").filter({
+      hasText: /error|inconveniente|problema/i,
+    });
+    await errorAlert.waitFor({ state: "visible", timeout: 5000 });
+    assert.ok(await errorAlert.isVisible());
+
+    const retryButton = this.page.getByRole("button", { name: /reintentar/i });
+    await retryButton.waitFor({ state: "visible", timeout: 5000 });
+    assert.ok(await retryButton.isVisible());
+  },
+);
+
