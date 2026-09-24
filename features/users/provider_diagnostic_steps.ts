@@ -316,3 +316,17 @@ Then(
   },
 );
 
+Given(
+  "que mi cuenta de usuario no posee permisos para consultar el detalle de prestadores",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/providers/201/diagnostic", { error: "Forbidden" }, 403);
+  },
+);
+
+When(
+  "intento ingresar a la ficha de diagnóstico del prestador",
+  async function (this: CustomWorld) {
+    await this.page.goto(new URL(ROUTES.providerDetail(201), this.appUrl).href);
+  },
+);
+
