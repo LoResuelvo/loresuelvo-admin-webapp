@@ -64,4 +64,20 @@ describe("OperationalConditionsPanel", () => {
     expect(screen.getByText("Comuna 6")).toBeInTheDocument();
     expect(screen.getByText("Comuna 14")).toBeInTheDocument();
   });
+
+  it("displays in_review identity status without inferring suspension", () => {
+    render(
+      <OperationalConditionsPanel
+        {...defaultProps}
+        identityVerification={{
+          status: "in_review",
+        }}
+      />,
+    );
+
+    expect(screen.getByText("En revisión")).toBeInTheDocument();
+    expect(screen.getByText("Identidad en revisión")).toBeInTheDocument();
+    expect(screen.queryByText(/suspendid/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/inhabilitad/i)).not.toBeInTheDocument();
+  });
 });

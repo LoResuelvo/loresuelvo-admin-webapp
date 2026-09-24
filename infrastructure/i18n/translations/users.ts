@@ -82,6 +82,11 @@ export const usersTranslations = {
           declined: "Rechazado",
           unverified: "Sin verificar",
         },
+        verifiedTitle: "Identidad validada",
+        pendingTitle: "Verificación pendiente",
+        inReviewTitle: "Identidad en revisión",
+        unverifiedTitle: "Sin verificar",
+        verifiedAtLabel: "Verificado",
       },
       payments: {
         title: "Cobros",

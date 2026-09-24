@@ -16,7 +16,6 @@ Feature: Ficha y diagnóstico operativo de prestadores
     When consulto su ficha de diagnóstico operativo
     Then la condición de cobros se visualiza desconectada indicando que no puede recibir señas ni pagos
 
-  @wip
   Scenario: 03-DIA Reflejar estado real de verificación de identidad sin inferir suspensiones
     Given que el prestador tiene su verificación de identidad pendiente de revisión
     When consulto su ficha de diagnóstico operativo

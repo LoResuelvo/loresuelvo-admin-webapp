@@ -34,6 +34,15 @@ function IdentityConditionCard({
       ? copy.status[status as keyof typeof copy.status]
       : status;
 
+  const subtitle =
+    status === "approved"
+      ? copy.verifiedTitle
+      : status === "in_review" || status === "pending"
+        ? copy.inReviewTitle
+        : status === "unverified"
+          ? copy.unverifiedTitle
+          : copy.pendingTitle;
+
   return (
     <div className="flex flex-col justify-between rounded-xl border border-[#1A2B48]/10 bg-white p-5 shadow-2xs">
       <div>
@@ -52,12 +61,12 @@ function IdentityConditionCard({
           </span>
         </div>
         <p className="mt-3 text-sm font-semibold text-[#1A2B48]">
-          {isApproved ? "Identidad validada" : "Verificación pendiente"}
+          {subtitle}
         </p>
       </div>
       {verifiedAt && (
         <span className="mt-4 text-xs text-[#536176]">
-          Verificado: {new Date(verifiedAt).toLocaleDateString("es-AR")}
+          {copy.verifiedAtLabel}: {new Date(verifiedAt).toLocaleDateString("es-AR")}
         </span>
       )}
     </div>
