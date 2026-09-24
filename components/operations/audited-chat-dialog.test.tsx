@@ -93,4 +93,27 @@ describe("AuditedChatDialog", () => {
     resolvePromise!(sampleResult);
     expect(await screen.findByText("Hola mundo")).toBeInTheDocument();
   });
+
+  it("displays empty state when the conversation has no messages", async () => {
+    const user = userEvent.setup();
+    const handleFetch = vi.fn().mockResolvedValue({ items: [], total: 0 });
+
+    render(
+      <AuditedChatDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        operationId="op-101"
+        onFetchConversation={handleFetch}
+      />,
+    );
+
+    await user.selectOptions(screen.getByRole("combobox"), "Reclamo de cliente");
+    await user.click(screen.getByRole("button", { name: /confirmar acceso/i }));
+
+    expect(handleFetch).toHaveBeenCalledWith("Reclamo de cliente");
+    expect(
+      await screen.findByText(/no se registran mensajes en esta contratación/i),
+    ).toBeInTheDocument();
+  });
 });
+

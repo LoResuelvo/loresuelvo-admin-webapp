@@ -22,7 +22,6 @@ Feature: Inspección auditada del chat de una contratación
     When confirmo el acceso a la conversación indicando una causa válida
     Then se presenta una vista de carga con indicadores visuales mientras se recupera la conversación
 
-  @wip
   Scenario: 04-CHT Informar ausencia de mensajes en una conversación sin actividad
     Given que la contratación no registra mensajes intercambiados entre las partes
     When selecciono una causa válida y accedo a la conversación
