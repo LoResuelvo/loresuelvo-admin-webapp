@@ -12,7 +12,6 @@ Feature: Inspección auditada del chat de una contratación
     When elijo la causa "Reclamo de cliente" y confirmo el acceso
     Then visualizo los mensajes ordenados cronológicamente distinguiendo las intervenciones del cliente y del prestador
 
-  @wip
   Scenario: 02-CHT Exigir la selección de una causa para habilitar el acceso
     Given que me encuentro en el diálogo de acceso a la conversación
     When intento confirmar sin haber elegido una causa del listado
