@@ -169,6 +169,18 @@ export const usersTranslations = {
         amount: "Importe",
         actions: "Acciones",
       },
+      filters: {
+        typeLabel: "Tipo de interacción",
+        statusLabel: "Estado",
+        allTypes: "Todos los tipos",
+        allStatuses: "Todos los estados",
+        types: {
+          work_order: "Órdenes de trabajo",
+          service_proposal: "Propuestas de servicio",
+          job_request: "Solicitudes de trabajo",
+        },
+        emptyFiltered: "No se encontraron interacciones con los filtros seleccionados",
+      },
       statuses: {
         completed: "Completada",
         in_progress: "En progreso",
