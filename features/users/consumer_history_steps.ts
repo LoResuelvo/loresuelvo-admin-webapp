@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { Given, When, Then } from "@cucumber/cucumber";
+import { ROUTES } from "@/lib/routes";
 import { CustomWorld } from "../support/world";
 
 export const defaultConsumerHistory = {
@@ -44,7 +45,7 @@ Given("que existe un consumidor registrado en el marketplace", async function (t
 });
 
 When("consulto la ficha del consumidor", async function (this: CustomWorld) {
-  await this.page.goto(new URL("/usuarios/consumidores/301", this.appUrl).href);
+  await this.page.goto(new URL(ROUTES.consumerDetail(301), this.appUrl).href);
 });
 
 Then(

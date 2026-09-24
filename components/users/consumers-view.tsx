@@ -1,5 +1,7 @@
+import Link from "next/link";
 import type { Consumer } from "@/domain/users/consumer";
 import { translations } from "@/infrastructure/i18n/translations";
+import { ROUTES } from "@/lib/routes";
 
 export interface ConsumersViewProps {
   consumers?: Consumer[];
@@ -111,6 +113,42 @@ function ConsumersEmpty() {
   );
 }
 
+function ConsumerRow({ consumer }: { consumer: Consumer }) {
+  const initials = `${consumer.name.charAt(0)}${consumer.surname.charAt(0)}`.toUpperCase();
+
+  return (
+    <tr className="transition-colors hover:bg-[#F4F1EE]/30">
+      <td className="px-6 py-4 whitespace-nowrap">
+        {consumer.profilePhotoUrl ? (
+          <img
+            src={consumer.profilePhotoUrl}
+            alt={`${consumer.name} ${consumer.surname}`}
+            className="size-10 rounded-full object-cover border border-[#1A2B48]/10"
+          />
+        ) : (
+          <div
+            aria-label={`${consumer.name} ${consumer.surname}`}
+            className="flex size-10 items-center justify-center rounded-full bg-[#1A2B48]/10 font-semibold text-xs text-[#1A2B48]"
+          >
+            {initials}
+          </div>
+        )}
+      </td>
+      <td className="px-6 py-4 font-medium text-[#1A2B48]">
+        <Link
+          href={ROUTES.consumerDetail(consumer.id)}
+          className="hover:underline text-[#147560] font-semibold"
+        >
+          {consumer.name}
+        </Link>
+      </td>
+      <td className="px-6 py-4 font-medium text-[#1A2B48]">{consumer.surname}</td>
+      <td className="px-6 py-4 text-[#536176]">{consumer.email}</td>
+      <td className="px-6 py-4 text-[#536176]">{formatDate(consumer.createdOn)}</td>
+    </tr>
+  );
+}
+
 function ConsumersTable({ consumers }: { consumers: readonly Consumer[] }) {
   const { columns } = translations.users.table;
 
@@ -119,51 +157,17 @@ function ConsumersTable({ consumers }: { consumers: readonly Consumer[] }) {
       <table aria-label={translations.users.table.caption} className="w-full text-left text-sm text-[#1A2B48]">
         <thead className="border-b border-[#1A2B48]/10 bg-[#F4F1EE]/50 text-xs font-semibold uppercase tracking-wider text-[#1A2B48]/60">
           <tr>
-            <th scope="col" className="px-6 py-4 w-20">
-              {columns.photo}
-            </th>
-            <th scope="col" className="px-6 py-4">
-              {columns.name}
-            </th>
-            <th scope="col" className="px-6 py-4">
-              {columns.surname}
-            </th>
-            <th scope="col" className="px-6 py-4">
-              {columns.email}
-            </th>
-            <th scope="col" className="px-6 py-4">
-              {columns.createdOn}
-            </th>
+            <th scope="col" className="px-6 py-4 w-20">{columns.photo}</th>
+            <th scope="col" className="px-6 py-4">{columns.name}</th>
+            <th scope="col" className="px-6 py-4">{columns.surname}</th>
+            <th scope="col" className="px-6 py-4">{columns.email}</th>
+            <th scope="col" className="px-6 py-4">{columns.createdOn}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-[#1A2B48]/5">
-          {consumers.map((consumer) => {
-            const initials = `${consumer.name.charAt(0)}${consumer.surname.charAt(0)}`.toUpperCase();
-            return (
-              <tr key={consumer.id} className="transition-colors hover:bg-[#F4F1EE]/30">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {consumer.profilePhotoUrl ? (
-                    <img
-                      src={consumer.profilePhotoUrl}
-                      alt={`${consumer.name} ${consumer.surname}`}
-                      className="size-10 rounded-full object-cover border border-[#1A2B48]/10"
-                    />
-                  ) : (
-                    <div
-                      aria-label={`${consumer.name} ${consumer.surname}`}
-                      className="flex size-10 items-center justify-center rounded-full bg-[#1A2B48]/10 font-semibold text-xs text-[#1A2B48]"
-                    >
-                      {initials}
-                    </div>
-                  )}
-                </td>
-                <td className="px-6 py-4 font-medium text-[#1A2B48]">{consumer.name}</td>
-                <td className="px-6 py-4 font-medium text-[#1A2B48]">{consumer.surname}</td>
-                <td className="px-6 py-4 text-[#536176]">{consumer.email}</td>
-                <td className="px-6 py-4 text-[#536176]">{formatDate(consumer.createdOn)}</td>
-              </tr>
-            );
-          })}
+          {consumers.map((consumer) => (
+            <ConsumerRow key={consumer.id} consumer={consumer} />
+          ))}
         </tbody>
       </table>
     </div>

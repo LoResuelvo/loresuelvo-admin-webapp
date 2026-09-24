@@ -6,7 +6,6 @@ Feature: Ficha e historial de contrataciones de consumidores
   Background:
     Given que he iniciado sesión en el panel de administración
 
-  @wip
   Scenario: 01-CSM Visualizar perfil del consumidor y domicilio actual
     Given que existe un consumidor registrado en el marketplace
     When consulto la ficha del consumidor
