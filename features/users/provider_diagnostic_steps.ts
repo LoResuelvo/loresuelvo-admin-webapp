@@ -330,3 +330,10 @@ When(
   },
 );
 
+When(
+  "intento consultar la ficha de diagnóstico del prestador",
+  async function (this: CustomWorld) {
+    await this.page.goto(new URL(ROUTES.providerDetail(201), this.appUrl).href);
+  },
+);
+
