@@ -36,7 +36,6 @@ Feature: Ficha e historial de contrataciones de consumidores
     When accedo al enlace de la ficha del consumidor
     Then se presenta un mensaje claro indicando que el consumidor no fue encontrado
 
-  @wip
   Scenario: 07-CSM Informar falta de permisos para consultar la ficha
     Given que mi cuenta de usuario no posee permisos para consultar el detalle de consumidores
     When intento ingresar a la ficha del consumidor
