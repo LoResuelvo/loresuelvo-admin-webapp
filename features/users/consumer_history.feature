@@ -16,7 +16,6 @@ Feature: Ficha e historial de contrataciones de consumidores
     When consulto el historial en la ficha del consumidor
     Then visualizo la lista cronológica de servicios con fecha, rubro, prestador asignado, estado y acceso al detalle operativo
 
-  @wip
   Scenario: 03-CSM Filtrar historial por tipo de interacción y estado
     Given que el consumidor posee múltiples interacciones registradas
     When aplico los filtros para ver órdenes de trabajo con estado completada
