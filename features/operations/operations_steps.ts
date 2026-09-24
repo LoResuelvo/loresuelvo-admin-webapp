@@ -1000,5 +1000,83 @@ Then(
   },
 );
 
+Given(
+  "que la obtención de los mensajes toma unos momentos",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/operations/op-101/conversation",
+      status: 200,
+      body: sampleAuditedConversation,
+      delayMs: 3000,
+    });
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/operations/op-101/conversation",
+      status: 200,
+      body: sampleAuditedConversation,
+      delayMs: 3000,
+    });
+
+    const inspectButton = this.page
+      .getByRole("button", { name: /inspeccionar conversación/i })
+      .or(this.page.getByTestId("inspect-chat-button"));
+    await inspectButton.waitFor({ state: "visible", timeout: 5000 });
+    await inspectButton.click();
+
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor({ state: "visible", timeout: 5000 });
+  },
+);
+
+When(
+  "confirmo el acceso a la conversación indicando una causa válida",
+  async function (this: CustomWorld) {
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor({ state: "visible", timeout: 5000 });
+
+    const causeSelect = dialog
+      .getByLabel(/motivo|causa/i)
+      .or(dialog.getByTestId("audit-reason-select"));
+
+    if (await causeSelect.isVisible()) {
+      await causeSelect.selectOption({ label: "Reclamo de cliente" });
+    } else {
+      const causeOption = dialog
+        .getByRole("radio", { name: /reclamo de cliente/i })
+        .or(dialog.getByRole("button", { name: /reclamo de cliente/i }))
+        .or(dialog.getByText("Reclamo de cliente"));
+      await causeOption.click();
+    }
+
+    const confirmButton = dialog
+      .getByRole("button", { name: /confirmar acceso|acceder|confirmar/i })
+      .or(dialog.getByTestId("confirm-audit-access-button"));
+    await confirmButton.click();
+  },
+);
+
+Then(
+  "se presenta una vista de carga con indicadores visuales mientras se recupera la conversación",
+  async function (this: CustomWorld) {
+    const loadingIndicator = this.page
+      .getByRole("status")
+      .or(this.page.getByTestId("audited-chat-loading"));
+    await loadingIndicator.waitFor({ state: "visible", timeout: 5000 });
+
+    const text = await loadingIndicator.innerText();
+    assert.ok(
+      text.includes("Recuperando") ||
+        text.includes("Cargando") ||
+        text.includes("conversación"),
+    );
+
+    // Esperar a que la carga finalice y se muestren los mensajes
+    const messagesContainer = this.page.getByTestId("audited-messages-list");
+    await messagesContainer.waitFor({ state: "visible", timeout: 10000 });
+  },
+);
+
+
 
 
