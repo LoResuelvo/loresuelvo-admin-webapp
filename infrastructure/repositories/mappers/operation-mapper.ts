@@ -9,6 +9,11 @@ import type {
   TimelineMilestone,
   UnifiedOperationDetail,
 } from "@/domain/operations/unified-operation-detail";
+import type {
+  AuditedConversationResult,
+  AuditedMessage,
+  MessageAttachment,
+} from "@/domain/operations/audited-message";
 import {
   type ApiCompletionReport,
   type ApiOrderDetail,
@@ -20,6 +25,11 @@ import {
   apiOperationsResponseSchema,
   apiUnifiedOperationDetailResponseSchema,
 } from "@/infrastructure/api/types";
+import {
+  type ApiAuditedMessageAttachment,
+  type ApiAuditedMessageItem,
+  apiAuditedConversationResponseSchema,
+} from "@/infrastructure/api/audited-chat-types";
 
 export function mapOperations(raw: unknown): OperationSummary[] {
   const parsed = apiOperationsResponseSchema.safeParse(raw);
@@ -168,3 +178,43 @@ export function mapUnifiedOperationDetail(raw: unknown): UnifiedOperationDetail 
     timeline: item.timeline.map(mapMilestone),
   };
 }
+
+function mapAuditedAttachment(att: ApiAuditedMessageAttachment): MessageAttachment {
+  return {
+    id: att.id,
+    fileName: att.fileName ?? att.file_name ?? "",
+    url: att.url,
+  };
+}
+
+function mapAuditedMessage(item: ApiAuditedMessageItem): AuditedMessage {
+  return {
+    id: item.id,
+    senderId: item.senderId ?? item.sender_id ?? 0,
+    senderRole: (item.senderRole ?? item.sender_role ?? "consumer") as "consumer" | "provider",
+    content: item.content ?? "",
+    sentAt: item.sentAt ?? item.sent_at ?? "",
+    attachments: (item.attachments ?? []).map(mapAuditedAttachment),
+  };
+}
+
+export function mapAuditedConversation(raw: unknown): AuditedConversationResult {
+  const parsed = apiAuditedConversationResponseSchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new Error("Invalid audited conversation data");
+  }
+
+  const data = Array.isArray(parsed.data)
+    ? { items: parsed.data, total: parsed.data.length }
+    : "data" in parsed.data
+      ? parsed.data.data
+      : parsed.data;
+
+  const items = data.items.map(mapAuditedMessage);
+  const total =
+    data.pagination?.total ??
+    ("total" in data && typeof data.total === "number" ? data.total : items.length);
+
+  return { items, total };
+}
+

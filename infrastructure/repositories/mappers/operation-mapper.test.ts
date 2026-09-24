@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { mapOperations, mapUnifiedOperationDetail } from "./operation-mapper";
+import {
+  mapOperations,
+  mapUnifiedOperationDetail,
+  mapAuditedConversation,
+} from "./operation-mapper";
 
 describe("operation-mapper", () => {
   const sampleSnakeCaseItem = {
@@ -363,4 +367,84 @@ describe("mapUnifiedOperationDetail", () => {
     );
   });
 });
+
+describe("mapAuditedConversation", () => {
+  const sampleSnakeConversation = {
+    items: [
+      {
+        id: 1,
+        sender_id: 10,
+        sender_role: "consumer" as const,
+        content: "Hola, ¿cómo estás?",
+        sent_at: "2026-09-18T10:15:00Z",
+        attachments: [
+          {
+            id: 101,
+            file_name: "evidencia.png",
+            url: "https://example.com/evidencia.png",
+          },
+        ],
+      },
+    ],
+    pagination: {
+      page: 1,
+      limit: 20,
+      total: 1,
+    },
+  };
+
+  it("maps snake_case conversation payload correctly", () => {
+    const result = mapAuditedConversation(sampleSnakeConversation);
+
+    expect(result.total).toBe(1);
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]).toEqual({
+      id: 1,
+      senderId: 10,
+      senderRole: "consumer",
+      content: "Hola, ¿cómo estás?",
+      sentAt: "2026-09-18T10:15:00Z",
+      attachments: [
+        {
+          id: 101,
+          fileName: "evidencia.png",
+          url: "https://example.com/evidencia.png",
+        },
+      ],
+    });
+  });
+
+  it("maps camelCase conversation payload correctly", () => {
+    const camelConversation = {
+      items: [
+        {
+          id: 2,
+          senderId: 20,
+          senderRole: "provider" as const,
+          content: "Todo bien, voy para allá.",
+          sentAt: "2026-09-18T10:20:00Z",
+          attachments: [],
+        },
+      ],
+      total: 1,
+    };
+
+    const result = mapAuditedConversation(camelConversation);
+    expect(result.total).toBe(1);
+    expect(result.items[0].senderRole).toBe("provider");
+    expect(result.items[0].senderId).toBe(20);
+  });
+
+  it("maps array of items directly", () => {
+    const result = mapAuditedConversation(sampleSnakeConversation.items);
+    expect(result.total).toBe(1);
+    expect(result.items).toHaveLength(1);
+  });
+
+  it("throws on invalid conversation data", () => {
+    expect(() => mapAuditedConversation(null)).toThrow("Invalid audited conversation data");
+    expect(() => mapAuditedConversation("not an object")).toThrow("Invalid audited conversation data");
+  });
+});
+
 
