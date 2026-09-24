@@ -10,6 +10,7 @@ export const categoriesTranslations = {
   retry: "Reintentar",
   newCategory: "Nuevo rubro",
   createSuccess: "Rubro creado exitosamente",
+  updateSuccess: "Rubro actualizado exitosamente",
   modal: {
     title: "Nuevo rubro",
     nameLabel: "Nombre del rubro",
@@ -23,6 +24,21 @@ export const categoriesTranslations = {
       duplicate: "El rubro ya existe",
       forbidden: "No tenés permisos para realizar esta acción",
       serverError: "No se pudo crear el rubro. Intentá nuevamente más tarde",
+    },
+  },
+  editModal: {
+    title: "Editar rubro",
+    nameLabel: "Nombre del rubro",
+    namePlaceholder: "Ej. Plomería",
+    submitButton: "Guardar cambios",
+    submittingButton: "Guardando cambios...",
+    cancelButton: "Cancelar",
+    closeAriaLabel: "Cerrar modal de edición",
+    errors: {
+      nameRequired: "El nombre es obligatorio",
+      duplicate: "El rubro ya existe",
+      forbidden: "No tenés permisos para realizar esta acción",
+      serverError: "No se pudo actualizar el rubro. Intentá nuevamente más tarde",
     },
   },
 } as const;

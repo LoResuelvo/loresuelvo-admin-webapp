@@ -75,4 +75,43 @@ describe("CategoriesPage", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Rubro creado exitosamente");
   });
+
+  it("renders edit action button with accessible aria-label for each category", () => {
+    render(<CategoriesPage categories={sampleCategories} />);
+
+    expect(screen.getByRole("button", { name: "Editar rubro Albañilería" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Editar rubro Electricidad" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Editar rubro Plomería" })).toBeInTheDocument();
+  });
+
+  it("opens edit modal when clicking edit button", async () => {
+    render(<CategoriesPage categories={sampleCategories} />);
+
+    const editButton = screen.getByRole("button", { name: "Editar rubro Plomería" });
+    await userEvent.click(editButton);
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Editar rubro" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Nombre del rubro")).toHaveValue("Plomería");
+  });
+
+  it("calls onUpdateCategory and displays success message on successful update", async () => {
+    const onUpdateCategory = vi.fn().mockResolvedValue(undefined);
+    render(<CategoriesPage categories={sampleCategories} onUpdateCategory={onUpdateCategory} />);
+
+    const editButton = screen.getByRole("button", { name: "Editar rubro Plomería" });
+    await userEvent.click(editButton);
+
+    const input = screen.getByLabelText("Nombre del rubro");
+    await userEvent.clear(input);
+    await userEvent.type(input, "Instalaciones Sanitarias");
+
+    const submitButton = screen.getByRole("button", { name: "Guardar cambios" });
+    await userEvent.click(submitButton);
+
+    expect(onUpdateCategory).toHaveBeenCalledWith(3, "Instalaciones Sanitarias");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Rubro actualizado exitosamente");
+  });
 });
+
