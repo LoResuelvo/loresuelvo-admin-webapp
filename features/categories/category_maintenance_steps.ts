@@ -211,6 +211,40 @@ Then(
   },
 );
 
+Given(
+  "que el cálculo de impacto de un rubro toma unos momentos",
+  async function (this: CustomWorld) {
+    await this.stubGet("/categories", [{ id: 3, name: "Pintura", enabled: true }]);
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/categories/3/impact",
+      status: 200,
+      body: {
+        category_id: 3,
+        category_name: "Pintura",
+        provider_count: 2,
+        active_orders_count: 0,
+        can_deactivate: true,
+      },
+      delayMs: 1500,
+    });
+    await this.page.goto(new URL(ROUTES.categories, this.appUrl).href);
+    const table = this.page.getByRole("table");
+    await table.waitFor({ state: "visible" });
+  },
+);
+
+Then(
+  "se presenta un indicador de carga mientras se evalúa el impacto en prestadores y órdenes",
+  async function (this: CustomWorld) {
+    const loading = this.page.getByRole("status").filter({
+      hasText: "Evaluando impacto en prestadores y órdenes...",
+    });
+    await loading.waitFor({ state: "visible" });
+  },
+);
+
+
 
 
 
