@@ -11,7 +11,6 @@ Feature: Ficha e historial de contrataciones de consumidores
     When consulto la ficha del consumidor
     Then visualizo sus datos de contacto, fecha de registro y la dirección habitual registrada
 
-  @wip
   Scenario: 02-CSM Visualizar historial cronológico de contrataciones con acceso a operaciones
     Given que el consumidor registra actividad de contrataciones en la plataforma
     When consulto el historial en la ficha del consumidor

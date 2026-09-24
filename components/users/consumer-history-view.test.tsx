@@ -14,9 +14,10 @@ describe("ConsumerHistoryView", () => {
     currentAddress: "Av. Rivadavia 4500",
     coverageZone: { id: 6, name: "Comuna 6" },
     history: [],
+    pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
   };
 
-  it("renders the consumer history view container with profile header", () => {
+  it("renders the consumer history view container with profile header and history list", () => {
     render(<ConsumerHistoryView consumer={consumerMock} />);
 
     expect(
@@ -24,5 +25,6 @@ describe("ConsumerHistoryView", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1, name: "Carlos López" })).toBeInTheDocument();
     expect(screen.getByTestId("consumer-profile-header")).toBeInTheDocument();
+    expect(screen.getByTestId("consumer-history-list")).toBeInTheDocument();
   });
 });

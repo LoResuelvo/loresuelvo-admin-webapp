@@ -1,19 +1,10 @@
+import type { ConsumerDetail } from "@/domain/users/consumer-history";
 import { translations } from "@/infrastructure/i18n/translations";
-import { ConsumerProfileHeader, type ConsumerCoverageZone } from "./consumer-profile-header";
+import { ConsumerProfileHeader } from "./consumer-profile-header";
+import { ConsumerHistoryList } from "./consumer-history-list";
 
 export interface ConsumerHistoryViewProps {
-  consumer: {
-    id: number;
-    name: string;
-    surname: string;
-    email: string;
-    phone: string;
-    profilePhotoUrl?: string;
-    registeredAt: string;
-    currentAddress: string;
-    coverageZone: ConsumerCoverageZone;
-    history?: unknown[];
-  };
+  consumer: ConsumerDetail;
 }
 
 export function ConsumerHistoryView({ consumer }: ConsumerHistoryViewProps) {
@@ -33,6 +24,8 @@ export function ConsumerHistoryView({ consumer }: ConsumerHistoryViewProps) {
         currentAddress={consumer.currentAddress}
         coverageZone={consumer.coverageZone}
       />
+
+      <ConsumerHistoryList history={consumer.history} />
     </div>
   );
 }
