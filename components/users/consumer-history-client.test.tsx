@@ -36,7 +36,9 @@ describe("ConsumerHistoryClient", () => {
 
     render(<ConsumerHistoryClient id={301} />);
 
-    expect(screen.getByRole("status")).toBeInTheDocument();
+    const skeleton = screen.getByTestId("consumer-skeleton");
+    expect(skeleton).toBeInTheDocument();
+    expect(skeleton).toHaveAttribute("aria-busy", "true");
 
     await waitFor(() => {
       expect(screen.getByRole("heading", { level: 1, name: "Carlos López" })).toBeInTheDocument();

@@ -6,6 +6,7 @@ import { ROUTES } from "@/lib/routes";
 import type { ConsumerDetail } from "@/domain/users/consumer-history";
 import { getConsumerHistoryAction } from "@/app/(dashboard)/usuarios/actions";
 import { translations } from "@/infrastructure/i18n/translations";
+import { ConsumerHistorySkeleton } from "./consumer-history-skeleton";
 import { ConsumerHistoryView } from "./consumer-history-view";
 
 export interface ConsumerHistoryClientProps {
@@ -78,23 +79,6 @@ function ConsumerHistoryError({
   );
 }
 
-function ConsumerHistoryLoading() {
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="flex flex-col items-center justify-center py-16 text-center"
-    >
-      <span
-        aria-hidden="true"
-        className="mb-4 block size-8 rounded-full border-2 border-[#147560]/20 border-t-[#147560] motion-safe:animate-spin"
-      />
-      <p className="text-sm font-medium text-[#1A2B48]/70">
-        {translations.users.consumerDetail.loading}
-      </p>
-    </div>
-  );
-}
 
 function useConsumerHistory(id: string | number) {
   const [state, setState] = useState<ConsumerHistoryState>({
@@ -154,7 +138,7 @@ export function ConsumerHistoryClient({ id }: ConsumerHistoryClientProps) {
   const { state, reload } = useConsumerHistory(id);
 
   if (state.isLoading) {
-    return <ConsumerHistoryLoading />;
+    return <ConsumerHistorySkeleton />;
   }
 
   if (state.isForbidden) {

@@ -26,7 +26,6 @@ Feature: Ficha e historial de contrataciones de consumidores
     When consulto el historial de actividad en su ficha
     Then se presenta un mensaje informativo indicando que el consumidor no registra contrataciones previas
 
-  @wip
   Scenario: 05-CSM Mostrar estado de espera mientras se carga la ficha del consumidor
     Given que la consulta de los datos del consumidor toma unos momentos
     When accedo a la ficha del consumidor
