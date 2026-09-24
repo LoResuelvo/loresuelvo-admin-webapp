@@ -36,7 +36,6 @@ Feature: Consola de pagos y desglose económico
     When aplico un filtro de búsqueda sin resultados en la sección de pagos
     Then se muestra un mensaje informativo indicando que no hay transacciones disponibles
 
-  @wip
   Scenario: 07-PAY Informar falta de permisos para consultar pagos
     Given que mi cuenta de usuario no posee permisos para consultar información financiera
     When intento ingresar a la sección de pagos
