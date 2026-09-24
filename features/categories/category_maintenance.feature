@@ -20,7 +20,6 @@ Feature: Mantenimiento y desactivación de rubros con análisis de impacto
     Then veo un mensaje indicando que el nombre es obligatorio
     And el formulario de edición conserva el foco sin cerrarse
 
-  @wip
   Scenario: 03-MNT Rechazar nombre duplicado al editar rubro
     Given que existen los rubros "Plomería" y "Gasista"
     And abro la edición del rubro "Plomería"
