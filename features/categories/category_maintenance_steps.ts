@@ -63,3 +63,26 @@ Then(
     await row.waitFor({ state: "visible" });
   },
 );
+
+When("intento guardar el rubro con el nombre vacío", async function (this: CustomWorld) {
+  const nameInput = this.page.getByLabel("Nombre del rubro");
+  await nameInput.fill("");
+
+  const submitButton = this.page.getByRole("button", { name: "Guardar cambios" });
+  await submitButton.click();
+});
+
+Then(
+  "el formulario de edición conserva el foco sin cerrarse",
+  async function (this: CustomWorld) {
+    const modal = this.page.getByRole("dialog");
+    await modal.waitFor({ state: "visible" });
+    assert.equal(await modal.isVisible(), true);
+
+    const nameInput = this.page.getByLabel("Nombre del rubro");
+    await nameInput.waitFor({ state: "visible" });
+    const isFocused = await nameInput.evaluate((el) => document.activeElement === el);
+    assert.equal(isFocused, true);
+  },
+);
+
