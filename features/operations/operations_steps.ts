@@ -1077,6 +1077,72 @@ Then(
   },
 );
 
+const emptyAuditedConversation = {
+  items: [],
+  pagination: {
+    page: 1,
+    limit: 50,
+    total: 0,
+  },
+};
 
+Given(
+  "que la contratación no registra mensajes intercambiados entre las partes",
+  async function (this: CustomWorld) {
+    await this.stubGet(
+      "/admin/operations/op-101/conversation",
+      emptyAuditedConversation,
+    );
+    await this.stubGet(
+      "/operations/op-101/conversation",
+      emptyAuditedConversation,
+    );
+  },
+);
 
+When(
+  "selecciono una causa válida y accedo a la conversación",
+  async function (this: CustomWorld) {
+    const inspectButton = this.page
+      .getByRole("button", { name: /inspeccionar conversación/i })
+      .or(this.page.getByTestId("inspect-chat-button"));
+    await inspectButton.waitFor({ state: "visible", timeout: 5000 });
+    await inspectButton.click();
+
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor({ state: "visible", timeout: 5000 });
+
+    const causeSelect = dialog
+      .getByLabel(/motivo|causa/i)
+      .or(dialog.getByTestId("audit-reason-select"));
+
+    if (await causeSelect.isVisible()) {
+      await causeSelect.selectOption({ label: "Reclamo de cliente" });
+    } else {
+      const causeOption = dialog
+        .getByRole("radio", { name: /reclamo de cliente/i })
+        .or(dialog.getByRole("button", { name: /reclamo de cliente/i }))
+        .or(dialog.getByText("Reclamo de cliente"));
+      await causeOption.click();
+    }
+
+    const confirmButton = dialog
+      .getByRole("button", { name: /confirmar acceso|acceder|confirmar/i })
+      .or(dialog.getByTestId("confirm-audit-access-button"));
+    await confirmButton.click();
+  },
+);
+
+Then(
+  "visualizo un mensaje indicando que no se registran mensajes en esta contratación",
+  async function (this: CustomWorld) {
+    const emptyContainer = this.page.getByTestId("audited-messages-empty");
+    await emptyContainer.waitFor({ state: "visible", timeout: 5000 });
+    assert.ok(
+      (await emptyContainer.innerText()).includes(
+        "No se registran mensajes en esta contratación",
+      ),
+    );
+  },
+);
 
