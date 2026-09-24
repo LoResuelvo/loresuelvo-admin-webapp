@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { ROUTES } from "@/lib/routes";
 import type { ProviderDiagnostic } from "@/domain/users/provider-diagnostic";
 import { getProviderDiagnosticAction } from "@/app/(dashboard)/usuarios/actions";
 import { translations } from "@/infrastructure/i18n/translations";
@@ -39,6 +41,14 @@ function DiagnosticNotFound() {
       <p className="text-base font-medium text-[#1A2B48]/80">
         {translations.users.diagnostic.notFound}
       </p>
+      <div className="mt-4">
+        <Link
+          href={ROUTES.users}
+          className="inline-flex items-center text-sm font-medium text-[#147560] hover:underline"
+        >
+          {translations.users.diagnostic.backToList}
+        </Link>
+      </div>
     </div>
   );
 }

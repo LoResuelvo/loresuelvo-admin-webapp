@@ -36,7 +36,6 @@ Feature: Ficha y diagnóstico operativo de prestadores
     When accedo a la ficha de diagnóstico del prestador
     Then se presenta una vista de carga con indicadores visuales mientras se obtiene la información
 
-  @wip
   Scenario: 07-DIA Informar prestador inexistente
     Given que intento consultar un prestador que no se encuentra registrado
     When accedo al enlace de diagnóstico del prestador

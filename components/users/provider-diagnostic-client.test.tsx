@@ -77,6 +77,10 @@ describe("ProviderDiagnosticClient", () => {
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent(/no fue encontrado/i);
     });
+    expect(screen.getByRole("link", { name: /volver a prestadores/i })).toHaveAttribute(
+      "href",
+      "/usuarios",
+    );
   });
 
   it("renders error alert with retry button and reloads on click", async () => {

@@ -304,16 +304,14 @@ When(
 Then(
   "se presenta un mensaje claro indicando que el prestador no fue encontrado",
   async function (this: CustomWorld) {
-    const alert = this.page.getByRole("alert");
-    await alert.waitFor({ state: "visible" });
-    const text = await alert.innerText();
-    assert.ok(
-      text.toLowerCase().includes("no fue encontrado") ||
-        text.toLowerCase().includes("no encontrado"),
-      "Debe mostrar un mensaje claro indicando que el prestador no fue encontrado",
-    );
+    const alert = this.page.getByRole("alert").filter({
+      hasText: /no fue encontrado|no encontrado/i,
+    });
+    await alert.waitFor({ state: "visible", timeout: 5000 });
+    assert.ok(await alert.isVisible(), "Debe mostrar un mensaje claro indicando que el prestador no fue encontrado");
+
     const backLink = alert.locator(`a[href="${ROUTES.users}"]`);
-    await backLink.waitFor({ state: "visible" });
+    await backLink.waitFor({ state: "visible", timeout: 5000 });
     assert.ok(await backLink.isVisible(), "Debe mostrar el enlace de retorno al directorio");
   },
 );
