@@ -1,9 +1,15 @@
 import "server-only";
 import type { CategoryRepository } from "@/ports/categories/category-repository";
 import type { Category } from "@/domain/categories/category";
+import type { CategoryImpact } from "@/domain/categories/category-impact";
 import { CategoryError } from "@/domain/categories/category-error";
 import { parseE2EStubsFromCookies } from "@/infrastructure/api/e2e-stubs-utils";
-import { mapCategories, mapCategory, mapCreatedCategory } from "./category-mapper";
+import {
+  mapCategories,
+  mapCategory,
+  mapCategoryImpact,
+  mapCreatedCategory,
+} from "./category-mapper";
 
 async function getE2EStub(
   method: "GET" | "POST" | "PATCH" = "GET",
@@ -30,68 +36,55 @@ async function getE2EStub(
   }
 }
 
+function handleCategoryError(status: number, action: string): never {
+  if (status === 409) {
+    throw new CategoryError("duplicate", "Category already exists");
+  }
+  if (status === 403) {
+    throw new CategoryError("forbidden", "Forbidden");
+  }
+  if (status >= 500) {
+    throw new CategoryError("unavailable", `Failed to ${action}: ${status}`);
+  }
+  throw new Error(`Failed to ${action}: ${status}`);
+}
+
+function getBaseUrl(): string {
+  const baseUrl = process.env.API_URL;
+  if (!baseUrl) {
+    throw new Error("API_URL is not configured");
+  }
+  return baseUrl.replace(/\/$/, "");
+}
+
 export const apiCategoryRepository: CategoryRepository = {
   async getAll(token: string) {
     const stub = await getE2EStub("GET", "/categories");
     if (stub) {
-      if (stub.delayMs) {
-        await new Promise((resolve) => setTimeout(resolve, stub.delayMs));
-      }
-      if (stub.status >= 400) {
-        throw new Error(`Failed to fetch categories: ${stub.status}`);
-      }
+      if (stub.delayMs) await new Promise((r) => setTimeout(r, stub.delayMs));
+      if (stub.status >= 400) handleCategoryError(stub.status, "fetch categories");
       return mapCategories(stub.body);
     }
 
-    const baseUrl = process.env.API_URL;
-    if (!baseUrl) {
-      throw new Error("API_URL is not configured");
-    }
-
-    const response = await fetch(`${baseUrl.replace(/\/$/, "")}/categories`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
+    const response = await fetch(`${getBaseUrl()}/categories`, {
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
       cache: "no-store",
       signal: AbortSignal.timeout(10_000),
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch categories: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return mapCategories(data);
+    if (!response.ok) handleCategoryError(response.status, "fetch categories");
+    return mapCategories(await response.json());
   },
 
   async create(token: string, name: string): Promise<Category> {
     const stub = await getE2EStub("POST", "/categories");
     if (stub) {
-      if (stub.delayMs) {
-        await new Promise((resolve) => setTimeout(resolve, stub.delayMs));
-      }
-      if (stub.status === 409) {
-        throw new CategoryError("duplicate", "Category already exists");
-      }
-      if (stub.status === 403) {
-        throw new CategoryError("forbidden", "Forbidden");
-      }
-      if (stub.status >= 500) {
-        throw new CategoryError("unavailable", `Failed to create category: ${stub.status}`);
-      }
-      if (stub.status >= 400) {
-        throw new Error(`Failed to create category: ${stub.status}`);
-      }
+      if (stub.delayMs) await new Promise((r) => setTimeout(r, stub.delayMs));
+      if (stub.status >= 400) handleCategoryError(stub.status, "create category");
       return mapCreatedCategory(stub.body);
     }
 
-    const baseUrl = process.env.API_URL;
-    if (!baseUrl) {
-      throw new Error("API_URL is not configured");
-    }
-
-    const response = await fetch(`${baseUrl.replace(/\/$/, "")}/categories`, {
+    const response = await fetch(`${getBaseUrl()}/categories`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -103,52 +96,20 @@ export const apiCategoryRepository: CategoryRepository = {
       signal: AbortSignal.timeout(10_000),
     });
 
-    if (response.status === 409) {
-      throw new CategoryError("duplicate", "Category already exists");
-    }
-    if (response.status === 403) {
-      throw new CategoryError("forbidden", "Forbidden");
-    }
-    if (response.status >= 500) {
-      throw new CategoryError("unavailable", `Failed to create category: ${response.status}`);
-    }
-
-    if (!response.ok) {
-      throw new Error(`Failed to create category: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return mapCreatedCategory(data);
+    if (!response.ok) handleCategoryError(response.status, "create category");
+    return mapCreatedCategory(await response.json());
   },
 
   async update(token: string, id: number, name: string): Promise<Category> {
     const endpoint = `/categories/${id}`;
     const stub = await getE2EStub("PATCH", endpoint);
     if (stub) {
-      if (stub.delayMs) {
-        await new Promise((resolve) => setTimeout(resolve, stub.delayMs));
-      }
-      if (stub.status === 409) {
-        throw new CategoryError("duplicate", "Category already exists");
-      }
-      if (stub.status === 403) {
-        throw new CategoryError("forbidden", "Forbidden");
-      }
-      if (stub.status >= 500) {
-        throw new CategoryError("unavailable", `Failed to update category: ${stub.status}`);
-      }
-      if (stub.status >= 400) {
-        throw new Error(`Failed to update category: ${stub.status}`);
-      }
+      if (stub.delayMs) await new Promise((r) => setTimeout(r, stub.delayMs));
+      if (stub.status >= 400) handleCategoryError(stub.status, "update category");
       return mapCategory(stub.body);
     }
 
-    const baseUrl = process.env.API_URL;
-    if (!baseUrl) {
-      throw new Error("API_URL is not configured");
-    }
-
-    const response = await fetch(`${baseUrl.replace(/\/$/, "")}/categories/${id}`, {
+    const response = await fetch(`${getBaseUrl()}${endpoint}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -160,21 +121,52 @@ export const apiCategoryRepository: CategoryRepository = {
       signal: AbortSignal.timeout(10_000),
     });
 
-    if (response.status === 409) {
-      throw new CategoryError("duplicate", "Category already exists");
-    }
-    if (response.status === 403) {
-      throw new CategoryError("forbidden", "Forbidden");
-    }
-    if (response.status >= 500) {
-      throw new CategoryError("unavailable", `Failed to update category: ${response.status}`);
+    if (!response.ok) handleCategoryError(response.status, "update category");
+    return mapCategory(await response.json());
+  },
+
+  async getImpact(token: string, id: number): Promise<CategoryImpact> {
+    const endpoint = `/admin/categories/${id}/impact`;
+    const stub = await getE2EStub("GET", endpoint);
+    if (stub) {
+      if (stub.delayMs) await new Promise((r) => setTimeout(r, stub.delayMs));
+      if (stub.status >= 400) handleCategoryError(stub.status, "fetch category impact");
+      return mapCategoryImpact(stub.body);
     }
 
-    if (!response.ok) {
-      throw new Error(`Failed to update category: ${response.status}`);
+    const response = await fetch(`${getBaseUrl()}${endpoint}`, {
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
+    });
+
+    if (!response.ok) handleCategoryError(response.status, "fetch category impact");
+    return mapCategoryImpact(await response.json());
+  },
+
+  async deactivate(token: string, id: number): Promise<Category> {
+    const endpoint = `/categories/${id}`;
+    const stub = await getE2EStub("PATCH", endpoint);
+    if (stub) {
+      if (stub.delayMs) await new Promise((r) => setTimeout(r, stub.delayMs));
+      if (stub.status >= 400) handleCategoryError(stub.status, "deactivate category");
+      return mapCategory(stub.body);
     }
 
-    const data = await response.json();
-    return mapCategory(data);
+    const response = await fetch(`${getBaseUrl()}${endpoint}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ enabled: false }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
+    });
+
+    if (!response.ok) handleCategoryError(response.status, "deactivate category");
+    return mapCategory(await response.json());
   },
 };
+

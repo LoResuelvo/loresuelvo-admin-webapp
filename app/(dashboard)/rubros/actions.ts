@@ -1,9 +1,12 @@
 "use server";
 
 import type { Category } from "@/domain/categories/category";
+import type { CategoryImpact } from "@/domain/categories/category-impact";
 import { getCategories } from "@/application/categories/get-categories";
 import { createCategory } from "@/application/categories/create-category";
 import { updateCategory } from "@/application/categories/update-category";
+import { getCategoryImpact } from "@/application/categories/get-category-impact";
+import { deactivateCategory } from "@/application/categories/deactivate-category";
 import { apiCategoryRepository } from "@/infrastructure/repositories/api-category-repository";
 import { authSession } from "@/infrastructure/auth/auth-session";
 import { CategoryError } from "@/domain/categories/category-error";
@@ -20,6 +23,15 @@ export type CreateCategoryResult =
 export type UpdateCategoryResult =
   | { success: true; data: Category }
   | { success: false; error: string };
+
+export type GetCategoryImpactResult =
+  | { success: true; data: CategoryImpact }
+  | { success: false; error: string };
+
+export type DeactivateCategoryResult =
+  | { success: true; data: Category }
+  | { success: false; error: string };
+
 
 async function resolveAuthToken(): Promise<string> {
   try {
@@ -65,6 +77,7 @@ export async function createCategoryAction(name: string): Promise<CreateCategory
 }
 
 export async function updateCategoryAction(id: number, name: string): Promise<UpdateCategoryResult> {
+
   try {
     const token = await resolveAuthToken();
     const category = await updateCategory(token, apiCategoryRepository, id, name);
@@ -85,3 +98,42 @@ export async function updateCategoryAction(id: number, name: string): Promise<Up
     return { success: false, error: message };
   }
 }
+
+export async function getCategoryImpactAction(id: number): Promise<GetCategoryImpactResult> {
+  try {
+    const token = await resolveAuthToken();
+    const impact = await getCategoryImpact(apiCategoryRepository, token, id);
+    return { success: true, data: impact };
+  } catch (error: unknown) {
+    if (error instanceof CategoryError) {
+      if (error.code === "forbidden") {
+        return { success: false, error: translations.categories.deactivateModal.errors.forbidden };
+      }
+      if (error.code === "unavailable") {
+        return { success: false, error: translations.categories.deactivateModal.errors.serverError };
+      }
+    }
+    const message = error instanceof Error ? error.message : translations.categories.deactivateModal.errors.serverError;
+    return { success: false, error: message };
+  }
+}
+
+export async function deactivateCategoryAction(id: number): Promise<DeactivateCategoryResult> {
+  try {
+    const token = await resolveAuthToken();
+    const category = await deactivateCategory(apiCategoryRepository, token, id);
+    return { success: true, data: category };
+  } catch (error: unknown) {
+    if (error instanceof CategoryError) {
+      if (error.code === "forbidden") {
+        return { success: false, error: translations.categories.deactivateModal.errors.forbidden };
+      }
+      if (error.code === "unavailable") {
+        return { success: false, error: translations.categories.deactivateModal.errors.serverError };
+      }
+    }
+    const message = error instanceof Error ? error.message : translations.categories.deactivateModal.errors.serverError;
+    return { success: false, error: message };
+  }
+}
+

@@ -27,8 +27,8 @@ Feature: Mantenimiento y desactivación de rubros con análisis de impacto
     Then veo un mensaje indicando que el rubro ya existe
     And el formulario de edición permanece abierto
 
-  @wip
   Scenario: 04-MNT Visualizar análisis de impacto favorable y confirmar desactivación
+
     Given que el rubro "Cerrajería" no registra órdenes de trabajo activas en curso
     And solicito desactivar el rubro "Cerrajería"
     When confirmo la desactivación tras revisar el impacto de prestadores asociados

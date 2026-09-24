@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import type { Category } from "@/domain/categories/category";
+import type { CategoryImpact } from "@/domain/categories/category-impact";
 import { CreateCategoryModal } from "@/components/categories/create-category-modal";
 import { EditCategoryModal } from "@/components/categories/edit-category-modal";
+import { DeactivateCategoryModal } from "@/components/categories/deactivate-category-modal";
 import { CategoriesTable } from "@/components/categories/categories-table";
 import {
   CategoriesEmpty,
@@ -11,6 +13,11 @@ import {
   CategoriesLoading,
   CategoriesSuccessAlert,
 } from "@/components/categories/categories-feedback";
+import {
+  useCategoriesCreation,
+  useCategoriesDeactivation,
+  useCategoriesEdit,
+} from "./use-categories-actions";
 import { translations } from "@/infrastructure/i18n/translations";
 
 export type CategoriesPageProps = {
@@ -22,6 +29,9 @@ export type CategoriesPageProps = {
   createError?: string | null;
   onUpdateCategory?: (id: number, name: string) => Promise<void>;
   updateError?: string | null;
+  onGetImpact?: (id: number) => Promise<CategoryImpact>;
+  onDeactivateCategory?: (id: number) => Promise<void>;
+  deactivateError?: string | null;
 };
 
 function PlusIcon() {
@@ -58,88 +68,53 @@ function CategoriesHeader({ onOpenModal }: { onOpenModal: () => void }) {
   );
 }
 
-function useCategoriesCreation(
-  onCreateCategory: ((name: string) => Promise<void>) | undefined,
-  onSuccess: (msg: string) => void,
-) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-
-  const handleCreate = async (name: string) => {
-    if (!onCreateCategory) return;
-    setIsSubmitting(true);
-    setSubmitError(null);
-    try {
-      await onCreateCategory(name);
-      setIsModalOpen(false);
-      onSuccess(translations.categories.createSuccess);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Error al crear rubro";
-      setSubmitError(msg);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSubmitError(null);
-  };
-
-  return {
-    isModalOpen,
-    setIsModalOpen,
-    isSubmitting,
-    submitError,
-    handleCreate,
-    handleCloseModal,
-  };
+interface CategoriesModalsProps {
+  creation: ReturnType<typeof useCategoriesCreation>;
+  edit: ReturnType<typeof useCategoriesEdit>;
+  deactivation: ReturnType<typeof useCategoriesDeactivation>;
+  createError: string | null;
+  updateError: string | null;
+  deactivateError: string | null;
 }
 
-function useCategoriesEdit(
-  onUpdateCategory: ((id: number, name: string) => Promise<void>) | undefined,
-  onSuccess: (msg: string) => void,
-) {
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-
-  const handleOpenEdit = (category: Category) => {
-    setEditingCategory(category);
-    setSubmitError(null);
-  };
-
-  const handleCloseEdit = () => {
-    if (isSubmitting) return;
-    setEditingCategory(null);
-    setSubmitError(null);
-  };
-
-  const handleUpdate = async (id: number, name: string) => {
-    if (!onUpdateCategory) return;
-    setIsSubmitting(true);
-    setSubmitError(null);
-    try {
-      await onUpdateCategory(id, name);
-      setEditingCategory(null);
-      onSuccess(translations.categories.updateSuccess);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Error al actualizar rubro";
-      setSubmitError(msg);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return {
-    editingCategory,
-    isSubmitting,
-    submitError,
-    handleOpenEdit,
-    handleCloseEdit,
-    handleUpdate,
-  };
+function CategoriesModals({
+  creation,
+  edit,
+  deactivation,
+  createError,
+  updateError,
+  deactivateError,
+}: CategoriesModalsProps) {
+  return (
+    <>
+      <CreateCategoryModal
+        isOpen={creation.isModalOpen}
+        onClose={creation.handleCloseModal}
+        onSubmit={creation.handleCreate}
+        isSubmitting={creation.isSubmitting}
+        error={creation.submitError || createError}
+      />
+      <EditCategoryModal
+        isOpen={Boolean(edit.editingCategory)}
+        category={edit.editingCategory}
+        onClose={edit.handleCloseEdit}
+        onSubmit={edit.handleUpdate}
+        isSubmitting={edit.isSubmitting}
+        error={edit.submitError || updateError}
+      />
+      <DeactivateCategoryModal
+        isOpen={Boolean(deactivation.deactivatingCategory)}
+        category={deactivation.deactivatingCategory}
+        impact={deactivation.impact}
+        isLoadingImpact={deactivation.isLoadingImpact}
+        impactError={deactivation.impactError}
+        onClose={deactivation.handleCloseDeactivate}
+        onConfirm={deactivation.handleConfirmDeactivate}
+        isSubmitting={deactivation.isSubmitting}
+        error={deactivation.deactivateError || deactivateError}
+      />
+    </>
+  );
 }
 
 export function CategoriesPage({
@@ -151,11 +126,15 @@ export function CategoriesPage({
   createError = null,
   onUpdateCategory,
   updateError = null,
+  onGetImpact,
+  onDeactivateCategory,
+  deactivateError = null,
 }: CategoriesPageProps) {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const creation = useCategoriesCreation(onCreateCategory, setSuccessMessage);
   const edit = useCategoriesEdit(onUpdateCategory, setSuccessMessage);
+  const deactivation = useCategoriesDeactivation(onGetImpact, onDeactivateCategory, setSuccessMessage);
 
   return (
     <section aria-label={translations.categories.title} className="max-w-6xl space-y-6">
@@ -173,25 +152,20 @@ export function CategoriesPage({
         <CategoriesTable
           categories={categories}
           onEditCategory={edit.handleOpenEdit}
+          onDeactivateCategory={deactivation.handleOpenDeactivate}
         />
       )}
 
-      <CreateCategoryModal
-        isOpen={creation.isModalOpen}
-        onClose={creation.handleCloseModal}
-        onSubmit={creation.handleCreate}
-        isSubmitting={creation.isSubmitting}
-        error={creation.submitError || createError}
-      />
-
-      <EditCategoryModal
-        isOpen={Boolean(edit.editingCategory)}
-        category={edit.editingCategory}
-        onClose={edit.handleCloseEdit}
-        onSubmit={edit.handleUpdate}
-        isSubmitting={edit.isSubmitting}
-        error={edit.submitError || updateError}
+      <CategoriesModals
+        creation={creation}
+        edit={edit}
+        deactivation={deactivation}
+        createError={createError}
+        updateError={updateError}
+        deactivateError={deactivateError}
       />
     </section>
   );
 }
+
+

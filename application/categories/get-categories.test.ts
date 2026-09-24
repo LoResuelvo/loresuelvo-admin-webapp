@@ -12,6 +12,8 @@ describe("getCategories usecase", () => {
       getAll: vi.fn().mockResolvedValue(categories),
       create: vi.fn(),
       update: vi.fn(),
+      getImpact: vi.fn(),
+      deactivate: vi.fn(),
     };
 
     const result = await getCategories(mockRepo, "valid-token");
@@ -25,6 +27,8 @@ describe("getCategories usecase", () => {
       getAll: vi.fn().mockRejectedValue(new Error("Network failure")),
       create: vi.fn(),
       update: vi.fn(),
+      getImpact: vi.fn(),
+      deactivate: vi.fn(),
     };
 
     await expect(getCategories(mockRepo, "token")).rejects.toThrow("Network failure");

@@ -9,6 +9,8 @@ describe("updateCategory usecase", () => {
       getAll: vi.fn(),
       create: vi.fn(),
       update: vi.fn().mockResolvedValue(updatedCategory),
+      getImpact: vi.fn(),
+      deactivate: vi.fn(),
     };
 
     const result = await updateCategory("valid-token", mockRepo, 1, "Instalaciones Sanitarias");
@@ -23,6 +25,8 @@ describe("updateCategory usecase", () => {
       getAll: vi.fn(),
       create: vi.fn(),
       update: vi.fn().mockResolvedValue(updatedCategory),
+      getImpact: vi.fn(),
+      deactivate: vi.fn(),
     };
 
     const result = await updateCategory(mockRepo, "valid-token", 1, "Instalaciones Sanitarias");
@@ -36,6 +40,8 @@ describe("updateCategory usecase", () => {
       getAll: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      getImpact: vi.fn(),
+      deactivate: vi.fn(),
     };
 
     await expect(updateCategory("valid-token", mockRepo, 1, "")).rejects.toThrow(
@@ -53,6 +59,8 @@ describe("updateCategory usecase", () => {
       getAll: vi.fn(),
       create: vi.fn(),
       update: vi.fn().mockResolvedValue(updatedCategory),
+      getImpact: vi.fn(),
+      deactivate: vi.fn(),
     };
 
     await updateCategory("valid-token", mockRepo, 1, "  Instalaciones Sanitarias  ");
@@ -65,6 +73,8 @@ describe("updateCategory usecase", () => {
       getAll: vi.fn(),
       create: vi.fn(),
       update: vi.fn().mockRejectedValue(new Error("Conflict: already exists")),
+      getImpact: vi.fn(),
+      deactivate: vi.fn(),
     };
 
     await expect(updateCategory("valid-token", mockRepo, 1, "Plomería")).rejects.toThrow(

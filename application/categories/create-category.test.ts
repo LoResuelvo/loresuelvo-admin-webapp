@@ -9,6 +9,8 @@ describe("createCategory usecase", () => {
       getAll: vi.fn(),
       create: vi.fn().mockResolvedValue(createdCategory),
       update: vi.fn(),
+      getImpact: vi.fn(),
+      deactivate: vi.fn(),
     };
 
     const result = await createCategory("valid-token", mockRepo, "Plomería");
@@ -23,6 +25,8 @@ describe("createCategory usecase", () => {
       getAll: vi.fn(),
       create: vi.fn().mockResolvedValue(createdCategory),
       update: vi.fn(),
+      getImpact: vi.fn(),
+      deactivate: vi.fn(),
     };
 
     const result = await createCategory(mockRepo, "valid-token", "Plomería");
@@ -36,6 +40,8 @@ describe("createCategory usecase", () => {
       getAll: vi.fn(),
       create: vi.fn().mockRejectedValue(new Error("Conflict: already exists")),
       update: vi.fn(),
+      getImpact: vi.fn(),
+      deactivate: vi.fn(),
     };
 
     await expect(createCategory("valid-token", mockRepo, "Plomería")).rejects.toThrow(

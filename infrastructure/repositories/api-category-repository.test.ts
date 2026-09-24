@@ -31,8 +31,8 @@ describe("apiCategoryRepository", () => {
       }),
     );
     expect(result).toEqual([
-      { id: 1, name: "Albañilería" },
-      { id: 2, name: "Electricidad" },
+      { id: 1, name: "Albañilería", enabled: true },
+      { id: 2, name: "Electricidad", enabled: true },
     ]);
   });
 
@@ -68,7 +68,7 @@ describe("apiCategoryRepository", () => {
           body: JSON.stringify({ name: "Plomería" }),
         }),
       );
-      expect(result).toEqual({ id: 10, name: "Plomería" });
+      expect(result).toEqual({ id: 10, name: "Plomería", enabled: true });
     });
 
     it("throws error if API_URL is not configured for create", async () => {
@@ -128,7 +128,7 @@ describe("apiCategoryRepository", () => {
           body: JSON.stringify({ name: "Instalaciones Sanitarias" }),
         }),
       );
-      expect(result).toEqual({ id: 1, name: "Instalaciones Sanitarias" });
+      expect(result).toEqual({ id: 1, name: "Instalaciones Sanitarias", enabled: true });
     });
 
     it("throws error if API_URL is not configured for update", async () => {
@@ -166,6 +166,70 @@ describe("apiCategoryRepository", () => {
       await expect(apiCategoryRepository.update("token", 1, "Plomería")).rejects.toThrow("Failed to update category: 400");
     });
   });
+
+  describe("getImpact", () => {
+    it("requests /admin/categories/:id/impact and returns mapped impact", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      const impactData = {
+        category_id: 1,
+        category_name: "Cerrajería",
+        provider_count: 3,
+        active_orders_count: 0,
+        can_deactivate: true,
+      };
+      const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(impactData), { status: 200 }));
+      vi.stubGlobal("fetch", fetcher);
+
+      const result = await apiCategoryRepository.getImpact("test-token", 1);
+
+      expect(fetcher).toHaveBeenCalledWith(
+        "https://api.example.com/admin/categories/1/impact",
+        expect.objectContaining({
+          headers: { Authorization: "Bearer test-token", Accept: "application/json" },
+        }),
+      );
+      expect(result).toEqual({
+        categoryId: 1,
+        categoryName: "Cerrajería",
+        providerCount: 3,
+        activeOrdersCount: 0,
+        canDeactivate: true,
+      });
+    });
+
+    it("throws error if response is not ok for getImpact", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Server error", { status: 500 })));
+      await expect(apiCategoryRepository.getImpact("token", 1)).rejects.toThrow("Failed to fetch category impact: 500");
+    });
+  });
+
+  describe("deactivate", () => {
+    it("patches /categories/:id with enabled: false and returns mapped category", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      const deactivatedData = { id: 1, name: "Cerrajería", enabled: false };
+      const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(deactivatedData), { status: 200 }));
+      vi.stubGlobal("fetch", fetcher);
+
+      const result = await apiCategoryRepository.deactivate("test-token", 1);
+
+      expect(fetcher).toHaveBeenCalledWith(
+        "https://api.example.com/categories/1",
+        expect.objectContaining({
+          method: "PATCH",
+          body: JSON.stringify({ enabled: false }),
+        }),
+      );
+      expect(result).toEqual({ id: 1, name: "Cerrajería", enabled: false });
+    });
+
+    it("throws error if response is not ok for deactivate", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Forbidden", { status: 403 })));
+      await expect(apiCategoryRepository.deactivate("token", 1)).rejects.toThrow("Forbidden");
+    });
+  });
+
 });
 
 
