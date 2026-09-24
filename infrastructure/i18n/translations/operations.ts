@@ -113,5 +113,30 @@ export const operationsTranslations = {
     date: "Fecha de la reseña",
     noReview: "Sin reseña registrada aún",
   },
+  chat: {
+    inspectButton: "Inspeccionar conversación",
+    dialogTitle: "Inspección auditada de conversación",
+    dialogDescription:
+      "El acceso a mensajes privados queda registrado en el log de auditoría. Indique el motivo para continuar.",
+    reasonLabel: "Causa de la consulta",
+    reasonPlaceholder: "Seleccione una causa...",
+    reasons: {
+      clientClaim: "Reclamo de cliente",
+      paymentDispute: "Disputa de pago",
+      serviceDelay: "Demora en el servicio",
+      supportInvestigation: "Investigación de soporte",
+    },
+    validationError: "Debes seleccionar una causa para poder continuar",
+    confirmAccess: "Confirmar acceso",
+    cancel: "Cancelar",
+    loading: "Recuperando conversación...",
+    empty: "No se registran mensajes en esta contratación.",
+    clientRole: "Cliente",
+    providerRole: "Prestador",
+    error: "Error al obtener la conversación auditada.",
+    forbidden: "El acceso a la conversación está restringido.",
+    retry: "Reintentar",
+    close: "Cerrar",
+  },
 } as const;
 

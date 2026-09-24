@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { OperationHeader, type OperationHeaderProps } from "./operation-header";
 
 describe("OperationHeader", () => {
@@ -55,5 +55,17 @@ describe("OperationHeader", () => {
   it("renders container with data-testid operation-header", () => {
     render(<OperationHeader {...defaultProps} />);
     expect(screen.getByTestId("operation-header")).toBeInTheDocument();
+  });
+
+  it("renders inspect chat button and calls onInspectChat when clicked", () => {
+    const handleInspect = vi.fn();
+    render(<OperationHeader {...defaultProps} onInspectChat={handleInspect} />);
+
+    const button = screen.getByTestId("inspect-chat-button");
+    expect(button).toBeInTheDocument();
+    expect(button).toHaveTextContent("Inspeccionar conversación");
+
+    button.click();
+    expect(handleInspect).toHaveBeenCalledTimes(1);
   });
 });
