@@ -202,3 +202,15 @@ Then(
   },
 );
 
+Given(
+  "que mi cuenta de usuario no posee permisos para consultar información financiera",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/payments", { error: "Forbidden" }, 403);
+  },
+);
+
+When("intento ingresar a la sección de pagos", async function (this: CustomWorld) {
+  const paymentsPath = (ROUTES as unknown as Record<string, string>).payments ?? "/pagos";
+  await this.page.goto(new URL(paymentsPath, this.appUrl).href);
+});
+
