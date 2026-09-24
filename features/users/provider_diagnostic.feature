@@ -41,7 +41,6 @@ Feature: Ficha y diagnóstico operativo de prestadores
     When accedo al enlace de diagnóstico del prestador
     Then se presenta un mensaje claro indicando que el prestador no fue encontrado
 
-  @wip
   Scenario: 08-DIA Informar falta de permisos para consultar el diagnóstico
     Given que mi cuenta de usuario no posee permisos para consultar el detalle de prestadores
     When intento ingresar a la ficha de diagnóstico del prestador

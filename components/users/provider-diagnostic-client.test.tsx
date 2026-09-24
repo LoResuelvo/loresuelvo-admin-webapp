@@ -63,6 +63,7 @@ describe("ProviderDiagnosticClient", () => {
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent(/acceso restringido/i);
     });
+    expect(screen.queryByRole("button", { name: /reintentar/i })).not.toBeInTheDocument();
   });
 
   it("renders not found message when provider does not exist", async () => {
