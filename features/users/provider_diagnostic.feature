@@ -21,7 +21,6 @@ Feature: Ficha y diagnóstico operativo de prestadores
     When consulto su ficha de diagnóstico operativo
     Then se visualiza el estado real de identidad sin atribuirle una suspensión operativa injustificada
 
-  @wip
   Scenario: 04-DIA Visualizar zonas de cobertura asignadas y su habilitación
     Given que el prestador posee zonas de cobertura configuradas en su cuenta
     When consulto la sección de cobertura en su ficha de diagnóstico

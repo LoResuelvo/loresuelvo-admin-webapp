@@ -1,23 +1,10 @@
 import { translations } from "@/infrastructure/i18n/translations";
 
 export interface OperationalConditionsPanelProps {
-  identityVerification: {
-    status: string;
-    verifiedAt?: string;
-  };
-  paymentConnection: {
-    isConnected: boolean;
-    accountId?: string;
-    canReceivePayments: boolean;
-  };
-  coverageZones: Array<{
-    id: number;
-    name: string;
-    isActive: boolean;
-  }>;
-  calendarConnection: {
-    status: "connected" | "disconnected" | string;
-  };
+  identityVerification: { status: string; verifiedAt?: string };
+  paymentConnection: { isConnected: boolean; accountId?: string; canReceivePayments: boolean };
+  coverageZones: Array<{ id: number; name: string; isActive: boolean }>;
+  calendarConnection: { status: "connected" | "disconnected" | string };
 }
 
 function IdentityConditionCard({
@@ -139,7 +126,10 @@ function ZonesConditionCard({
   const totalCount = coverageZones.length;
 
   return (
-    <div className="flex flex-col justify-between rounded-xl border border-[#1A2B48]/10 bg-white p-5 shadow-2xs">
+    <div
+      data-testid="zones-condition-card"
+      className="flex flex-col justify-between rounded-xl border border-[#1A2B48]/10 bg-white p-5 shadow-2xs"
+    >
       <div>
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold uppercase tracking-wider text-[#1A2B48]/60">
@@ -158,20 +148,28 @@ function ZonesConditionCard({
       </div>
 
       {coverageZones.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <ul className="mt-4 space-y-1.5" aria-label={copy.summary}>
           {coverageZones.map((zone) => (
-            <span
+            <li
               key={zone.id}
-              className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs ${
-                zone.isActive
-                  ? "bg-[#147560]/10 text-[#147560] font-medium"
-                  : "bg-gray-100 text-gray-500 line-through"
-              }`}
+              data-zone-active={zone.isActive ? "true" : "false"}
+              className="flex items-center justify-between gap-2 rounded-md bg-gray-50/80 px-2.5 py-1 text-xs"
             >
-              {zone.name}
-            </span>
+              <span className={`font-medium ${zone.isActive ? "text-[#1A2B48]" : "text-[#536176]"}`}>
+                {zone.name}
+              </span>
+              <span
+                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                  zone.isActive
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    : "bg-gray-100 text-gray-500 border border-gray-200"
+                }`}
+              >
+                {zone.isActive ? copy.active : copy.inactive}
+              </span>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

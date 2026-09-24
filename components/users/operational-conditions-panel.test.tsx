@@ -57,12 +57,16 @@ describe("OperationalConditionsPanel", () => {
     expect(alerts.length).toBeGreaterThan(0);
   });
 
-  it("displays active coverage zones count and zone tags", () => {
+  it("displays active coverage zones count, zone items and enablement badges", () => {
     render(<OperationalConditionsPanel {...defaultProps} />);
 
+    const zonesCard = screen.getByTestId("zones-condition-card");
+    expect(zonesCard).toBeInTheDocument();
     expect(screen.getByText("1 activa")).toBeInTheDocument();
     expect(screen.getByText("Comuna 6")).toBeInTheDocument();
     expect(screen.getByText("Comuna 14")).toBeInTheDocument();
+    expect(screen.getByText("Activa")).toBeInTheDocument();
+    expect(screen.getByText("Inactiva")).toBeInTheDocument();
   });
 
   it("displays in_review identity status without inferring suspension", () => {

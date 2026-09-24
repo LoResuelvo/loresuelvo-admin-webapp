@@ -101,6 +101,8 @@ export const usersTranslations = {
         summary: "Zonas de cobertura",
         active: "Activa",
         inactive: "Inactiva",
+        activeForRequests: "Habilitada para solicitudes",
+        inactiveForRequests: "Inactiva para solicitudes",
         configured: "configuradas",
         noZones: "Sin zonas asignadas",
       },
