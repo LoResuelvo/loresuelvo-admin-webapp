@@ -86,3 +86,36 @@ Then(
   },
 );
 
+Given(
+  "que existen los rubros {string} y {string}",
+  async function (this: CustomWorld, cat1: string, cat2: string) {
+    await this.stubGet("/categories", [
+      { id: 1, name: cat1 },
+      { id: 2, name: cat2 },
+    ]);
+    await this.stubPatch("/categories/1", 409, { error: "Conflict" });
+    await this.page.goto(new URL(ROUTES.categories, this.appUrl).href);
+    const table = this.page.getByRole("table");
+    await table.waitFor({ state: "visible" });
+  },
+);
+
+When(
+  "intento cambiar el nombre por {string}",
+  async function (this: CustomWorld, newName: string) {
+    this.lastAttemptedCategoryName = newName;
+    const nameInput = this.page.getByLabel("Nombre del rubro");
+    await nameInput.fill(newName);
+
+    const submitButton = this.page.getByRole("button", { name: "Guardar cambios" });
+    await submitButton.click();
+  },
+);
+
+Then("el formulario de edición permanece abierto", async function (this: CustomWorld) {
+  const modal = this.page.getByRole("dialog");
+  await modal.waitFor({ state: "visible" });
+  assert.equal(await modal.isVisible(), true);
+});
+
+
