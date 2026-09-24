@@ -11,7 +11,6 @@ Feature: Consola de pagos y desglose económico
     When accedo a la sección de pagos
     Then visualizo el listado de transacciones con el propósito, cliente, prestador, total del servicio, neto del prestador, comisión de plataforma y estado
 
-  @wip
   Scenario: 02-PAY Diferenciar visualmente intención de checkout de pago acreditado
     Given que existe una transacción con checkout iniciado pero pendiente de cobro
     When consulto el listado en la sección de pagos
