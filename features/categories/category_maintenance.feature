@@ -14,7 +14,6 @@ Feature: Mantenimiento y desactivación de rubros con análisis de impacto
     And veo un mensaje de confirmación de actualización
     And el catálogo muestra el rubro actualizado con el nombre "Instalaciones Sanitarias"
 
-  @wip
   Scenario: 02-MNT Validar nombre obligatorio al editar rubro
     Given que abro la edición del rubro "Plomería"
     When intento guardar el rubro con el nombre vacío
