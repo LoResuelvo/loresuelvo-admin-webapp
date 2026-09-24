@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import type { UnifiedOperationDetail } from "@/domain/operations/unified-operation-detail";
-import { getOperationDetailAction } from "@/app/(dashboard)/operaciones/actions";
+import {
+  getOperationDetailAction,
+  getAuditedConversationAction,
+} from "@/app/(dashboard)/operaciones/actions";
 import { translations } from "@/infrastructure/i18n/translations";
 import { ROUTES } from "@/lib/routes";
 import { OperationHeader } from "./operation-header";
@@ -13,6 +16,7 @@ import { OperationProposalCard } from "./operation-proposal-card";
 import { OperationOrderCard } from "./operation-order-card";
 import { OperationCompletionCard } from "./operation-completion-card";
 import { OperationDetailSkeleton } from "./operation-detail-skeleton";
+import { AuditedChatDialog } from "./audited-chat-dialog";
 
 export interface OperationDetailClientProps {
   id: string;
@@ -108,6 +112,22 @@ function OperationDetailContent({
 }: {
   operation: UnifiedOperationDetail;
 }) {
+  const [isChatDialogOpen, setIsChatDialogOpen] = useState(false);
+
+  const handleFetchConversation = useCallback(
+    async (reason: string) => {
+      const result = await getAuditedConversationAction(operation.id, reason);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+    [operation.id],
+  );
+
+  const consumerFullName = `${operation.consumer.name} ${operation.consumer.surname}`.trim();
+  const providerFullName = `${operation.provider.name} ${operation.provider.surname}`.trim();
+
   return (
     <div className="space-y-6">
       <OperationHeader
@@ -117,6 +137,7 @@ function OperationDetailContent({
         consumer={operation.consumer}
         provider={operation.provider}
         currentAddress={operation.currentAddress}
+        onInspectChat={() => setIsChatDialogOpen(true)}
       />
       <OperationRequestCard request={operation.request} />
       <OperationProposalCard proposals={operation.proposals} />
@@ -126,6 +147,14 @@ function OperationDetailContent({
         review={operation.order?.review}
       />
       <OperationTimeline milestones={operation.timeline} />
+      <AuditedChatDialog
+        isOpen={isChatDialogOpen}
+        onClose={() => setIsChatDialogOpen(false)}
+        operationId={operation.id}
+        consumerName={consumerFullName}
+        providerName={providerFullName}
+        onFetchConversation={handleFetchConversation}
+      />
     </div>
   );
 }

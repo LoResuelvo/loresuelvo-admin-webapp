@@ -7,7 +7,6 @@ Feature: Inspección auditada del chat de una contratación
     Given que he iniciado sesión en el panel de administración
     And me encuentro en la ficha de una contratación
 
-  @wip
   Scenario: 01-CHT Consultar la conversación seleccionando una causa válida
     Given que selecciono la opción para inspeccionar los mensajes
     When elijo la causa "Reclamo de cliente" y confirmo el acceso

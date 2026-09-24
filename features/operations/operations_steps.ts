@@ -937,28 +937,26 @@ When(
 Then(
   "visualizo los mensajes ordenados cronológicamente distinguiendo las intervenciones del cliente y del prestador",
   async function (this: CustomWorld) {
-    const messagesContainer = this.page
-      .getByTestId("audited-messages-list")
-      .or(this.page.getByRole("dialog"));
+    const messagesContainer = this.page.getByTestId("audited-messages-list");
     await messagesContainer.waitFor({ state: "visible", timeout: 5000 });
 
-    const consumerMessage = this.page
-      .locator("[data-testid='audited-message-consumer']")
-      .or(this.page.getByText("Hola, necesito coordinar la visita"));
+    const consumerMessage = this.page.getByTestId("audited-message-consumer");
     await consumerMessage.waitFor({ state: "visible", timeout: 5000 });
 
-    const providerMessage = this.page
-      .locator("[data-testid='audited-message-provider']")
-      .or(this.page.getByText("Buenas tardes, puedo pasar mañana"));
+    const providerMessage = this.page.getByTestId("audited-message-provider");
     await providerMessage.waitFor({ state: "visible", timeout: 5000 });
 
-    const text = await messagesContainer.innerText();
+    const consumerText = await consumerMessage.innerText();
     assert.ok(
-      text.includes("Cliente") || text.includes("consumer") || (await consumerMessage.isVisible()),
+      consumerText.includes("Cliente") &&
+        consumerText.includes("Hola, necesito coordinar la visita"),
       "Debe distinguir la intervención del cliente",
     );
+
+    const providerText = await providerMessage.innerText();
     assert.ok(
-      text.includes("Prestador") || text.includes("provider") || (await providerMessage.isVisible()),
+      providerText.includes("Prestador") &&
+        providerText.includes("Buenas tardes, puedo pasar mañana"),
       "Debe distinguir la intervención del prestador",
     );
   },
