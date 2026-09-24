@@ -41,7 +41,6 @@ Feature: Ficha e historial de contrataciones de consumidores
     When intento ingresar a la ficha del consumidor
     Then el sistema me informa que el acceso está restringido
 
-  @wip
   Scenario: 08-CSM Manejar dificultades de comunicación con el servicio
     Given que el sistema experimenta problemas de conexión con el servidor
     When intento consultar la ficha del consumidor
