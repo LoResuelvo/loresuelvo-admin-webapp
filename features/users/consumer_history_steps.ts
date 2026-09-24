@@ -185,4 +185,44 @@ Then(
   },
 );
 
+Given(
+  "que el consumidor registrado aún no ha emitido solicitudes ni contrataciones",
+  async function (this: CustomWorld) {
+    const emptyConsumer = {
+      ...defaultConsumerHistory,
+      history: [],
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: 0,
+        total_pages: 0,
+      },
+    };
+    await this.stubGet("/admin/consumers/301/history", emptyConsumer);
+  },
+);
+
+When(
+  "consulto el historial de actividad en su ficha",
+  async function (this: CustomWorld) {
+    await this.page.goto(new URL(ROUTES.consumerDetail(301), this.appUrl).href);
+  },
+);
+
+Then(
+  "se presenta un mensaje informativo indicando que el consumidor no registra contrataciones previas",
+  async function (this: CustomWorld) {
+    const emptyStatus = this.page.getByRole("status").filter({
+      hasText: "El consumidor no registra contrataciones previas",
+    });
+    await emptyStatus.waitFor({ state: "visible" });
+    const text = await emptyStatus.innerText();
+    assert.ok(
+      text.includes("El consumidor no registra contrataciones previas"),
+      "Debe mostrar el mensaje indicando que no registra contrataciones previas",
+    );
+  },
+);
+
+
 
