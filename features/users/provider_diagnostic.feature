@@ -11,7 +11,6 @@ Feature: Ficha y diagnóstico operativo de prestadores
     When consulto la ficha de diagnóstico del prestador
     Then visualizo sus datos de contacto, rubro asignado y el panel de condiciones operativas con los estados de identidad, cobros, zonas y calendario
 
-  @wip
   Scenario: 02-DIA Diagnosticar condición de cobros de Mercado Pago desconectada
     Given que el prestador no ha vinculado su cuenta de cobro en la pasarela de pagos
     When consulto su ficha de diagnóstico operativo
