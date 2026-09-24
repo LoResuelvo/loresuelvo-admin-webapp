@@ -1,8 +1,21 @@
+import type { PaymentPurpose, PaymentStatus } from "./types";
 import { translations } from "@/infrastructure/i18n/translations";
+
+const PURPOSE_OPTIONS: readonly PaymentPurpose[] = ["deposit", "balance"];
+const STATUS_OPTIONS: readonly PaymentStatus[] = [
+  "approved",
+  "pending",
+  "rejected",
+  "cancelled",
+];
 
 export interface PaymentsFiltersProps {
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
+  selectedPurpose?: PaymentPurpose | "";
+  onPurposeChange?: (purpose: PaymentPurpose | "") => void;
+  selectedStatus?: PaymentStatus | "";
+  onStatusChange?: (status: PaymentStatus | "") => void;
   className?: string;
 }
 
@@ -56,9 +69,77 @@ function PaymentSearchInput({
   );
 }
 
+function PaymentPurposeFilterSelect({
+  selectedPurpose,
+  onPurposeChange,
+}: {
+  selectedPurpose?: PaymentPurpose | "";
+  onPurposeChange?: (purpose: PaymentPurpose | "") => void;
+}) {
+  const { filters, purposes } = translations.payments;
+
+  return (
+    <div className="flex items-center">
+      <label htmlFor="payments-purpose-filter" className="sr-only">
+        {filters.purpose.label}
+      </label>
+      <select
+        id="payments-purpose-filter"
+        aria-label={filters.purpose.label}
+        value={selectedPurpose ?? ""}
+        onChange={(e) => onPurposeChange?.(e.target.value as PaymentPurpose | "")}
+        className="rounded-xl border border-[#1A2B48]/15 bg-white px-3 py-2.5 text-sm text-[#1A2B48] transition-colors focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
+      >
+        <option value="">{filters.purpose.all}</option>
+        {PURPOSE_OPTIONS.map((purpose) => (
+          <option key={purpose} value={purpose}>
+            {purposes[purpose]}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function PaymentStatusFilterSelect({
+  selectedStatus,
+  onStatusChange,
+}: {
+  selectedStatus?: PaymentStatus | "";
+  onStatusChange?: (status: PaymentStatus | "") => void;
+}) {
+  const { filters, statuses } = translations.payments;
+
+  return (
+    <div className="flex items-center">
+      <label htmlFor="payments-status-filter" className="sr-only">
+        {filters.status.label}
+      </label>
+      <select
+        id="payments-status-filter"
+        aria-label={filters.status.label}
+        value={selectedStatus ?? ""}
+        onChange={(e) => onStatusChange?.(e.target.value as PaymentStatus | "")}
+        className="rounded-xl border border-[#1A2B48]/15 bg-white px-3 py-2.5 text-sm text-[#1A2B48] transition-colors focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
+      >
+        <option value="">{filters.status.all}</option>
+        {STATUS_OPTIONS.map((status) => (
+          <option key={status} value={status}>
+            {statuses[status]}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 export function PaymentsFilters({
   searchQuery = "",
   onSearchChange,
+  selectedPurpose = "",
+  onPurposeChange,
+  selectedStatus = "",
+  onStatusChange,
   className = "",
 }: PaymentsFiltersProps) {
   return (
@@ -69,6 +150,14 @@ export function PaymentsFilters({
       <PaymentSearchInput
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
+      />
+      <PaymentPurposeFilterSelect
+        selectedPurpose={selectedPurpose}
+        onPurposeChange={onPurposeChange}
+      />
+      <PaymentStatusFilterSelect
+        selectedStatus={selectedStatus}
+        onStatusChange={onStatusChange}
       />
     </div>
   );

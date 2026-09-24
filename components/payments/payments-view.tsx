@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { PaymentIntentSummary } from "./types";
+import type { PaymentIntentSummary, PaymentPurpose, PaymentStatus } from "./types";
 import { translations } from "@/infrastructure/i18n/translations";
 import { PaymentsTable } from "./payments-table";
 import { PaymentsSkeleton } from "./payments-skeleton";
@@ -15,6 +15,10 @@ export interface PaymentsViewProps {
   onRetry?: () => void;
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
+  selectedPurpose?: PaymentPurpose | "";
+  onPurposeChange?: (purpose: PaymentPurpose | "") => void;
+  selectedStatus?: PaymentStatus | "";
+  onStatusChange?: (status: PaymentStatus | "") => void;
   className?: string;
 }
 
@@ -66,23 +70,49 @@ function PaymentsEmptyState({ message }: { message: string }) {
   );
 }
 
+interface UsePaymentFiltersProps {
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  selectedPurpose?: PaymentPurpose | "";
+  onPurposeChange?: (purpose: PaymentPurpose | "") => void;
+  selectedStatus?: PaymentStatus | "";
+  onStatusChange?: (status: PaymentStatus | "") => void;
+}
+
+function usePaymentFilters(props: UsePaymentFiltersProps) {
+  const [localSearch, setLocalSearch] = useState("");
+  const [localPurpose, setLocalPurpose] = useState<PaymentPurpose | "">("");
+  const [localStatus, setLocalStatus] = useState<PaymentStatus | "">("");
+
+  return {
+    searchQuery: props.searchQuery ?? localSearch,
+    onSearchChange: props.onSearchChange ?? setLocalSearch,
+    selectedPurpose: props.selectedPurpose ?? localPurpose,
+    onPurposeChange: props.onPurposeChange ?? setLocalPurpose,
+    selectedStatus: props.selectedStatus ?? localStatus,
+    onStatusChange: props.onStatusChange ?? setLocalStatus,
+  };
+}
+
 export function PaymentsView({
   items,
   isLoading = false,
   error = null,
   onRetry,
-  searchQuery: controlledSearchQuery,
-  onSearchChange: controlledOnSearchChange,
   className = "",
+  ...filterProps
 }: PaymentsViewProps) {
-  const [localSearchQuery, setLocalSearchQuery] = useState("");
-  const searchQuery = controlledSearchQuery ?? localSearchQuery;
-  const handleSearchChange = controlledOnSearchChange ?? setLocalSearchQuery;
+  const filters = usePaymentFilters(filterProps);
   const copy = translations.payments;
 
   const filteredItems = useMemo(
-    () => filterPayments(items, { query: searchQuery }),
-    [items, searchQuery],
+    () =>
+      filterPayments(items, {
+        query: filters.searchQuery,
+        purpose: filters.selectedPurpose || undefined,
+        status: filters.selectedStatus || undefined,
+      }),
+    [items, filters.searchQuery, filters.selectedPurpose, filters.selectedStatus],
   );
 
   if (isLoading) {
@@ -97,7 +127,7 @@ export function PaymentsView({
         <PaymentsErrorAlert error={error} retryLabel={copy.retry} onRetry={onRetry} />
       ) : (
         <>
-          <PaymentsFilters searchQuery={searchQuery} onSearchChange={handleSearchChange} />
+          <PaymentsFilters {...filters} />
           {filteredItems.length === 0 ? (
             <PaymentsEmptyState message={copy.empty} />
           ) : (

@@ -21,7 +21,6 @@ Feature: Consola de pagos y desglose económico
     When realizo una búsqueda por la referencia "MP-REF-45892"
     Then el listado contiene únicamente la transacción vinculada a esa referencia
 
-  @wip
   Scenario: 04-PAY Filtrar pagos por propósito y estado
     Given que existen múltiples pagos registrados de señas y saldos
     When aplico los filtros para ver pagos de seña con estado aprobado

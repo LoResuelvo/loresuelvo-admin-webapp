@@ -61,6 +61,34 @@ const mockPayments: PaymentIntentSummary[] = [
     createdAt: "2026-09-21T15:30:00Z",
     verifiedAt: "2026-09-21T15:35:00Z",
   },
+  {
+    id: 3,
+    externalPaymentId: "pay_1003",
+    externalReference: "MP-REF-45893",
+    purpose: "deposit",
+    status: "pending",
+    serviceProposalId: 103,
+    workOrderId: null,
+    consumer: {
+      id: 5,
+      name: "Valeria Rossi",
+      email: "valeria.rossi@example.com",
+    },
+    provider: {
+      id: 6,
+      name: "Esteban Carpintero",
+      email: "esteban.carpintero@example.com",
+    },
+    breakdown: {
+      serviceAmountCents: 3500000,
+      sellerAmountCents: 2975000,
+      platformFeeCents: 525000,
+      totalAmountCents: 3500000,
+      currency: "ARS",
+    },
+    createdAt: "2026-09-22T11:00:00Z",
+    verifiedAt: null,
+  },
 ];
 
 describe("PaymentsView", () => {
@@ -117,5 +145,24 @@ describe("PaymentsView", () => {
 
     expect(screen.getByTestId("payments-empty")).toBeInTheDocument();
     expect(screen.getByText("No hay transacciones disponibles")).toBeInTheDocument();
+  });
+
+  it("filters items by purpose and status select options", async () => {
+    const user = userEvent.setup();
+    render(<PaymentsView items={mockPayments} />);
+
+    const purposeSelect = screen.getByRole("combobox", {
+      name: "Filtrar por propósito",
+    });
+    await user.selectOptions(purposeSelect, "deposit");
+
+    const statusSelect = screen.getByRole("combobox", {
+      name: "Filtrar por estado",
+    });
+    await user.selectOptions(statusSelect, "approved");
+
+    expect(screen.getByText("MP-REF-45891")).toBeInTheDocument();
+    expect(screen.queryByText("MP-REF-45892")).not.toBeInTheDocument();
+    expect(screen.queryByText("MP-REF-45893")).not.toBeInTheDocument();
   });
 });
