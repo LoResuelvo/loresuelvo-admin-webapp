@@ -21,7 +21,6 @@ Feature: Ficha e historial de contrataciones de consumidores
     When aplico los filtros para ver órdenes de trabajo con estado completada
     Then el historial muestra exclusivamente las órdenes finalizadas del consumidor
 
-  @wip
   Scenario: 04-CSM Informar ausencia de actividad previa
     Given que el consumidor registrado aún no ha emitido solicitudes ni contrataciones
     When consulto el historial de actividad en su ficha
