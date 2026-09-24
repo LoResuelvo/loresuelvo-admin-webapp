@@ -267,4 +267,40 @@ When(
   },
 );
 
+Given(
+  "que el servidor experimenta dificultades de comunicación al modificar un rubro",
+  async function (this: CustomWorld) {
+    await this.stubGet("/categories", [{ id: 1, name: "Plomería", enabled: true }]);
+    await this.stubPatch("/categories/1", 500, { error: "Internal Server Error" });
+    await this.page.goto(new URL(ROUTES.categories, this.appUrl).href);
+    const table = this.page.getByRole("table");
+    await table.waitFor({ state: "visible" });
+  },
+);
 
+When(
+  "intento confirmar la modificación de un rubro",
+  async function (this: CustomWorld) {
+    const editButton = this.page.getByRole("button", { name: "Editar rubro Plomería" });
+    await editButton.waitFor({ state: "visible" });
+    await editButton.click();
+    const modal = this.page.getByRole("dialog");
+    await modal.waitFor({ state: "visible" });
+    const submitButton = this.page.getByRole("button", { name: "Guardar cambios" });
+    await submitButton.click();
+  },
+);
+
+Then(
+  "se presenta un aviso informando el inconveniente con la posibilidad de reintentar",
+  async function (this: CustomWorld) {
+    const errorAlert = this.page.getByRole("alert").filter({
+      hasText: /error|inconveniente|problema|falló|no se pudo/i,
+    });
+    await errorAlert.waitFor({ state: "visible" });
+    assert.ok(await errorAlert.isVisible());
+    const retryButton = this.page.getByRole("button", { name: /reintentar/i });
+    await retryButton.waitFor({ state: "visible" });
+    assert.ok(await retryButton.isVisible());
+  },
+);
