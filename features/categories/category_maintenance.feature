@@ -42,8 +42,8 @@ Feature: Mantenimiento y desactivación de rubros con análisis de impacto
     When solicito desactivar el rubro "Electricidad"
     Then se presenta una advertencia de bloqueo operativo indicando la cantidad de órdenes activas que impiden desactivar el rubro
 
-  @wip
   Scenario: 06-MNT Mostrar estado de espera mientras se calcula el impacto operativo
+
     Given que el cálculo de impacto de un rubro toma unos momentos
     When solicito desactivar el rubro "Pintura"
     Then se presenta un indicador de carga mientras se evalúa el impacto en prestadores y órdenes
