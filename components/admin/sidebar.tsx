@@ -56,6 +56,14 @@ function OperationsIcon() {
   );
 }
 
+function PaymentsIcon() {
+  return (
+    <svg aria-hidden="true" className="size-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-6.75 4.5h19.5a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H2.25A2.25 2.25 0 0 0 0 6v12a2.25 2.25 0 0 0 2.25 2.25Z" />
+    </svg>
+  );
+}
+
 function LogoutIcon() {
   return (
     <svg aria-hidden="true" className="size-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
@@ -90,6 +98,11 @@ export function Sidebar({ profile, className = "" }: SidebarProps) {
         <NavLink href={ROUTES.operations} className={linkClass} activeClassName={activeLinkClass}>
           <OperationsIcon />
           <span>{copy.operations}</span>
+        </NavLink>
+
+        <NavLink href={ROUTES.payments} className={linkClass} activeClassName={activeLinkClass}>
+          <PaymentsIcon />
+          <span>{copy.payments}</span>
         </NavLink>
       </nav>
 

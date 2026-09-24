@@ -6,7 +6,6 @@ Feature: Consola de pagos y desglose económico
   Background:
     Given que he iniciado sesión en el panel de administración
 
-  @wip
   Scenario: 01-PAY Visualizar listado de pagos con desglose económico
     Given que existen transacciones registradas de señas y saldos en el sistema
     When accedo a la sección de pagos

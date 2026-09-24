@@ -42,9 +42,9 @@ describe("PaymentsView", () => {
     expect(screen.getByText("MP-REF-45891")).toBeInTheDocument();
   });
 
-  it("renders loading indicator when isLoading is true", () => {
+  it("renders loading skeleton when isLoading is true", () => {
     render(<PaymentsView items={[]} isLoading={true} />);
-    expect(screen.getByTestId("payments-loading")).toBeInTheDocument();
+    expect(screen.getByTestId("payments-skeleton")).toBeInTheDocument();
     expect(screen.getByText("Cargando pagos...")).toBeInTheDocument();
   });
 
@@ -61,6 +61,6 @@ describe("PaymentsView", () => {
   it("renders empty state when no items exist", () => {
     render(<PaymentsView items={[]} />);
     expect(screen.getByTestId("payments-empty")).toBeInTheDocument();
-    expect(screen.getByText("No hay transacciones registradas")).toBeInTheDocument();
+    expect(screen.getByText("No hay transacciones disponibles")).toBeInTheDocument();
   });
 });

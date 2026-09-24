@@ -1,5 +1,7 @@
 import type { PaymentIntentSummary } from "./types";
+import { translations } from "@/infrastructure/i18n/translations";
 import { PaymentsTable } from "./payments-table";
+import { PaymentsSkeleton } from "./payments-skeleton";
 
 export interface PaymentsViewProps {
   items: PaymentIntentSummary[];
@@ -16,27 +18,24 @@ export function PaymentsView({
   onRetry,
   className = "",
 }: PaymentsViewProps) {
+  const copy = translations.payments;
+
+  if (isLoading) {
+    return <PaymentsSkeleton className={className} />;
+  }
+
   return (
     <div className={`space-y-6 ${className}`.trim()}>
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-[#1A2B48]">
-          Consola de Pagos
+          {copy.title}
         </h1>
         <p className="mt-1 text-sm text-[#536176]">
-          Auditoría de cobros, señas, saldos y comisiones de plataforma.
+          {copy.subtitle}
         </p>
       </div>
 
-      {isLoading ? (
-        <div
-          role="status"
-          aria-live="polite"
-          data-testid="payments-loading"
-          className="rounded-xl border border-[#1A2B48]/10 bg-white p-8 text-center text-[#536176]"
-        >
-          <span className="text-sm">Cargando pagos...</span>
-        </div>
-      ) : error ? (
+      {error ? (
         <div
           role="alert"
           className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-red-700 space-y-3"
@@ -48,7 +47,7 @@ export function PaymentsView({
               onClick={onRetry}
               className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
             >
-              Reintentar
+              {copy.retry}
             </button>
           )}
         </div>
@@ -57,7 +56,7 @@ export function PaymentsView({
           data-testid="payments-empty"
           className="rounded-xl border border-[#1A2B48]/10 bg-white p-8 text-center text-[#536176]"
         >
-          <p className="text-sm">No hay transacciones registradas</p>
+          <p className="text-sm">{copy.empty}</p>
         </div>
       ) : (
         <PaymentsTable items={items} />

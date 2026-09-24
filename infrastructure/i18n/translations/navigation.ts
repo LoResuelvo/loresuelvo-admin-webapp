@@ -4,6 +4,7 @@ export const navigationTranslations = {
   users: "Directorio de Usuarios",
   categories: "Catálogo de Rubros",
   operations: "Centro de Operaciones",
+  payments: "Pagos",
   signOut: "Cerrar sesión",
   logout: "Cerrar sesión",
   mainNav: "Navegación de administración",
