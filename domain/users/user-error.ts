@@ -1,4 +1,4 @@
-export type UserErrorCode = "forbidden" | "unavailable";
+export type UserErrorCode = "forbidden" | "unavailable" | "not_found";
 
 export class UserError extends Error {
   constructor(readonly code: UserErrorCode, message?: string) {

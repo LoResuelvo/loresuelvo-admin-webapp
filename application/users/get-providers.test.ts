@@ -21,6 +21,7 @@ describe("getProviders usecase", () => {
     const mockRepo: UserRepository = {
       getConsumers: vi.fn(),
       getProviders: vi.fn().mockResolvedValue(sampleProviders),
+      getProviderDiagnostic: vi.fn(),
     };
 
     const filters = { q: "juan", categoryId: 10 };
@@ -34,6 +35,7 @@ describe("getProviders usecase", () => {
     const mockRepo: UserRepository = {
       getConsumers: vi.fn(),
       getProviders: vi.fn().mockRejectedValue(new UserError("forbidden", "Forbidden")),
+      getProviderDiagnostic: vi.fn(),
     };
 
     await expect(getProviders(mockRepo, "token")).rejects.toSatisfy(
