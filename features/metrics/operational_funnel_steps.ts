@@ -63,3 +63,42 @@ Then(
     }
   },
 );
+
+Given(
+  "que el embudo de contratación muestra las transiciones entre etapas",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/metrics/funnel", mockFunnelData);
+    await this.page.goto(new URL("/metricas", this.appUrl).href);
+    const funnelSection = this.page.getByRole("region", {
+      name: "Detalle de etapas del embudo",
+    });
+    await funnelSection.waitFor({ state: "visible", timeout: 10000 });
+  },
+);
+
+When(
+  "inspecciono el paso de solicitudes a propuestas",
+  async function (this: CustomWorld) {
+    const stepElement = this.page.getByTestId("funnel-step-proposals_sent");
+    await stepElement.waitFor({ state: "visible", timeout: 10000 });
+    await stepElement.scrollIntoViewIfNeeded();
+  },
+);
+
+Then(
+  "visualizo el porcentaje de conversión relativo y el tiempo promedio transcurrido entre ambos hitos",
+  async function (this: CustomWorld) {
+    const stepElement = this.page.getByTestId("funnel-step-proposals_sent");
+    await stepElement.waitFor({ state: "visible", timeout: 10000 });
+
+    const retention = stepElement.getByTestId("retention-proposals_sent");
+    await retention.waitFor({ state: "visible", timeout: 10000 });
+    const retentionText = await retention.textContent();
+    assert.match(retentionText ?? "", /77%/);
+
+    const duration = stepElement.getByTestId("duration-proposals_sent");
+    await duration.waitFor({ state: "visible", timeout: 10000 });
+    const durationText = await duration.textContent();
+    assert.match(durationText ?? "", /4\s*h/);
+  },
+);
