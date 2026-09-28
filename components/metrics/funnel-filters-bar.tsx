@@ -19,6 +19,11 @@ export interface FunnelFiltersBarProps {
   selectedCategoryId?: number | "";
   onCategoryChange?: (categoryId: number | "") => void;
   categoryOptions?: readonly CategoryOption[];
+  fromDate?: string;
+  toDate?: string;
+  onFromDateChange?: (date: string) => void;
+  onToDateChange?: (date: string) => void;
+  onApplyFilters?: () => void;
   className?: string;
 }
 
@@ -108,18 +113,88 @@ function CategoryFilterSelect({
   );
 }
 
+function DateRangeInputs({
+  fromDate,
+  toDate,
+  onFromDateChange,
+  onToDateChange,
+}: {
+  fromDate?: string;
+  toDate?: string;
+  onFromDateChange?: (date: string) => void;
+  onToDateChange?: (date: string) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <div className="flex items-center gap-1.5">
+        <label
+          htmlFor="metrics-from-date"
+          className="text-sm font-medium text-[#1A2B48]"
+        >
+          Desde
+        </label>
+        <input
+          id="metrics-from-date"
+          data-testid="metrics-from-date"
+          type="date"
+          aria-label="Fecha desde"
+          value={fromDate ?? ""}
+          onChange={(e) => onFromDateChange?.(e.target.value)}
+          className="rounded-xl border border-[#1A2B48]/15 bg-white px-3 py-2 text-sm text-[#1A2B48] transition-colors focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
+        />
+      </div>
+      <div className="flex items-center gap-1.5">
+        <label
+          htmlFor="metrics-to-date"
+          className="text-sm font-medium text-[#1A2B48]"
+        >
+          Hasta
+        </label>
+        <input
+          id="metrics-to-date"
+          data-testid="metrics-to-date"
+          type="date"
+          aria-label="Fecha hasta"
+          value={toDate ?? ""}
+          onChange={(e) => onToDateChange?.(e.target.value)}
+          className="rounded-xl border border-[#1A2B48]/15 bg-white px-3 py-2 text-sm text-[#1A2B48] transition-colors focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
+        />
+      </div>
+    </div>
+  );
+}
+
+function ApplyFiltersButton({ onApply }: { onApply?: () => void }) {
+  return (
+    <button
+      type="button"
+      data-testid="metrics-apply-filters"
+      aria-label="Aplicar filtros"
+      onClick={onApply}
+      className="rounded-xl bg-[#147560] px-4 py-2 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-[#115e4d] focus:outline-hidden focus:ring-2 focus:ring-[#147560] focus:ring-offset-2"
+    >
+      Aplicar filtros
+    </button>
+  );
+}
+
 export function FunnelFiltersBar({
   selectedPeriod = "7d",
   onPeriodChange,
   selectedCategoryId = "",
   onCategoryChange,
   categoryOptions = DEFAULT_CATEGORIES,
+  fromDate,
+  toDate,
+  onFromDateChange,
+  onToDateChange,
+  onApplyFilters,
   className = "",
 }: FunnelFiltersBarProps) {
   return (
     <div
       data-testid="funnel-filters-bar"
-      className={`flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#1A2B48]/10 bg-white p-4 shadow-xs ${className}`}
+      className={`flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#1A2B48]/10 bg-white p-4 shadow-xs ${className}`.trim()}
     >
       <div className="flex flex-wrap items-center gap-4">
         <PeriodFilterSelect
@@ -131,7 +206,14 @@ export function FunnelFiltersBar({
           onCategoryChange={onCategoryChange}
           categoryOptions={categoryOptions}
         />
+        <DateRangeInputs
+          fromDate={fromDate}
+          toDate={toDate}
+          onFromDateChange={onFromDateChange}
+          onToDateChange={onToDateChange}
+        />
       </div>
+      <ApplyFiltersButton onApply={onApplyFilters} />
     </div>
   );
 }
