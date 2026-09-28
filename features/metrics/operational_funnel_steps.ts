@@ -196,3 +196,31 @@ Then(
     );
   },
 );
+
+Given("que el cálculo analítico de las métricas toma unos momentos", async function (this: CustomWorld) {
+  await this.addApiStub({
+    method: "GET",
+    endpoint: "/admin/metrics/funnel",
+    status: 200,
+    body: mockFunnelData,
+    delayMs: 3000,
+  });
+});
+
+When("accedo a la sección de métricas", async function (this: CustomWorld) {
+  await this.page.goto(new URL("/metricas", this.appUrl).href);
+});
+
+Then(
+  "se presenta una vista de carga con indicadores visuales mientras se procesan las agregaciones",
+  async function (this: CustomWorld) {
+    const skeleton = this.page.getByTestId("metrics-skeleton");
+    await skeleton.waitFor({ state: "visible", timeout: 10000 });
+    assert.equal(await skeleton.getAttribute("role"), "status");
+    assert.equal(await skeleton.getAttribute("aria-busy"), "true");
+
+    const indicators = this.page.getByTestId("skeleton-indicator");
+    const count = await indicators.count();
+    assert.ok(count > 0, "Expected at least one skeleton indicator");
+  },
+);
