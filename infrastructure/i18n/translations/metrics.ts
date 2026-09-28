@@ -1,0 +1,23 @@
+export const metricsTranslations = {
+  title: "Métricas de Conversión Operativa",
+  subtitle: "Embudo de conversión del marketplace y demoras operativas",
+  globalConversionRate: "Tasa de conversión global",
+  relativeRetention: "Tasa de retención",
+  averageDuration: "Demora promedio",
+  volume: "Volumen de operaciones",
+  stepIndex: "Paso",
+  stepOf: "de",
+  empty: "No hay suficiente volumen para generar el embudo",
+  loading: "Procesando agregaciones...",
+  forbidden: "El acceso a las métricas está restringido para tu perfil de usuario",
+  error: "No se pudieron obtener las métricas operativas",
+  retry: "Reintentar",
+  steps: {
+    ai_diagnostics: "Diagnósticos IA",
+    requests_created: "Solicitudes publicadas",
+    proposals_sent: "Propuestas comerciales",
+    deposits_paid: "Señas pagadas",
+    orders_completed: "Órdenes concluidas",
+    reviews_submitted: "Reseñas enviadas",
+  },
+} as const;
