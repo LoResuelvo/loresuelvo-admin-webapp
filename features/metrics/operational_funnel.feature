@@ -6,7 +6,6 @@ Feature: Métricas de embudo de conversión operativa
   Background:
     Given que he iniciado sesión en el panel de administración
 
-  @wip
   Scenario: 01-MET Visualizar etapas secuenciales del embudo operativo y conversión global
     Given que existen datos de operaciones registradas en el marketplace
     When accedo a la sección de métricas en "/metricas"

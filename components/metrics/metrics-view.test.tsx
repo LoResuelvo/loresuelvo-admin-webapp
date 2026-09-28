@@ -1,0 +1,58 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { MetricsView } from "./metrics-view";
+import type { ConversionFunnel } from "@/domain/metrics/funnel";
+
+const mockFunnel: ConversionFunnel = {
+  from: "2026-08-25",
+  to: "2026-09-24",
+  globalConversionRate: 0.32,
+  steps: [
+    {
+      stepName: "ai_diagnostics",
+      label: "Diagnósticos IA",
+      count: 250,
+      relativeConversion: 1.0,
+      avgDurationMinutes: null,
+    },
+    {
+      stepName: "requests_created",
+      label: "Solicitudes publicadas",
+      count: 180,
+      relativeConversion: 0.72,
+      avgDurationMinutes: 15,
+    },
+  ],
+};
+
+describe("MetricsView", () => {
+  it("renders funnel overview, chart, and step cards", () => {
+    render(<MetricsView data={mockFunnel} />);
+
+    expect(
+      screen.getByRole("heading", { name: "Métricas de Conversión Operativa" }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("global-conversion-rate")).toHaveTextContent("32%");
+    expect(
+      screen.getByTestId("funnel-step-ai_diagnostics"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("funnel-step-requests_created"),
+    ).toBeInTheDocument();
+  });
+
+  it("renders forbidden alert when isForbidden is true", () => {
+    render(<MetricsView isForbidden={true} />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      /restringido/i,
+    );
+  });
+
+  it("renders error alert with retry button when error is provided", () => {
+    render(<MetricsView error="Error al cargar métricas" onRetry={() => {}} />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Error al cargar métricas");
+    expect(screen.getByRole("button", { name: "Reintentar" })).toBeInTheDocument();
+  });
+});
