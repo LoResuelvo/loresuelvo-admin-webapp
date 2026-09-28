@@ -71,11 +71,26 @@ describe("MetricsView", () => {
     );
   });
 
-  it("renders error alert with retry button when error is provided", () => {
-    render(<MetricsView error="Error al cargar métricas" onRetry={() => {}} />);
+  it("renders loading skeleton when isLoading is true", () => {
+    render(<MetricsView isLoading={true} />);
+
+    expect(screen.getByTestId("metrics-skeleton")).toBeInTheDocument();
+  });
+
+  it("renders error alert with retry button and calls onRetry when clicked", () => {
+    const handleRetry = vi.fn();
+    render(
+      <MetricsView
+        error="Error al cargar métricas"
+        onRetry={handleRetry}
+      />,
+    );
 
     expect(screen.getByRole("alert")).toHaveTextContent("Error al cargar métricas");
-    expect(screen.getByRole("button", { name: "Reintentar" })).toBeInTheDocument();
+    const retryBtn = screen.getByRole("button", { name: "Reintentar" });
+    expect(retryBtn).toBeInTheDocument();
+    fireEvent.click(retryBtn);
+    expect(handleRetry).toHaveBeenCalledTimes(1);
   });
 
   it("renders filter bar and triggers onPeriodChange when period changes", () => {
