@@ -227,3 +227,16 @@ When("intento ingresar a la sección de métricas", async function (this: Custom
   await this.page.goto(new URL("/metricas", this.appUrl).href);
 });
 
+Given("que el servidor de métricas no se encuentra disponible", async function (this: CustomWorld) {
+  await this.stubGet(
+    "/admin/metrics/funnel",
+    { error: "Internal Server Error", message: "Database connection failed" },
+    500,
+  );
+});
+
+When("intento consultar la consola de métricas", async function (this: CustomWorld) {
+  await this.page.goto(new URL("/metricas", this.appUrl).href);
+});
+
+
