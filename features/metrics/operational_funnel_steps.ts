@@ -102,3 +102,65 @@ Then(
     assert.match(durationText ?? "", /4\s*h/);
   },
 );
+
+const mockFunnel30Days = {
+  time_range: { from: "2026-08-25", to: "2026-09-24" },
+  global_conversion_rate: 0.45,
+  steps: [
+    { step_name: "ai_diagnostics", count: 320, relative_conversion: 1.0, avg_duration_minutes: null },
+    { step_name: "requests_created", count: 240, relative_conversion: 0.75, avg_duration_minutes: 12 },
+    { step_name: "proposals_sent", count: 190, relative_conversion: 0.79, avg_duration_minutes: 200 },
+    { step_name: "deposits_paid", count: 160, relative_conversion: 0.84, avg_duration_minutes: 300 },
+    { step_name: "orders_completed", count: 150, relative_conversion: 0.94, avg_duration_minutes: 2400 },
+    { step_name: "reviews_submitted", count: 144, relative_conversion: 0.96, avg_duration_minutes: 1200 },
+  ],
+};
+
+Given(
+  "que me encuentro en la consola de métricas",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/metrics/funnel", mockFunnelData);
+    await this.stubGet("/admin/metrics/funnel?from=2026-08-25&to=2026-09-24", mockFunnel30Days);
+    await this.stubGet("/admin/metrics/funnel?range=30d", mockFunnel30Days);
+    await this.page.goto(new URL("/metricas", this.appUrl).href);
+    const heading = this.page.getByRole("heading", {
+      name: "Métricas de Conversión Operativa",
+    });
+    await heading.waitFor({ state: "visible", timeout: 10000 });
+  },
+);
+
+When(
+  "selecciono el rango temporal {string}",
+  async function (this: CustomWorld, period: string) {
+    const rangeSelect = this.page
+      .getByRole("combobox", { name: /rango temporal|período/i })
+      .or(this.page.getByLabel(/rango temporal|período/i))
+      .or(this.page.getByTestId("metrics-period-select"));
+    await rangeSelect.waitFor({ state: "visible", timeout: 10000 });
+    await rangeSelect.selectOption({ label: period });
+  },
+);
+
+Then(
+  "los indicadores y el gráfico del embudo se actualizan reflejando exclusivamente el período seleccionado",
+  async function (this: CustomWorld) {
+    const globalRate = this.page.getByTestId("global-conversion-rate");
+    await globalRate.waitFor({ state: "visible", timeout: 10000 });
+    await this.page.waitForFunction(
+      () => {
+        const el = document.querySelector('[data-testid="global-conversion-rate"]');
+        return el && el.textContent?.includes("45");
+      },
+      null,
+      { timeout: 10000 },
+    );
+    const globalText = await globalRate.textContent();
+    assert.match(globalText ?? "", /45/);
+
+    const stepElement = this.page.getByTestId("funnel-step-ai_diagnostics");
+    const countText = await stepElement.textContent();
+    assert.match(countText ?? "", /320/);
+  },
+);
+
