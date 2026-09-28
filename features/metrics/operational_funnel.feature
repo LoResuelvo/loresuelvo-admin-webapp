@@ -11,7 +11,6 @@ Feature: Métricas de embudo de conversión operativa
     When accedo a la sección de métricas en "/metricas"
     Then visualizo las etapas del embudo desde el diagnóstico hasta la reseña con sus volúmenes y la tasa de conversión global
 
-  @wip
   Scenario: 02-MET Visualizar tasas de retención y tiempo promedio de permanencia por etapa
     Given que el embudo de contratación muestra las transiciones entre etapas
     When inspecciono el paso de solicitudes a propuestas
