@@ -164,3 +164,72 @@ Then(
   },
 );
 
+const mockFunnelPlomeria = {
+  time_range: { from: "2026-08-25", to: "2026-09-24" },
+  global_conversion_rate: 0.28,
+  steps: [
+    { step_name: "ai_diagnostics", count: 95, relative_conversion: 1.0, avg_duration_minutes: null },
+    { step_name: "requests_created", count: 70, relative_conversion: 0.74, avg_duration_minutes: 10 },
+    { step_name: "proposals_sent", count: 52, relative_conversion: 0.74, avg_duration_minutes: 180 },
+    { step_name: "deposits_paid", count: 38, relative_conversion: 0.73, avg_duration_minutes: 250 },
+    { step_name: "orders_completed", count: 30, relative_conversion: 0.79, avg_duration_minutes: 2100 },
+    { step_name: "reviews_submitted", count: 27, relative_conversion: 0.90, avg_duration_minutes: 900 },
+  ],
+};
+
+Given(
+  "que el marketplace abarca diversos oficios",
+  async function (this: CustomWorld) {
+    const categories = [
+      { id: 1, name: "Plomería" },
+      { id: 2, name: "Electricidad" },
+      { id: 3, name: "Gas" },
+    ];
+    await this.stubGet("/categories", categories);
+    await this.stubGet("/admin/categories", categories);
+    await this.stubGet("/admin/metrics/funnel", mockFunnelData);
+    await this.stubGet("/admin/metrics/funnel?category_id=1", mockFunnelPlomeria);
+    await this.stubGet("/admin/metrics/funnel?from=2026-08-25&to=2026-09-24&category_id=1", mockFunnelPlomeria);
+    await this.page.goto(new URL("/metricas", this.appUrl).href);
+    const heading = this.page.getByRole("heading", {
+      name: "Métricas de Conversión Operativa",
+    });
+    await heading.waitFor({ state: "visible", timeout: 10000 });
+  },
+);
+
+When(
+  "filtro el embudo por el rubro {string}",
+  async function (this: CustomWorld, rubro: string) {
+    const categorySelect = this.page
+      .getByRole("combobox", { name: /rubro|oficio/i })
+      .or(this.page.getByLabel(/rubro|oficio/i))
+      .or(this.page.getByTestId("metrics-category-select"));
+    await categorySelect.waitFor({ state: "visible", timeout: 10000 });
+    await categorySelect.selectOption({ label: rubro });
+  },
+);
+
+Then(
+  "las etapas reflejan las métricas de conversión exclusivas de contrataciones de plomería",
+  async function (this: CustomWorld) {
+    const globalRate = this.page.getByTestId("global-conversion-rate");
+    await globalRate.waitFor({ state: "visible", timeout: 10000 });
+    await this.page.waitForFunction(
+      () => {
+        const el = document.querySelector('[data-testid="global-conversion-rate"]');
+        return el && el.textContent?.includes("28");
+      },
+      null,
+      { timeout: 10000 },
+    );
+    const globalText = await globalRate.textContent();
+    assert.match(globalText ?? "", /28/);
+
+    const stepElement = this.page.getByTestId("funnel-step-ai_diagnostics");
+    const countText = await stepElement.textContent();
+    assert.match(countText ?? "", /95/);
+  },
+);
+
+
