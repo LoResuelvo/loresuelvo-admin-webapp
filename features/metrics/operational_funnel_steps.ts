@@ -1,39 +1,25 @@
 import assert from "node:assert/strict";
 import { Given, When, Then } from "@cucumber/cucumber";
 import { CustomWorld } from "../support/world";
+import {
+  mockFunnelData,
+  mockFunnel30Days,
+  mockFunnelPlomeria,
+  mockEmptyFunnel,
+} from "./operational_funnel_fixtures";
 
-const mockFunnelData = {
-  time_range: { from: "2026-08-25", to: "2026-09-24" },
-  global_conversion_rate: 0.32,
-  steps: [
-    { step_name: "ai_diagnostics", count: 250, relative_conversion: 1.0, avg_duration_minutes: null },
-    { step_name: "requests_created", count: 180, relative_conversion: 0.72, avg_duration_minutes: 15 },
-    { step_name: "proposals_sent", count: 140, relative_conversion: 0.77, avg_duration_minutes: 240 },
-    { step_name: "deposits_paid", count: 105, relative_conversion: 0.75, avg_duration_minutes: 360 },
-    { step_name: "orders_completed", count: 88, relative_conversion: 0.83, avg_duration_minutes: 2880 },
-    { step_name: "reviews_submitted", count: 80, relative_conversion: 0.90, avg_duration_minutes: 1440 },
-  ],
-};
+Given("que existen datos de operaciones registradas en el marketplace", async function (this: CustomWorld) {
+  await this.stubGet("/admin/metrics/funnel", mockFunnelData);
+});
 
-Given(
-  "que existen datos de operaciones registradas en el marketplace",
-  async function (this: CustomWorld) {
-    await this.stubGet("/admin/metrics/funnel", mockFunnelData);
-  },
-);
-
-When(
-  "accedo a la sección de métricas en {string}",
-  async function (this: CustomWorld, path: string) {
-    await this.page.goto(new URL(path, this.appUrl).href);
-  },
-);
+When("accedo a la sección de métricas en {string}", async function (this: CustomWorld, path: string) {
+  await this.page.goto(new URL(path, this.appUrl).href);
+});
 
 Then(
   "visualizo las etapas del embudo desde el diagnóstico hasta la reseña con sus volúmenes y la tasa de conversión global",
   async function (this: CustomWorld) {
     const page = this.page;
-
     const globalRate = page.getByTestId("global-conversion-rate");
     await globalRate.waitFor({ state: "visible", timeout: 10000 });
     const globalText = await globalRate.textContent();
@@ -52,38 +38,24 @@ Then(
       const stepElement = page.getByTestId(step.testId);
       await stepElement.waitFor({ state: "visible", timeout: 10000 });
       const text = await stepElement.textContent();
-      assert.ok(
-        text?.includes(step.label),
-        `Expected step "${step.testId}" to contain label "${step.label}", got: "${text}"`,
-      );
-      assert.ok(
-        text?.includes(step.count),
-        `Expected step "${step.testId}" to contain count "${step.count}", got: "${text}"`,
-      );
+      assert.ok(text?.includes(step.label), `Expected label "${step.label}", got: "${text}"`);
+      assert.ok(text?.includes(step.count), `Expected count "${step.count}", got: "${text}"`);
     }
   },
 );
 
-Given(
-  "que el embudo de contratación muestra las transiciones entre etapas",
-  async function (this: CustomWorld) {
-    await this.stubGet("/admin/metrics/funnel", mockFunnelData);
-    await this.page.goto(new URL("/metricas", this.appUrl).href);
-    const funnelSection = this.page.getByRole("region", {
-      name: "Detalle de etapas del embudo",
-    });
-    await funnelSection.waitFor({ state: "visible", timeout: 10000 });
-  },
-);
+Given("que el embudo de contratación muestra las transiciones entre etapas", async function (this: CustomWorld) {
+  await this.stubGet("/admin/metrics/funnel", mockFunnelData);
+  await this.page.goto(new URL("/metricas", this.appUrl).href);
+  const funnelSection = this.page.getByRole("region", { name: "Detalle de etapas del embudo" });
+  await funnelSection.waitFor({ state: "visible", timeout: 10000 });
+});
 
-When(
-  "inspecciono el paso de solicitudes a propuestas",
-  async function (this: CustomWorld) {
-    const stepElement = this.page.getByTestId("funnel-step-proposals_sent");
-    await stepElement.waitFor({ state: "visible", timeout: 10000 });
-    await stepElement.scrollIntoViewIfNeeded();
-  },
-);
+When("inspecciono el paso de solicitudes a propuestas", async function (this: CustomWorld) {
+  const stepElement = this.page.getByTestId("funnel-step-proposals_sent");
+  await stepElement.waitFor({ state: "visible", timeout: 10000 });
+  await stepElement.scrollIntoViewIfNeeded();
+});
 
 Then(
   "visualizo el porcentaje de conversión relativo y el tiempo promedio transcurrido entre ambos hitos",
@@ -103,44 +75,23 @@ Then(
   },
 );
 
-const mockFunnel30Days = {
-  time_range: { from: "2026-08-25", to: "2026-09-24" },
-  global_conversion_rate: 0.45,
-  steps: [
-    { step_name: "ai_diagnostics", count: 320, relative_conversion: 1.0, avg_duration_minutes: null },
-    { step_name: "requests_created", count: 240, relative_conversion: 0.75, avg_duration_minutes: 12 },
-    { step_name: "proposals_sent", count: 190, relative_conversion: 0.79, avg_duration_minutes: 200 },
-    { step_name: "deposits_paid", count: 160, relative_conversion: 0.84, avg_duration_minutes: 300 },
-    { step_name: "orders_completed", count: 150, relative_conversion: 0.94, avg_duration_minutes: 2400 },
-    { step_name: "reviews_submitted", count: 144, relative_conversion: 0.96, avg_duration_minutes: 1200 },
-  ],
-};
+Given("que me encuentro en la consola de métricas", async function (this: CustomWorld) {
+  await this.stubGet("/admin/metrics/funnel", mockFunnelData);
+  await this.stubGet("/admin/metrics/funnel?from=2026-08-25&to=2026-09-24", mockFunnel30Days);
+  await this.stubGet("/admin/metrics/funnel?range=30d", mockFunnel30Days);
+  await this.page.goto(new URL("/metricas", this.appUrl).href);
+  const heading = this.page.getByRole("heading", { name: "Métricas de Conversión Operativa" });
+  await heading.waitFor({ state: "visible", timeout: 10000 });
+});
 
-Given(
-  "que me encuentro en la consola de métricas",
-  async function (this: CustomWorld) {
-    await this.stubGet("/admin/metrics/funnel", mockFunnelData);
-    await this.stubGet("/admin/metrics/funnel?from=2026-08-25&to=2026-09-24", mockFunnel30Days);
-    await this.stubGet("/admin/metrics/funnel?range=30d", mockFunnel30Days);
-    await this.page.goto(new URL("/metricas", this.appUrl).href);
-    const heading = this.page.getByRole("heading", {
-      name: "Métricas de Conversión Operativa",
-    });
-    await heading.waitFor({ state: "visible", timeout: 10000 });
-  },
-);
-
-When(
-  "selecciono el rango temporal {string}",
-  async function (this: CustomWorld, period: string) {
-    const rangeSelect = this.page
-      .getByRole("combobox", { name: /rango temporal|período/i })
-      .or(this.page.getByLabel(/rango temporal|período/i))
-      .or(this.page.getByTestId("metrics-period-select"));
-    await rangeSelect.waitFor({ state: "visible", timeout: 10000 });
-    await rangeSelect.selectOption({ label: period });
-  },
-);
+When("selecciono el rango temporal {string}", async function (this: CustomWorld, period: string) {
+  const rangeSelect = this.page
+    .getByRole("combobox", { name: /rango temporal|período/i })
+    .or(this.page.getByLabel(/rango temporal|período/i))
+    .or(this.page.getByTestId("metrics-period-select"));
+  await rangeSelect.waitFor({ state: "visible", timeout: 10000 });
+  await rangeSelect.selectOption({ label: period });
+});
 
 Then(
   "los indicadores y el gráfico del embudo se actualizan reflejando exclusivamente el período seleccionado",
@@ -164,51 +115,30 @@ Then(
   },
 );
 
-const mockFunnelPlomeria = {
-  time_range: { from: "2026-08-25", to: "2026-09-24" },
-  global_conversion_rate: 0.28,
-  steps: [
-    { step_name: "ai_diagnostics", count: 95, relative_conversion: 1.0, avg_duration_minutes: null },
-    { step_name: "requests_created", count: 70, relative_conversion: 0.74, avg_duration_minutes: 10 },
-    { step_name: "proposals_sent", count: 52, relative_conversion: 0.74, avg_duration_minutes: 180 },
-    { step_name: "deposits_paid", count: 38, relative_conversion: 0.73, avg_duration_minutes: 250 },
-    { step_name: "orders_completed", count: 30, relative_conversion: 0.79, avg_duration_minutes: 2100 },
-    { step_name: "reviews_submitted", count: 27, relative_conversion: 0.90, avg_duration_minutes: 900 },
-  ],
-};
+Given("que el marketplace abarca diversos oficios", async function (this: CustomWorld) {
+  const categories = [
+    { id: 1, name: "Plomería" },
+    { id: 2, name: "Electricidad" },
+    { id: 3, name: "Gas" },
+  ];
+  await this.stubGet("/categories", categories);
+  await this.stubGet("/admin/categories", categories);
+  await this.stubGet("/admin/metrics/funnel", mockFunnelData);
+  await this.stubGet("/admin/metrics/funnel?category_id=1", mockFunnelPlomeria);
+  await this.stubGet("/admin/metrics/funnel?from=2026-08-25&to=2026-09-24&category_id=1", mockFunnelPlomeria);
+  await this.page.goto(new URL("/metricas", this.appUrl).href);
+  const heading = this.page.getByRole("heading", { name: "Métricas de Conversión Operativa" });
+  await heading.waitFor({ state: "visible", timeout: 10000 });
+});
 
-Given(
-  "que el marketplace abarca diversos oficios",
-  async function (this: CustomWorld) {
-    const categories = [
-      { id: 1, name: "Plomería" },
-      { id: 2, name: "Electricidad" },
-      { id: 3, name: "Gas" },
-    ];
-    await this.stubGet("/categories", categories);
-    await this.stubGet("/admin/categories", categories);
-    await this.stubGet("/admin/metrics/funnel", mockFunnelData);
-    await this.stubGet("/admin/metrics/funnel?category_id=1", mockFunnelPlomeria);
-    await this.stubGet("/admin/metrics/funnel?from=2026-08-25&to=2026-09-24&category_id=1", mockFunnelPlomeria);
-    await this.page.goto(new URL("/metricas", this.appUrl).href);
-    const heading = this.page.getByRole("heading", {
-      name: "Métricas de Conversión Operativa",
-    });
-    await heading.waitFor({ state: "visible", timeout: 10000 });
-  },
-);
-
-When(
-  "filtro el embudo por el rubro {string}",
-  async function (this: CustomWorld, rubro: string) {
-    const categorySelect = this.page
-      .getByRole("combobox", { name: /rubro|oficio/i })
-      .or(this.page.getByLabel(/rubro|oficio/i))
-      .or(this.page.getByTestId("metrics-category-select"));
-    await categorySelect.waitFor({ state: "visible", timeout: 10000 });
-    await categorySelect.selectOption({ label: rubro });
-  },
-);
+When("filtro el embudo por el rubro {string}", async function (this: CustomWorld, rubro: string) {
+  const categorySelect = this.page
+    .getByRole("combobox", { name: /rubro|oficio/i })
+    .or(this.page.getByLabel(/rubro|oficio/i))
+    .or(this.page.getByTestId("metrics-category-select"));
+  await categorySelect.waitFor({ state: "visible", timeout: 10000 });
+  await categorySelect.selectOption({ label: rubro });
+});
 
 Then(
   "las etapas reflejan las métricas de conversión exclusivas de contrataciones de plomería",
@@ -232,4 +162,37 @@ Then(
   },
 );
 
+Given("que selecciono un rango de fechas sin actividad registrada", async function (this: CustomWorld) {
+  await this.stubGet("/admin/metrics/funnel", mockFunnelData);
+  await this.stubGet("/admin/metrics/funnel?from=2020-01-01&to=2020-01-31", mockEmptyFunnel);
+  await this.page.goto(new URL("/metricas", this.appUrl).href);
+  const heading = this.page.getByRole("heading", { name: "Métricas de Conversión Operativa" });
+  await heading.waitFor({ state: "visible", timeout: 10000 });
 
+  const fromInput = this.page.getByLabel(/fecha desde|desde/i).or(this.page.getByTestId("metrics-from-date"));
+  await fromInput.waitFor({ state: "visible", timeout: 10000 });
+  await fromInput.fill("2020-01-01");
+
+  const toInput = this.page.getByLabel(/fecha hasta|hasta/i).or(this.page.getByTestId("metrics-to-date"));
+  await toInput.waitFor({ state: "visible", timeout: 10000 });
+  await toInput.fill("2020-01-31");
+});
+
+When("aplico el filtro en la sección de métricas", async function (this: CustomWorld) {
+  const applyButton = this.page.getByRole("button", { name: /aplicar/i }).or(this.page.getByTestId("metrics-apply-filters"));
+  await applyButton.waitFor({ state: "visible", timeout: 10000 });
+  await applyButton.click();
+});
+
+Then(
+  "se presenta un mensaje informativo indicando que no hay suficiente volumen para generar el embudo",
+  async function (this: CustomWorld) {
+    const emptyState = this.page.getByTestId("funnel-empty-state");
+    await emptyState.waitFor({ state: "visible", timeout: 10000 });
+    const text = await emptyState.textContent();
+    assert.ok(
+      text?.includes("No hay suficiente volumen para generar el embudo"),
+      `Expected empty message, got: "${text}"`,
+    );
+  },
+);
