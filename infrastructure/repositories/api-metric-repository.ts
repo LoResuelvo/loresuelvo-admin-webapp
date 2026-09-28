@@ -6,19 +6,61 @@ import type { ApiStub } from "@/infrastructure/api/types";
 import { parseE2EStubsFromCookies } from "@/infrastructure/api/e2e-stubs-utils";
 import { mapConversionFunnel } from "./metric-mapper";
 
-async function getE2EFunnelStub(): Promise<ApiStub | null> {
+async function getE2EFunnelStub(filters?: FunnelFilters): Promise<ApiStub | null> {
   if (process.env.APP_ENV === "production") return null;
   try {
     const { cookies } = await import("next/headers");
     const cookieStore = await cookies();
     const stubs = parseE2EStubsFromCookies(cookieStore.getAll());
+    const funnelStubs = stubs.filter(
+      (s) =>
+        s.method === "GET" &&
+        (s.endpoint.startsWith("/admin/metrics/funnel") ||
+          s.endpoint.startsWith("/metrics/funnel")),
+    );
+    if (funnelStubs.length === 0) return null;
+
+    if (filters) {
+      if (filters.categoryId !== undefined) {
+        const categoryMatch = funnelStubs.find(
+          (s) =>
+            s.endpoint.includes(`category_id=${filters.categoryId}`) ||
+            s.endpoint.includes(`categoryId=${filters.categoryId}`),
+        );
+        if (categoryMatch) return categoryMatch;
+      }
+
+      if (filters.from || filters.to) {
+        const dateMatch = funnelStubs.find((s) => {
+          if (filters.from && filters.to) {
+            return (
+              s.endpoint.includes(`from=${encodeURIComponent(filters.from)}`) ||
+              s.endpoint.includes(`from=${filters.from}`) ||
+              s.endpoint.includes(`range=30d`)
+            );
+          }
+          if (filters.from) {
+            return (
+              s.endpoint.includes(`from=${encodeURIComponent(filters.from)}`) ||
+              s.endpoint.includes(`from=${filters.from}`)
+            );
+          }
+          if (filters.to) {
+            return (
+              s.endpoint.includes(`to=${encodeURIComponent(filters.to)}`) ||
+              s.endpoint.includes(`to=${filters.to}`)
+            );
+          }
+          return false;
+        });
+        if (dateMatch) return dateMatch;
+      }
+    }
+
     return (
-      stubs.find(
-        (s) =>
-          s.method === "GET" &&
-          (s.endpoint.startsWith("/admin/metrics/funnel") ||
-            s.endpoint.startsWith("/metrics/funnel")),
-      ) ?? null
+      funnelStubs.find((s) => !s.endpoint.includes("?")) ??
+      funnelStubs[0] ??
+      null
     );
   } catch {
     return null;
@@ -59,7 +101,7 @@ export const apiMetricRepository: MetricRepository = {
     token: string,
     filters?: FunnelFilters,
   ): Promise<ConversionFunnel> {
-    const stub = await getE2EFunnelStub();
+    const stub = await getE2EFunnelStub(filters);
     if (stub) {
       return resolveFunnelFromStub(stub);
     }

@@ -16,7 +16,6 @@ Feature: Métricas de embudo de conversión operativa
     When inspecciono el paso de solicitudes a propuestas
     Then visualizo el porcentaje de conversión relativo y el tiempo promedio transcurrido entre ambos hitos
 
-  @wip
   Scenario: 03-MET Filtrar métricas por período temporal
     Given que me encuentro en la consola de métricas
     When selecciono el rango temporal "Últimos 30 días"

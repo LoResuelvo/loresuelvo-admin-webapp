@@ -1,9 +1,13 @@
+"use client";
+
 import type { ConversionFunnel } from "@/domain/metrics/funnel";
 import type { GetFunnelActionResult } from "@/app/(dashboard)/metricas/actions";
 import { translations } from "@/infrastructure/i18n/translations";
 import { FunnelOverviewCard } from "./funnel-overview-card";
 import { FunnelChart } from "./funnel-chart";
 import { FunnelStepCard } from "./funnel-step-card";
+import { FunnelFiltersBar, type PeriodOption } from "./funnel-filters-bar";
+import { useMetricsFunnel } from "./use-metrics-funnel";
 
 export interface MetricsViewProps {
   initialResult?: GetFunnelActionResult;
@@ -11,6 +15,23 @@ export interface MetricsViewProps {
   error?: string | null;
   isForbidden?: boolean;
   onRetry?: () => void;
+  selectedPeriod?: PeriodOption;
+  onPeriodChange?: (period: PeriodOption) => void;
+}
+
+function MetricsHeader({
+  title,
+  subtitle,
+}: {
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <header>
+      <h1 className="text-2xl font-bold tracking-tight text-[#1A2B48]">{title}</h1>
+      <p className="mt-1 text-sm text-[#536176]">{subtitle}</p>
+    </header>
+  );
 }
 
 function MetricsAlertState({
@@ -82,30 +103,58 @@ function MetricsStepsGrid({
   );
 }
 
-export function MetricsView({
-  initialResult,
-  data: propData,
-  error: propError,
-  isForbidden: propForbidden,
-  onRetry,
-}: MetricsViewProps) {
+function MetricsFunnelContent({
+  data,
+  selectedPeriod,
+  onPeriodChange,
+}: {
+  data: ConversionFunnel;
+  selectedPeriod: PeriodOption;
+  onPeriodChange: (period: PeriodOption) => void;
+}) {
+  const maxCount =
+    data.steps.length > 0 ? Math.max(...data.steps.map((s) => s.count), 1) : 1;
+
+  return (
+    <div className="space-y-6">
+      <FunnelFiltersBar
+        selectedPeriod={selectedPeriod}
+        onPeriodChange={onPeriodChange}
+      />
+      <FunnelOverviewCard
+        globalConversionRate={data.globalConversionRate}
+        initialCount={data.steps[0]?.count}
+        finalCount={data.steps[data.steps.length - 1]?.count}
+      />
+      <FunnelChart steps={data.steps} />
+      <MetricsStepsGrid steps={data.steps} maxCount={maxCount} />
+    </div>
+  );
+}
+
+export function MetricsView(props: MetricsViewProps) {
   const t = translations.metrics;
-  const data = propData ?? (initialResult?.success ? initialResult.data : null);
-  const error =
-    propError ??
-    (initialResult && !initialResult.success ? initialResult.error : null);
-  const isForbidden =
-    propForbidden ??
-    (initialResult && !initialResult.success
-      ? Boolean(initialResult.isForbidden)
-      : false);
+  const {
+    data,
+    error,
+    isForbidden,
+    selectedPeriod,
+    handlePeriodChange,
+  } = useMetricsFunnel({
+    initialResult: props.initialResult,
+    initialData: props.data,
+    initialError: props.error,
+    initialForbidden: props.isForbidden,
+    selectedPeriod: props.selectedPeriod,
+    onPeriodChange: props.onPeriodChange,
+  });
 
   if (isForbidden || error) {
     return (
       <MetricsAlertState
         isForbidden={isForbidden}
         error={error}
-        onRetry={onRetry}
+        onRetry={props.onRetry}
       />
     );
   }
@@ -114,27 +163,14 @@ export function MetricsView({
     return null;
   }
 
-  const maxCount =
-    data.steps.length > 0 ? Math.max(...data.steps.map((s) => s.count), 1) : 1;
-
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight text-[#1A2B48]">
-          {t.title}
-        </h1>
-        <p className="mt-1 text-sm text-[#536176]">{t.subtitle}</p>
-      </header>
-
-      <FunnelOverviewCard
-        globalConversionRate={data.globalConversionRate}
-        initialCount={data.steps[0]?.count}
-        finalCount={data.steps[data.steps.length - 1]?.count}
+      <MetricsHeader title={t.title} subtitle={t.subtitle} />
+      <MetricsFunnelContent
+        data={data}
+        selectedPeriod={selectedPeriod}
+        onPeriodChange={handlePeriodChange}
       />
-
-      <FunnelChart steps={data.steps} />
-
-      <MetricsStepsGrid steps={data.steps} maxCount={maxCount} />
     </div>
   );
 }

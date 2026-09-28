@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { MetricsView } from "./metrics-view";
 import type { ConversionFunnel } from "@/domain/metrics/funnel";
 
@@ -54,5 +54,21 @@ describe("MetricsView", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent("Error al cargar métricas");
     expect(screen.getByRole("button", { name: "Reintentar" })).toBeInTheDocument();
+  });
+
+  it("renders filter bar and triggers onPeriodChange when period changes", () => {
+    const handlePeriodChange = vi.fn();
+    render(
+      <MetricsView
+        data={mockFunnel}
+        selectedPeriod="7d"
+        onPeriodChange={handlePeriodChange}
+      />,
+    );
+
+    const select = screen.getByRole("combobox", { name: "Rango temporal" });
+    expect(select).toBeInTheDocument();
+    fireEvent.change(select, { target: { value: "30d" } });
+    expect(handlePeriodChange).toHaveBeenCalledWith("30d");
   });
 });
