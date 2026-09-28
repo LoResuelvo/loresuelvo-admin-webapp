@@ -6,6 +6,7 @@ import { translations } from "@/infrastructure/i18n/translations";
 import { FunnelOverviewCard } from "./funnel-overview-card";
 import { FunnelChart } from "./funnel-chart";
 import { FunnelStepCard } from "./funnel-step-card";
+import { FunnelEmptyState } from "./funnel-empty-state";
 import {
   FunnelFiltersBar,
   type CategoryOption,
@@ -110,6 +111,20 @@ function MetricsStepsGrid({
   );
 }
 
+interface MetricsFunnelContentProps {
+  data: ConversionFunnel;
+  selectedPeriod: PeriodOption;
+  onPeriodChange: (period: PeriodOption) => void;
+  selectedCategoryId: number | "";
+  onCategoryChange: (categoryId: number | "") => void;
+  categoryOptions?: readonly CategoryOption[];
+  fromDate?: string;
+  toDate?: string;
+  onFromDateChange?: (date: string) => void;
+  onToDateChange?: (date: string) => void;
+  onApplyFilters?: () => void;
+}
+
 function MetricsFunnelContent({
   data,
   selectedPeriod,
@@ -117,14 +132,15 @@ function MetricsFunnelContent({
   selectedCategoryId,
   onCategoryChange,
   categoryOptions,
-}: {
-  data: ConversionFunnel;
-  selectedPeriod: PeriodOption;
-  onPeriodChange: (period: PeriodOption) => void;
-  selectedCategoryId: number | "";
-  onCategoryChange: (categoryId: number | "") => void;
-  categoryOptions?: readonly CategoryOption[];
-}) {
+  fromDate,
+  toDate,
+  onFromDateChange,
+  onToDateChange,
+  onApplyFilters,
+}: MetricsFunnelContentProps) {
+  const hasInsufficientVolume =
+    data.steps.length === 0 || data.steps.every((s) => s.count === 0);
+
   const maxCount =
     data.steps.length > 0 ? Math.max(...data.steps.map((s) => s.count), 1) : 1;
 
@@ -136,14 +152,25 @@ function MetricsFunnelContent({
         selectedCategoryId={selectedCategoryId}
         onCategoryChange={onCategoryChange}
         categoryOptions={categoryOptions}
+        fromDate={fromDate}
+        toDate={toDate}
+        onFromDateChange={onFromDateChange}
+        onToDateChange={onToDateChange}
+        onApplyFilters={onApplyFilters}
       />
-      <FunnelOverviewCard
-        globalConversionRate={data.globalConversionRate}
-        initialCount={data.steps[0]?.count}
-        finalCount={data.steps[data.steps.length - 1]?.count}
-      />
-      <FunnelChart steps={data.steps} />
-      <MetricsStepsGrid steps={data.steps} maxCount={maxCount} />
+      {hasInsufficientVolume ? (
+        <FunnelEmptyState />
+      ) : (
+        <>
+          <FunnelOverviewCard
+            globalConversionRate={data.globalConversionRate}
+            initialCount={data.steps[0]?.count}
+            finalCount={data.steps[data.steps.length - 1]?.count}
+          />
+          <FunnelChart steps={data.steps} />
+          <MetricsStepsGrid steps={data.steps} maxCount={maxCount} />
+        </>
+      )}
     </div>
   );
 }
@@ -158,6 +185,11 @@ export function MetricsView(props: MetricsViewProps) {
     handlePeriodChange,
     selectedCategoryId,
     handleCategoryChange,
+    fromDate,
+    handleFromDateChange,
+    toDate,
+    handleToDateChange,
+    handleApplyFilters,
   } = useMetricsFunnel({
     initialResult: props.initialResult,
     initialData: props.data,
@@ -193,6 +225,11 @@ export function MetricsView(props: MetricsViewProps) {
         selectedCategoryId={selectedCategoryId}
         onCategoryChange={handleCategoryChange}
         categoryOptions={props.categoryOptions}
+        fromDate={fromDate}
+        toDate={toDate}
+        onFromDateChange={handleFromDateChange}
+        onToDateChange={handleToDateChange}
+        onApplyFilters={handleApplyFilters}
       />
     </div>
   );

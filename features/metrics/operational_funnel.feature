@@ -26,7 +26,6 @@ Feature: Métricas de embudo de conversión operativa
     When filtro el embudo por el rubro "Plomería"
     Then las etapas reflejan las métricas de conversión exclusivas de contrataciones de plomería
 
-  @wip
   Scenario: 05-MET Informar período sin datos o volumen insuficiente
     Given que selecciono un rango de fechas sin actividad registrada
     When aplico el filtro en la sección de métricas

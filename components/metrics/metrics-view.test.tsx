@@ -25,6 +25,28 @@ const mockFunnel: ConversionFunnel = {
   ],
 };
 
+const emptyFunnel: ConversionFunnel = {
+  from: "2020-01-01",
+  to: "2020-01-31",
+  globalConversionRate: 0,
+  steps: [],
+};
+
+const zeroCountsFunnel: ConversionFunnel = {
+  from: "2020-01-01",
+  to: "2020-01-31",
+  globalConversionRate: 0,
+  steps: [
+    {
+      stepName: "ai_diagnostics",
+      label: "Diagnósticos IA",
+      count: 0,
+      relativeConversion: 0,
+      avgDurationMinutes: null,
+    },
+  ],
+};
+
 describe("MetricsView", () => {
   it("renders funnel overview, chart, and step cards", () => {
     render(<MetricsView data={mockFunnel} />);
@@ -86,5 +108,20 @@ describe("MetricsView", () => {
     expect(select).toBeInTheDocument();
     fireEvent.change(select, { target: { value: "1" } });
     expect(handleCategoryChange).toHaveBeenCalledWith(1);
+  });
+
+  it("renders empty state when steps list is empty", () => {
+    render(<MetricsView data={emptyFunnel} />);
+
+    expect(screen.getByTestId("funnel-empty-state")).toBeInTheDocument();
+    expect(screen.getByText("No hay suficiente volumen para generar el embudo")).toBeInTheDocument();
+    expect(screen.queryByTestId("global-conversion-rate")).not.toBeInTheDocument();
+  });
+
+  it("renders empty state when all step counts are zero", () => {
+    render(<MetricsView data={zeroCountsFunnel} />);
+
+    expect(screen.getByTestId("funnel-empty-state")).toBeInTheDocument();
+    expect(screen.queryByTestId("global-conversion-rate")).not.toBeInTheDocument();
   });
 });

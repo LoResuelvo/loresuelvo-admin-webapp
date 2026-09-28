@@ -19,13 +19,28 @@ export interface UseMetricsFunnelParams {
   onPeriodChange?: (period: PeriodOption) => void;
   selectedCategoryId?: number | "";
   onCategoryChange?: (categoryId: number | "") => void;
+  initialFromDate?: string;
+  initialToDate?: string;
+}
+
+interface FunnelFilterValues {
+  period: PeriodOption;
+  categoryId: number | "";
+  from: string;
+  to: string;
+}
+
+interface FunnelDataValues {
+  data: ConversionFunnel | null;
+  error: string | null;
+  isForbidden: boolean;
 }
 
 async function fetchFunnelMetrics(
-  period: PeriodOption,
+  from: string,
+  to: string,
   categoryId: number | "",
 ): Promise<GetFunnelActionResult> {
-  const { from, to } = computeDateRange(period);
   const filters: FunnelFilters = {
     from,
     to,
@@ -34,89 +49,112 @@ async function fetchFunnelMetrics(
   return getFunnelAction(filters);
 }
 
-function useMetricsInitialState(params: UseMetricsFunnelParams) {
-  const [data, setData] = useState<ConversionFunnel | null>(
-    params.initialData ?? (params.initialResult?.success ? params.initialResult.data : null),
-  );
-  const [error, setError] = useState<string | null>(
-    params.initialError ??
-      (params.initialResult && !params.initialResult.success ? params.initialResult.error : null),
-  );
-  const [isForbidden, setIsForbidden] = useState<boolean>(
-    params.initialForbidden ??
-      (params.initialResult && !params.initialResult.success
-        ? Boolean(params.initialResult.isForbidden)
-        : false),
-  );
-  const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>(
-    params.selectedPeriod ?? "7d",
-  );
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">(
-    params.selectedCategoryId ?? "",
+function useFilterState(params: UseMetricsFunnelParams) {
+  const defaultDates = computeDateRange(params.selectedPeriod ?? "7d");
+  const [filters, setFilters] = useState<FunnelFilterValues>({
+    period: params.selectedPeriod ?? "7d",
+    categoryId: params.selectedCategoryId ?? "",
+    from: params.initialFromDate ?? defaultDates.from,
+    to: params.initialToDate ?? defaultDates.to,
+  });
+
+  return { filters, setFilters };
+}
+
+function useDataState(params: UseMetricsFunnelParams) {
+  const [state, setState] = useState<FunnelDataValues>({
+    data: params.initialData ?? (params.initialResult?.success ? params.initialResult.data : null),
+    error: params.initialError ?? (params.initialResult && !params.initialResult.success ? params.initialResult.error : null),
+    isForbidden: params.initialForbidden ?? (params.initialResult && !params.initialResult.success ? Boolean(params.initialResult.isForbidden) : false),
+  });
+
+  return { state, setState };
+}
+
+function useFunnelActions({
+  filters,
+  setFilters,
+  setState,
+  onPeriodChange,
+  onCategoryChange,
+}: {
+  filters: FunnelFilterValues;
+  setFilters: React.Dispatch<React.SetStateAction<FunnelFilterValues>>;
+  setState: React.Dispatch<React.SetStateAction<FunnelDataValues>>;
+  onPeriodChange?: (period: PeriodOption) => void;
+  onCategoryChange?: (categoryId: number | "") => void;
+}) {
+  const applyFilters = useCallback(
+    async (from: string, to: string, categoryId: number | "") => {
+      try {
+        const result = await fetchFunnelMetrics(from, to, categoryId);
+        if (result.success) {
+          setState({ data: result.data, error: null, isForbidden: false });
+        } else {
+          setState({ data: null, error: result.error, isForbidden: Boolean(result.isForbidden) });
+        }
+      } catch {
+        setState((prev) => ({ ...prev, error: translations.metrics.error }));
+      }
+    },
+    [setState],
   );
 
+  const handlePeriodChange = useCallback(
+    async (period: PeriodOption) => {
+      const dates = computeDateRange(period);
+      setFilters((prev) => ({ ...prev, period, from: dates.from, to: dates.to }));
+      onPeriodChange?.(period);
+      await applyFilters(dates.from, dates.to, filters.categoryId);
+    },
+    [applyFilters, filters.categoryId, onPeriodChange, setFilters],
+  );
+
+  const handleCategoryChange = useCallback(
+    async (categoryId: number | "") => {
+      setFilters((prev) => ({ ...prev, categoryId }));
+      onCategoryChange?.(categoryId);
+      await applyFilters(filters.from, filters.to, categoryId);
+    },
+    [applyFilters, filters.from, filters.to, onCategoryChange, setFilters],
+  );
+
+  const handleApplyFilters = useCallback(async () => {
+    await applyFilters(filters.from, filters.to, filters.categoryId);
+  }, [applyFilters, filters]);
+
   return {
-    data,
-    setData,
-    error,
-    setError,
-    isForbidden,
-    setIsForbidden,
-    selectedPeriod,
-    setSelectedPeriod,
-    selectedCategoryId,
-    setSelectedCategoryId,
+    handlePeriodChange,
+    handleCategoryChange,
+    handleApplyFilters,
+    handleFromDateChange: (from: string) => setFilters((prev) => ({ ...prev, from })),
+    handleToDateChange: (to: string) => setFilters((prev) => ({ ...prev, to })),
   };
 }
 
 export function useMetricsFunnel(params: UseMetricsFunnelParams) {
-  const state = useMetricsInitialState(params);
-
-  const applyFilters = useCallback(
-    async (period: PeriodOption, categoryId: number | "") => {
-      try {
-        const result = await fetchFunnelMetrics(period, categoryId);
-        if (result.success) {
-          state.setData(result.data);
-          state.setError(null);
-          state.setIsForbidden(false);
-        } else {
-          if (result.isForbidden) state.setIsForbidden(true);
-          state.setError(result.error);
-        }
-      } catch {
-        state.setError(translations.metrics.error);
-      }
-    },
-    [state],
-  );
-
-  const handlePeriodChange = useCallback(
-    async (newPeriod: PeriodOption) => {
-      state.setSelectedPeriod(newPeriod);
-      params.onPeriodChange?.(newPeriod);
-      await applyFilters(newPeriod, state.selectedCategoryId);
-    },
-    [applyFilters, params, state],
-  );
-
-  const handleCategoryChange = useCallback(
-    async (newCategory: number | "") => {
-      state.setSelectedCategoryId(newCategory);
-      params.onCategoryChange?.(newCategory);
-      await applyFilters(state.selectedPeriod, newCategory);
-    },
-    [applyFilters, params, state],
-  );
+  const { filters, setFilters } = useFilterState(params);
+  const { state, setState } = useDataState(params);
+  const actions = useFunnelActions({
+    filters,
+    setFilters,
+    setState,
+    onPeriodChange: params.onPeriodChange,
+    onCategoryChange: params.onCategoryChange,
+  });
 
   return {
     data: params.initialData !== undefined ? params.initialData : state.data,
     error: params.initialError !== undefined ? params.initialError : state.error,
-    isForbidden:
-      params.initialForbidden !== undefined ? params.initialForbidden : state.isForbidden,
-    selectedPeriod: state.selectedPeriod,
-    handlePeriodChange,
-    selectedCategoryId: state.selectedCategoryId,
-    handleCategoryChange,
+    isForbidden: params.initialForbidden !== undefined ? params.initialForbidden : state.isForbidden,
+    selectedPeriod: filters.period,
+    handlePeriodChange: actions.handlePeriodChange,
+    selectedCategoryId: filters.categoryId,
+    handleCategoryChange: actions.handleCategoryChange,
+    fromDate: filters.from,
+    handleFromDateChange: actions.handleFromDateChange,
+    toDate: filters.to,
+    handleToDateChange: actions.handleToDateChange,
+    handleApplyFilters: actions.handleApplyFilters,
   };
 }
