@@ -41,7 +41,6 @@ Feature: Métricas de embudo de conversión operativa
     When intento ingresar a la sección de métricas
     Then el sistema me informa que el acceso está restringido
 
-  @wip
   Scenario: 08-MET Manejar fallos de conexión al consultar el embudo
     Given que el servidor de métricas no se encuentra disponible
     When intento consultar la consola de métricas
