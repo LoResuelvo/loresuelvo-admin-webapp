@@ -1,0 +1,37 @@
+export const claimsTranslations = {
+  title: "Expediente de Reclamos",
+  subtitle: "Gestión de controversias operativas, evidencias y dictámenes de mediación",
+  table: {
+    ariaLabel: "Listado de reclamos e incidentes operativos",
+    date: "Fecha",
+    claimant: "Reclamante",
+    respondent: "Demandado",
+    category: "Rubro",
+    status: "Estado",
+    urgency: "Urgencia",
+    empty: "No hay reclamos registrados en el sistema",
+    emptyFiltered: "No se encontraron reclamos con los filtros aplicados",
+  },
+  status: {
+    open: "Abierto",
+    in_review: "En revisión",
+    resolved: "Resuelto",
+    dismissed: "Desestimado",
+  },
+  urgency: {
+    high: "Alta",
+    medium: "Media",
+    low: "Baja",
+  },
+  claimantType: {
+    consumer: "Consumidor",
+    provider: "Prestador",
+  },
+  filters: {
+    searchLabel: "Buscar participante",
+    searchPlaceholder: "Buscar por participante...",
+    statusLabel: "Filtrar por estado",
+    statusAll: "Todos los estados",
+    clear: "Limpiar filtros",
+  },
+} as const;
