@@ -6,6 +6,8 @@ import {
   mockFunnel30Days,
   mockFunnelPlomeria,
   mockEmptyFunnel,
+  expectedSteps,
+  mockCategories,
 } from "./operational_funnel_fixtures";
 
 Given("que existen datos de operaciones registradas en el marketplace", async function (this: CustomWorld) {
@@ -24,15 +26,6 @@ Then(
     await globalRate.waitFor({ state: "visible", timeout: 10000 });
     const globalText = await globalRate.textContent();
     assert.match(globalText ?? "", /32/);
-
-    const expectedSteps = [
-      { testId: "funnel-step-ai_diagnostics", label: "Diagnósticos IA", count: "250" },
-      { testId: "funnel-step-requests_created", label: "Solicitudes publicadas", count: "180" },
-      { testId: "funnel-step-proposals_sent", label: "Propuestas comerciales", count: "140" },
-      { testId: "funnel-step-deposits_paid", label: "Señas pagadas", count: "105" },
-      { testId: "funnel-step-orders_completed", label: "Órdenes concluidas", count: "88" },
-      { testId: "funnel-step-reviews_submitted", label: "Reseñas enviadas", count: "80" },
-    ];
 
     for (const step of expectedSteps) {
       const stepElement = page.getByTestId(step.testId);
@@ -116,13 +109,8 @@ Then(
 );
 
 Given("que el marketplace abarca diversos oficios", async function (this: CustomWorld) {
-  const categories = [
-    { id: 1, name: "Plomería" },
-    { id: 2, name: "Electricidad" },
-    { id: 3, name: "Gas" },
-  ];
-  await this.stubGet("/categories", categories);
-  await this.stubGet("/admin/categories", categories);
+  await this.stubGet("/categories", mockCategories);
+  await this.stubGet("/admin/categories", mockCategories);
   await this.stubGet("/admin/metrics/funnel", mockFunnelData);
   await this.stubGet("/admin/metrics/funnel?category_id=1", mockFunnelPlomeria);
   await this.stubGet("/admin/metrics/funnel?from=2026-08-25&to=2026-09-24&category_id=1", mockFunnelPlomeria);
@@ -226,3 +214,16 @@ Then(
     assert.ok(count > 0, "Expected at least one skeleton indicator");
   },
 );
+
+Given("que mi cuenta de usuario no posee permisos de analítica", async function (this: CustomWorld) {
+  await this.stubGet(
+    "/admin/metrics/funnel",
+    { error: "Forbidden", message: "User lacks read:admin_metrics permission" },
+    403,
+  );
+});
+
+When("intento ingresar a la sección de métricas", async function (this: CustomWorld) {
+  await this.page.goto(new URL("/metricas", this.appUrl).href);
+});
+

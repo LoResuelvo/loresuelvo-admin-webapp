@@ -42,3 +42,19 @@ export const mockEmptyFunnel = {
   global_conversion_rate: 0,
   steps: [],
 };
+
+export const expectedSteps = [
+  { testId: "funnel-step-ai_diagnostics", label: "Diagnósticos IA", count: "250" },
+  { testId: "funnel-step-requests_created", label: "Solicitudes publicadas", count: "180" },
+  { testId: "funnel-step-proposals_sent", label: "Propuestas comerciales", count: "140" },
+  { testId: "funnel-step-deposits_paid", label: "Señas pagadas", count: "105" },
+  { testId: "funnel-step-orders_completed", label: "Órdenes concluidas", count: "88" },
+  { testId: "funnel-step-reviews_submitted", label: "Reseñas enviadas", count: "80" },
+];
+
+export const mockCategories = [
+  { id: 1, name: "Plomería" },
+  { id: 2, name: "Electricidad" },
+  { id: 3, name: "Gas" },
+];
+
