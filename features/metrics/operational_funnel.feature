@@ -36,7 +36,6 @@ Feature: Métricas de embudo de conversión operativa
     When accedo a la sección de métricas
     Then se presenta una vista de carga con indicadores visuales mientras se procesan las agregaciones
 
-  @wip
   Scenario: 07-MET Informar falta de permisos para consultar métricas
     Given que mi cuenta de usuario no posee permisos de analítica
     When intento ingresar a la sección de métricas
