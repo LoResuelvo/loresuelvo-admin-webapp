@@ -34,4 +34,7 @@ export const claimsTranslations = {
     statusAll: "Todos los estados",
     clear: "Limpiar filtros",
   },
-} as const;
+  forbidden: "No posees permisos suficientes para gestionar reclamos.",
+  error: "Ocurrió un error al obtener el listado de reclamos.",
+  retry: "Reintentar",
+};
