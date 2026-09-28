@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import type { ConversionFunnel } from "@/domain/metrics/funnel";
+import type { ConversionFunnel, FunnelFilters } from "@/domain/metrics/funnel";
 import {
   getFunnelAction,
   type GetFunnelActionResult,
@@ -17,64 +17,106 @@ export interface UseMetricsFunnelParams {
   initialForbidden?: boolean;
   selectedPeriod?: PeriodOption;
   onPeriodChange?: (period: PeriodOption) => void;
+  selectedCategoryId?: number | "";
+  onCategoryChange?: (categoryId: number | "") => void;
 }
 
-export function useMetricsFunnel({
-  initialResult,
-  initialData,
-  initialError,
-  initialForbidden,
-  selectedPeriod: propSelectedPeriod,
-  onPeriodChange: onPeriodChangeProp,
-}: UseMetricsFunnelParams) {
+async function fetchFunnelMetrics(
+  period: PeriodOption,
+  categoryId: number | "",
+): Promise<GetFunnelActionResult> {
+  const { from, to } = computeDateRange(period);
+  const filters: FunnelFilters = {
+    from,
+    to,
+    ...(categoryId !== "" ? { categoryId } : {}),
+  };
+  return getFunnelAction(filters);
+}
+
+function useMetricsInitialState(params: UseMetricsFunnelParams) {
   const [data, setData] = useState<ConversionFunnel | null>(
-    initialData ?? (initialResult?.success ? initialResult.data : null),
+    params.initialData ?? (params.initialResult?.success ? params.initialResult.data : null),
   );
   const [error, setError] = useState<string | null>(
-    initialError ??
-      (initialResult && !initialResult.success ? initialResult.error : null),
+    params.initialError ??
+      (params.initialResult && !params.initialResult.success ? params.initialResult.error : null),
   );
   const [isForbidden, setIsForbidden] = useState<boolean>(
-    initialForbidden ??
-      (initialResult && !initialResult.success
-        ? Boolean(initialResult.isForbidden)
+    params.initialForbidden ??
+      (params.initialResult && !params.initialResult.success
+        ? Boolean(params.initialResult.isForbidden)
         : false),
   );
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>(
-    propSelectedPeriod ?? "7d",
+    params.selectedPeriod ?? "7d",
+  );
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">(
+    params.selectedCategoryId ?? "",
+  );
+
+  return {
+    data,
+    setData,
+    error,
+    setError,
+    isForbidden,
+    setIsForbidden,
+    selectedPeriod,
+    setSelectedPeriod,
+    selectedCategoryId,
+    setSelectedCategoryId,
+  };
+}
+
+export function useMetricsFunnel(params: UseMetricsFunnelParams) {
+  const state = useMetricsInitialState(params);
+
+  const applyFilters = useCallback(
+    async (period: PeriodOption, categoryId: number | "") => {
+      try {
+        const result = await fetchFunnelMetrics(period, categoryId);
+        if (result.success) {
+          state.setData(result.data);
+          state.setError(null);
+          state.setIsForbidden(false);
+        } else {
+          if (result.isForbidden) state.setIsForbidden(true);
+          state.setError(result.error);
+        }
+      } catch {
+        state.setError(translations.metrics.error);
+      }
+    },
+    [state],
   );
 
   const handlePeriodChange = useCallback(
     async (newPeriod: PeriodOption) => {
-      setSelectedPeriod(newPeriod);
-      onPeriodChangeProp?.(newPeriod);
-
-      try {
-        const { from, to } = computeDateRange(newPeriod);
-        const result = await getFunnelAction({ from, to });
-        if (result.success) {
-          setData(result.data);
-          setError(null);
-          setIsForbidden(false);
-        } else {
-          if (result.isForbidden) {
-            setIsForbidden(true);
-          }
-          setError(result.error);
-        }
-      } catch {
-        setError(translations.metrics.error);
-      }
+      state.setSelectedPeriod(newPeriod);
+      params.onPeriodChange?.(newPeriod);
+      await applyFilters(newPeriod, state.selectedCategoryId);
     },
-    [onPeriodChangeProp],
+    [applyFilters, params, state],
+  );
+
+  const handleCategoryChange = useCallback(
+    async (newCategory: number | "") => {
+      state.setSelectedCategoryId(newCategory);
+      params.onCategoryChange?.(newCategory);
+      await applyFilters(state.selectedPeriod, newCategory);
+    },
+    [applyFilters, params, state],
   );
 
   return {
-    data: initialData !== undefined ? initialData : data,
-    error: initialError !== undefined ? initialError : error,
+    data: params.initialData !== undefined ? params.initialData : state.data,
+    error: params.initialError !== undefined ? params.initialError : state.error,
     isForbidden:
-      initialForbidden !== undefined ? initialForbidden : isForbidden,
-    selectedPeriod,
+      params.initialForbidden !== undefined ? params.initialForbidden : state.isForbidden,
+    selectedPeriod: state.selectedPeriod,
     handlePeriodChange,
+    selectedCategoryId: state.selectedCategoryId,
+    handleCategoryChange,
   };
 }

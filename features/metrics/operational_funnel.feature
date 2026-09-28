@@ -21,7 +21,6 @@ Feature: Métricas de embudo de conversión operativa
     When selecciono el rango temporal "Últimos 30 días"
     Then los indicadores y el gráfico del embudo se actualizan reflejando exclusivamente el período seleccionado
 
-  @wip
   Scenario: 04-MET Filtrar embudo por rubro de servicio
     Given que el marketplace abarca diversos oficios
     When filtro el embudo por el rubro "Plomería"

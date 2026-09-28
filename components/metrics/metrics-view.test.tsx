@@ -71,4 +71,20 @@ describe("MetricsView", () => {
     fireEvent.change(select, { target: { value: "30d" } });
     expect(handlePeriodChange).toHaveBeenCalledWith("30d");
   });
+
+  it("triggers onCategoryChange when category changes", () => {
+    const handleCategoryChange = vi.fn();
+    render(
+      <MetricsView
+        data={mockFunnel}
+        selectedCategoryId=""
+        onCategoryChange={handleCategoryChange}
+      />,
+    );
+
+    const select = screen.getByRole("combobox", { name: "Rubro" });
+    expect(select).toBeInTheDocument();
+    fireEvent.change(select, { target: { value: "1" } });
+    expect(handleCategoryChange).toHaveBeenCalledWith(1);
+  });
 });

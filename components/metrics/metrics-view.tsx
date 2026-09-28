@@ -6,7 +6,11 @@ import { translations } from "@/infrastructure/i18n/translations";
 import { FunnelOverviewCard } from "./funnel-overview-card";
 import { FunnelChart } from "./funnel-chart";
 import { FunnelStepCard } from "./funnel-step-card";
-import { FunnelFiltersBar, type PeriodOption } from "./funnel-filters-bar";
+import {
+  FunnelFiltersBar,
+  type CategoryOption,
+  type PeriodOption,
+} from "./funnel-filters-bar";
 import { useMetricsFunnel } from "./use-metrics-funnel";
 
 export interface MetricsViewProps {
@@ -17,6 +21,9 @@ export interface MetricsViewProps {
   onRetry?: () => void;
   selectedPeriod?: PeriodOption;
   onPeriodChange?: (period: PeriodOption) => void;
+  selectedCategoryId?: number | "";
+  onCategoryChange?: (categoryId: number | "") => void;
+  categoryOptions?: readonly CategoryOption[];
 }
 
 function MetricsHeader({
@@ -107,10 +114,16 @@ function MetricsFunnelContent({
   data,
   selectedPeriod,
   onPeriodChange,
+  selectedCategoryId,
+  onCategoryChange,
+  categoryOptions,
 }: {
   data: ConversionFunnel;
   selectedPeriod: PeriodOption;
   onPeriodChange: (period: PeriodOption) => void;
+  selectedCategoryId: number | "";
+  onCategoryChange: (categoryId: number | "") => void;
+  categoryOptions?: readonly CategoryOption[];
 }) {
   const maxCount =
     data.steps.length > 0 ? Math.max(...data.steps.map((s) => s.count), 1) : 1;
@@ -120,6 +133,9 @@ function MetricsFunnelContent({
       <FunnelFiltersBar
         selectedPeriod={selectedPeriod}
         onPeriodChange={onPeriodChange}
+        selectedCategoryId={selectedCategoryId}
+        onCategoryChange={onCategoryChange}
+        categoryOptions={categoryOptions}
       />
       <FunnelOverviewCard
         globalConversionRate={data.globalConversionRate}
@@ -140,6 +156,8 @@ export function MetricsView(props: MetricsViewProps) {
     isForbidden,
     selectedPeriod,
     handlePeriodChange,
+    selectedCategoryId,
+    handleCategoryChange,
   } = useMetricsFunnel({
     initialResult: props.initialResult,
     initialData: props.data,
@@ -147,6 +165,8 @@ export function MetricsView(props: MetricsViewProps) {
     initialForbidden: props.isForbidden,
     selectedPeriod: props.selectedPeriod,
     onPeriodChange: props.onPeriodChange,
+    selectedCategoryId: props.selectedCategoryId,
+    onCategoryChange: props.onCategoryChange,
   });
 
   if (isForbidden || error) {
@@ -170,6 +190,9 @@ export function MetricsView(props: MetricsViewProps) {
         data={data}
         selectedPeriod={selectedPeriod}
         onPeriodChange={handlePeriodChange}
+        selectedCategoryId={selectedCategoryId}
+        onCategoryChange={handleCategoryChange}
+        categoryOptions={props.categoryOptions}
       />
     </div>
   );
