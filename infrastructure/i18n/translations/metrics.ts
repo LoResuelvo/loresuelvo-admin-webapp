@@ -12,6 +12,14 @@ export const metricsTranslations = {
   forbidden: "El acceso a las métricas está restringido para tu perfil de usuario",
   error: "No se pudieron obtener las métricas operativas",
   retry: "Reintentar",
+  filters: {
+    period: {
+      label: "Rango temporal",
+      last7Days: "Últimos 7 días",
+      last30Days: "Últimos 30 días",
+      last90Days: "Últimos 90 días",
+    },
+  },
   steps: {
     ai_diagnostics: "Diagnósticos IA",
     requests_created: "Solicitudes publicadas",
