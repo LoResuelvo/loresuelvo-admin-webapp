@@ -31,7 +31,6 @@ Feature: Métricas de embudo de conversión operativa
     When aplico el filtro en la sección de métricas
     Then se presenta un mensaje informativo indicando que no hay suficiente volumen para generar el embudo
 
-  @wip
   Scenario: 06-MET Mostrar estado de espera mientras se computan las métricas
     Given que el cálculo analítico de las métricas toma unos momentos
     When accedo a la sección de métricas

@@ -7,6 +7,8 @@ import { FunnelOverviewCard } from "./funnel-overview-card";
 import { FunnelChart } from "./funnel-chart";
 import { FunnelStepCard } from "./funnel-step-card";
 import { FunnelEmptyState } from "./funnel-empty-state";
+import { FunnelSkeleton } from "./funnel-skeleton";
+import { MetricsAlertState } from "./metrics-alert-state";
 import {
   FunnelFiltersBar,
   type CategoryOption,
@@ -19,6 +21,7 @@ export interface MetricsViewProps {
   data?: ConversionFunnel | null;
   error?: string | null;
   isForbidden?: boolean;
+  isLoading?: boolean;
   onRetry?: () => void;
   selectedPeriod?: PeriodOption;
   onPeriodChange?: (period: PeriodOption) => void;
@@ -40,48 +43,6 @@ function MetricsHeader({
       <p className="mt-1 text-sm text-[#536176]">{subtitle}</p>
     </header>
   );
-}
-
-function MetricsAlertState({
-  isForbidden,
-  error,
-  onRetry,
-}: {
-  isForbidden: boolean;
-  error: string | null;
-  onRetry?: () => void;
-}) {
-  const t = translations.metrics;
-  if (isForbidden) {
-    return (
-      <div
-        role="alert"
-        className="p-6 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900"
-      >
-        <p className="font-semibold text-sm">{t.forbidden}</p>
-      </div>
-    );
-  }
-  if (error) {
-    return (
-      <div
-        role="alert"
-        className="p-6 rounded-2xl bg-red-50 border border-red-200 text-red-900 space-y-3"
-      >
-        <p className="font-semibold text-sm">{error}</p>
-        {onRetry ? (
-          <button
-            type="button"
-            onClick={onRetry}
-            className="px-4 py-2 text-xs font-semibold rounded-xl bg-red-700 text-white hover:bg-red-800 transition-colors"
-          >
-            {t.retry}
-          </button>
-        ) : null}
-      </div>
-    );
-  }
-  return null;
 }
 
 function MetricsStepsGrid({
@@ -177,41 +138,23 @@ function MetricsFunnelContent({
 
 export function MetricsView(props: MetricsViewProps) {
   const t = translations.metrics;
-  const {
-    data,
-    error,
-    isForbidden,
-    selectedPeriod,
-    handlePeriodChange,
-    selectedCategoryId,
-    handleCategoryChange,
-    fromDate,
-    handleFromDateChange,
-    toDate,
-    handleToDateChange,
-    handleApplyFilters,
-  } = useMetricsFunnel({
-    initialResult: props.initialResult,
-    initialData: props.data,
-    initialError: props.error,
-    initialForbidden: props.isForbidden,
-    selectedPeriod: props.selectedPeriod,
-    onPeriodChange: props.onPeriodChange,
-    selectedCategoryId: props.selectedCategoryId,
-    onCategoryChange: props.onCategoryChange,
-  });
+  const funnel = useMetricsFunnel(props);
 
-  if (isForbidden || error) {
+  if (props.isLoading || funnel.isLoading) {
+    return <FunnelSkeleton />;
+  }
+
+  if (funnel.isForbidden || funnel.error) {
     return (
       <MetricsAlertState
-        isForbidden={isForbidden}
-        error={error}
-        onRetry={props.onRetry}
+        isForbidden={funnel.isForbidden}
+        error={funnel.error}
+        onRetry={props.onRetry ?? funnel.handleRetry}
       />
     );
   }
 
-  if (!data) {
+  if (!funnel.data) {
     return null;
   }
 
@@ -219,17 +162,17 @@ export function MetricsView(props: MetricsViewProps) {
     <div className="space-y-6">
       <MetricsHeader title={t.title} subtitle={t.subtitle} />
       <MetricsFunnelContent
-        data={data}
-        selectedPeriod={selectedPeriod}
-        onPeriodChange={handlePeriodChange}
-        selectedCategoryId={selectedCategoryId}
-        onCategoryChange={handleCategoryChange}
+        data={funnel.data}
+        selectedPeriod={funnel.selectedPeriod}
+        onPeriodChange={funnel.handlePeriodChange}
+        selectedCategoryId={funnel.selectedCategoryId}
+        onCategoryChange={funnel.handleCategoryChange}
         categoryOptions={props.categoryOptions}
-        fromDate={fromDate}
-        toDate={toDate}
-        onFromDateChange={handleFromDateChange}
-        onToDateChange={handleToDateChange}
-        onApplyFilters={handleApplyFilters}
+        fromDate={funnel.fromDate}
+        toDate={funnel.toDate}
+        onFromDateChange={funnel.handleFromDateChange}
+        onToDateChange={funnel.handleToDateChange}
+        onApplyFilters={funnel.handleApplyFilters}
       />
     </div>
   );

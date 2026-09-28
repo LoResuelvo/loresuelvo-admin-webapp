@@ -208,7 +208,9 @@ Given("que el cálculo analítico de las métricas toma unos momentos", async fu
 });
 
 When("accedo a la sección de métricas", async function (this: CustomWorld) {
-  await this.page.goto(new URL("/metricas", this.appUrl).href);
+  await this.page.goto(new URL("/metricas", this.appUrl).href, {
+    waitUntil: "commit",
+  });
 });
 
 Then(
