@@ -1,15 +1,10 @@
-export type FunnelStepName =
-  | "ai_diagnostics"
-  | "requests_created"
-  | "proposals_sent"
-  | "deposits_paid"
-  | "orders_completed"
-  | "reviews_submitted";
+import type { FunnelStepMetric, FunnelStepName } from "@/domain/metrics/funnel";
 
-export interface FunnelStepData {
-  stepName: FunnelStepName;
-  label: string;
-  count: number;
-  relativeConversion: number;
-  avgDurationMinutes?: number | null;
-}
+export type {
+  FunnelStepName,
+  FunnelStepMetric,
+  ConversionFunnel,
+  FunnelFilters,
+} from "@/domain/metrics/funnel";
+
+export type FunnelStepData = FunnelStepMetric;
