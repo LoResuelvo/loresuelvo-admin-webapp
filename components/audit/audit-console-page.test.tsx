@@ -110,5 +110,25 @@ describe("AuditConsolePage", () => {
     const searchInput = screen.getByLabelText("Buscar por operador");
     expect(searchInput).toBeInTheDocument();
   });
+
+  it("passes date range filters to getAuditLogsAction", async () => {
+    vi.mocked(getAuditLogsAction).mockResolvedValue({
+      success: true,
+      data: mockEntries,
+    });
+
+    render(
+      <AuditConsolePage
+        initialFilters={{ from: "2026-09-01", to: "2026-09-20" }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(getAuditLogsAction).toHaveBeenCalledWith({
+        from: "2026-09-01",
+        to: "2026-09-20",
+      });
+    });
+  });
 });
 

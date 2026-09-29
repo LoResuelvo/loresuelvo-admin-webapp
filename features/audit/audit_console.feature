@@ -21,7 +21,6 @@ Feature: Consola de auditoría y registro de acciones administrativas
     When busco los registros asociados al correo "operador@loresuelvo.com"
     Then el listado expone exclusivamente las intervenciones realizadas por dicho operador
 
-  @wip
   Scenario: 04-AUD Filtrar intervenciones dentro de un rango de fechas
     Given que existen registros de auditoría de varios meses
     When selecciono el rango temporal entre "2026-09-01" y "2026-09-20"

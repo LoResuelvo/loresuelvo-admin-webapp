@@ -29,6 +29,24 @@ export async function getE2EAuditLogsStub(filters?: AuditFilters): Promise<ApiSt
       if (match) return match;
     }
 
+    if (filters?.from) {
+      const match = stubs.find(
+        (s) =>
+          s.method === "GET" &&
+          s.endpoint.includes(`from=${encodeURIComponent(filters.from!)}`),
+      );
+      if (match) return match;
+    }
+
+    if (filters?.to) {
+      const match = stubs.find(
+        (s) =>
+          s.method === "GET" &&
+          s.endpoint.includes(`to=${encodeURIComponent(filters.to!)}`),
+      );
+      if (match) return match;
+    }
+
     return (
       stubs.find(
         (s) =>
@@ -66,6 +84,24 @@ export async function resolveAuditLogsFromStub(
         entry.operatorEmail.toLowerCase().includes(op) ||
         entry.operatorId.toLowerCase().includes(op),
     );
+  }
+  if (filters?.from) {
+    const fromDateStr = filters.from.includes("T") ? filters.from : `${filters.from}T00:00:00.000Z`;
+    const fromTime = new Date(fromDateStr).getTime();
+    if (!isNaN(fromTime)) {
+      result = result.filter((entry) => new Date(entry.timestamp).getTime() >= fromTime);
+    } else {
+      result = result.filter((entry) => entry.timestamp.slice(0, 10) >= filters.from!);
+    }
+  }
+  if (filters?.to) {
+    const toDateStr = filters.to.includes("T") ? filters.to : `${filters.to}T23:59:59.999Z`;
+    const toTime = new Date(toDateStr).getTime();
+    if (!isNaN(toTime)) {
+      result = result.filter((entry) => new Date(entry.timestamp).getTime() <= toTime);
+    } else {
+      result = result.filter((entry) => entry.timestamp.slice(0, 10) <= filters.to!);
+    }
   }
   return result;
 }

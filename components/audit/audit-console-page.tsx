@@ -43,6 +43,15 @@ function AuditConsoleSkeleton() {
   );
 }
 
+function buildApiFilters(filters: AuditFiltersState): AuditFilters {
+  return {
+    ...(filters.action ? { action: filters.action as AuditAction } : {}),
+    ...(filters.operator?.trim() ? { operator: filters.operator.trim() } : {}),
+    ...(filters.from?.trim() ? { from: filters.from.trim() } : {}),
+    ...(filters.to?.trim() ? { to: filters.to.trim() } : {}),
+  };
+}
+
 export interface AuditConsolePageProps {
   initialFilters?: AuditFilters;
 }
@@ -53,6 +62,8 @@ export function AuditConsolePage({ initialFilters }: AuditConsolePageProps) {
   const [filters, setFilters] = useState<AuditFiltersState>({
     action: initialFilters?.action ?? "",
     operator: initialFilters?.operator ?? "",
+    from: initialFilters?.from ?? "",
+    to: initialFilters?.to ?? "",
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,17 +74,11 @@ export function AuditConsolePage({ initialFilters }: AuditConsolePageProps) {
     setError(null);
     setIsForbidden(false);
     try {
-      const apiFilters: AuditFilters = {
-        ...(activeFilters.action ? { action: activeFilters.action as AuditAction } : {}),
-        ...(activeFilters.operator?.trim() ? { operator: activeFilters.operator.trim() } : {}),
-      };
-      const result = await getAuditLogsAction(apiFilters);
+      const result = await getAuditLogsAction(buildApiFilters(activeFilters));
       if (result.success) {
         setEntries(result.data);
       } else {
-        if (result.isForbidden) {
-          setIsForbidden(true);
-        }
+        if (result.isForbidden) setIsForbidden(true);
         setError(result.error);
       }
     } catch {
@@ -87,7 +92,9 @@ export function AuditConsolePage({ initialFilters }: AuditConsolePageProps) {
     void loadAuditLogs(filters);
   }, [filters, loadAuditLogs]);
 
-  const hasActiveFilters = Boolean(filters.action || filters.operator);
+  const hasActiveFilters = Boolean(
+    filters.action || filters.operator || filters.from || filters.to,
+  );
 
   return (
     <div className="space-y-6">
