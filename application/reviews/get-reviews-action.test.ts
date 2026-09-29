@@ -26,6 +26,7 @@ const mockReviewsList: ReviewModerationItem[] = [
 vi.mock("@/infrastructure/repositories/api-review-repository", () => ({
   apiReviewRepository: {
     getReviews: vi.fn(),
+    moderate: vi.fn(),
   },
 }));
 
