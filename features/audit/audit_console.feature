@@ -36,7 +36,6 @@ Feature: Consola de auditoría y registro de acciones administrativas
     When accedo a la sección de auditoría
     Then se presenta una vista de carga con indicadores visuales mientras se obtienen los datos
 
-  @wip
   Scenario: 07-AUD Informar falta de permisos para consultar la bitácora de seguridad
     Given que mi cuenta de usuario no posee permisos de auditoría
     When intento ingresar a la sección de auditoría

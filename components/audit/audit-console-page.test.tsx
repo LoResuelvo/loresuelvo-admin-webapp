@@ -62,6 +62,10 @@ describe("AuditConsolePage", () => {
         screen.getByText("No posees permisos suficientes para acceder a la consola de auditoría."),
       ).toBeInTheDocument();
     });
+
+    const alert = screen.getByRole("alert");
+    expect(alert).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Reintentar" })).not.toBeInTheDocument();
   });
 
   it("displays error message and allows retry", async () => {
