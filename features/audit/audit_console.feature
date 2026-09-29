@@ -41,7 +41,6 @@ Feature: Consola de auditoría y registro de acciones administrativas
     When intento ingresar a la sección de auditoría
     Then el sistema me informa que el acceso está restringido
 
-  @wip
   Scenario: 08-AUD Manejar inconvenientes de conexión al consultar la auditoría
     Given que el servicio de auditoría experimenta inconvenientes
     When intento consultar la consola de auditoría

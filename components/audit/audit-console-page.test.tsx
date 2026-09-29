@@ -80,7 +80,19 @@ describe("AuditConsolePage", () => {
       expect(screen.getByText("Ocurrió un error al cargar la bitácora de auditoría.")).toBeInTheDocument();
     });
 
-    expect(screen.getByRole("button", { name: "Reintentar" })).toBeInTheDocument();
+    const retryButton = screen.getByRole("button", { name: "Reintentar" });
+    expect(retryButton).toBeInTheDocument();
+
+    vi.mocked(getAuditLogsAction).mockResolvedValueOnce({
+      success: true,
+      data: mockEntries,
+    });
+
+    retryButton.click();
+
+    await waitFor(() => {
+      expect(screen.getByText("operador@loresuelvo.com")).toBeInTheDocument();
+    });
   });
 
   it("filters entries when action is selected in AuditFiltersBar", async () => {
