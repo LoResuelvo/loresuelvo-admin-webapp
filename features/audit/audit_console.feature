@@ -11,7 +11,6 @@ Feature: Consola de auditoría y registro de acciones administrativas
     When accedo a la sección de auditoría
     Then visualizo los registros ordenados por fecha con el operador responsable, el recurso involucrado, la acción efectuada y el motivo justificado
 
-  @wip
   Scenario: 02-AUD Filtrar registros de auditoría por tipo de acción sensible
     Given que la bitácora registra accesos a chats privados y resoluciones de reclamos
     When filtro los registros por la acción "Acceso a chat privado"

@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { AuditFilters, AuditLogEntry } from "@/domain/audit/audit-log";
+import type { AuditAction, AuditFilters, AuditLogEntry } from "@/domain/audit/audit-log";
 import { translations } from "@/infrastructure/i18n/translations";
 import { getAuditLogsAction } from "@/app/(dashboard)/auditoria/actions";
+import { AuditFiltersBar, type AuditFiltersState } from "./audit-filters-bar";
 import { AuditTable } from "./audit-table";
 
 function AuditForbidden({ message }: { message: string }) {
@@ -47,18 +48,26 @@ export interface AuditConsolePageProps {
 }
 
 export function AuditConsolePage({ initialFilters }: AuditConsolePageProps) {
+  const copy = translations.audit;
   const [entries, setEntries] = useState<AuditLogEntry[]>([]);
-  const [filters, setFilters] = useState<AuditFilters>(initialFilters ?? {});
+  const [filters, setFilters] = useState<AuditFiltersState>({
+    action: initialFilters?.action ?? "",
+    operator: initialFilters?.operator ?? "",
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isForbidden, setIsForbidden] = useState(false);
 
-  const loadAuditLogs = useCallback(async (activeFilters?: AuditFilters) => {
+  const loadAuditLogs = useCallback(async (activeFilters: AuditFiltersState) => {
     setIsLoading(true);
     setError(null);
     setIsForbidden(false);
     try {
-      const result = await getAuditLogsAction(activeFilters);
+      const apiFilters: AuditFilters = {
+        ...(activeFilters.action ? { action: activeFilters.action as AuditAction } : {}),
+        ...(activeFilters.operator?.trim() ? { operator: activeFilters.operator.trim() } : {}),
+      };
+      const result = await getAuditLogsAction(apiFilters);
       if (result.success) {
         setEntries(result.data);
       } else {
@@ -68,31 +77,33 @@ export function AuditConsolePage({ initialFilters }: AuditConsolePageProps) {
         setError(result.error);
       }
     } catch {
-      setError(translations.audit.error);
+      setError(copy.error);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [copy.error]);
 
   useEffect(() => {
     void loadAuditLogs(filters);
   }, [filters, loadAuditLogs]);
 
-  if (isLoading) {
-    return <AuditConsoleSkeleton />;
-  }
-
-  if (isForbidden) {
-    return <AuditForbidden message={error ?? translations.audit.forbidden} />;
-  }
-
-  if (error) {
-    return <AuditErrorView error={error} onRetry={() => loadAuditLogs(filters)} />;
-  }
+  const hasActiveFilters = Boolean(filters.action || filters.operator);
 
   return (
     <div className="space-y-6">
-      <AuditTable entries={entries} />
+      <AuditFiltersBar filters={filters} onChange={setFilters} />
+      {isLoading ? (
+        <AuditConsoleSkeleton />
+      ) : isForbidden ? (
+        <AuditForbidden message={error ?? copy.forbidden} />
+      ) : error ? (
+        <AuditErrorView error={error} onRetry={() => loadAuditLogs(filters)} />
+      ) : (
+        <AuditTable
+          entries={entries}
+          emptyMessage={hasActiveFilters ? copy.table.emptyFiltered : undefined}
+        />
+      )}
     </div>
   );
 }

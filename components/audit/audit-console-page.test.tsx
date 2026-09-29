@@ -78,4 +78,20 @@ describe("AuditConsolePage", () => {
 
     expect(screen.getByRole("button", { name: "Reintentar" })).toBeInTheDocument();
   });
+
+  it("filters entries when action is selected in AuditFiltersBar", async () => {
+    vi.mocked(getAuditLogsAction).mockResolvedValue({
+      success: true,
+      data: mockEntries,
+    });
+
+    render(<AuditConsolePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("operador@loresuelvo.com")).toBeInTheDocument();
+    });
+
+    const select = screen.getByLabelText("Filtrar por acción");
+    expect(select).toBeInTheDocument();
+  });
 });

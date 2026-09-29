@@ -155,7 +155,8 @@ function useEditCategoryForm(
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!category) return;
-    const trimmed = name.trim();
+    const currentName = inputRef.current ? inputRef.current.value : name;
+    const trimmed = currentName.trim();
     if (!trimmed) {
       setValidationError(copy.errors.nameRequired);
       inputRef.current?.focus();
