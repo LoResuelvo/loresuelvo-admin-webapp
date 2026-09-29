@@ -6,6 +6,7 @@ export const navigationTranslations = {
   operations: "Centro de Operaciones",
   payments: "Pagos",
   metrics: "Métricas",
+  claims: "Reclamos",
   signOut: "Cerrar sesión",
   logout: "Cerrar sesión",
   mainNav: "Navegación de administración",

@@ -6,7 +6,6 @@ Feature: Expediente de reclamos y resolución de disputas
   Background:
     Given que he iniciado sesión en el panel de administración
 
-  @wip
   Scenario: 01-CLM Visualizar listado de reclamos e incidentes operativos con estado y urgencia
     Given que existen reclamos formales registrados en el sistema
     When accedo a la sección de reclamos en "/reclamos"

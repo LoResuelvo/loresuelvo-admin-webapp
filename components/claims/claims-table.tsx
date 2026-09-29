@@ -1,20 +1,8 @@
+import type { Claim, ClaimantType, ClaimStatus, ClaimUrgency } from "@/domain/claims/claim";
 import { translations } from "@/infrastructure/i18n/translations";
 
-export type ClaimantType = "consumer" | "provider";
-export type ClaimStatus = "open" | "in_review" | "resolved" | "dismissed";
-export type ClaimUrgency = "high" | "medium" | "low";
-
-export interface ClaimItem {
-  id: string;
-  createdAt: string;
-  operationId: number;
-  claimantType: ClaimantType;
-  claimantName: string;
-  respondentName: string;
-  categoryName: string;
-  status: ClaimStatus;
-  urgency: ClaimUrgency;
-}
+export type { ClaimantType, ClaimStatus, ClaimUrgency };
+export type ClaimItem = Claim;
 
 export interface ClaimsTableProps {
   claims: readonly ClaimItem[];

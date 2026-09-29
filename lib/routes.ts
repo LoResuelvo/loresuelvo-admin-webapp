@@ -11,6 +11,8 @@ export const ROUTES = {
   operationDetail: (id: string | number) => `/operaciones/${id}`,
   payments: "/pagos",
   metrics: "/metricas",
+  claims: "/reclamos",
+  claimDetail: (id: string | number) => `/reclamos/${id}`,
   logout: "/auth/logout",
 } as const;
 
