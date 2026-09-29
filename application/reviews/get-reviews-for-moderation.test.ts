@@ -20,6 +20,7 @@ describe("getReviewsForModeration use case", () => {
   it("delegates to ReviewRepository with token and status", async () => {
     const repository: ReviewRepository = {
       getReviews: vi.fn().mockResolvedValue([mockReview]),
+      moderate: vi.fn(),
     };
 
     const result = await getReviewsForModeration(repository, "test-token", "reported");
@@ -31,6 +32,7 @@ describe("getReviewsForModeration use case", () => {
   it("propagates repository errors", async () => {
     const repository: ReviewRepository = {
       getReviews: vi.fn().mockRejectedValue(new Error("Network failure")),
+      moderate: vi.fn(),
     };
 
     await expect(getReviewsForModeration(repository, "token")).rejects.toThrow("Network failure");

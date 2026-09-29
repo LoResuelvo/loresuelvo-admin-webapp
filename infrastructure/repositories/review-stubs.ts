@@ -2,7 +2,7 @@ import type { ReviewModerationItem, ReviewStatus } from "@/domain/reviews/review
 import { ReviewError } from "@/domain/reviews/review-error";
 import type { ApiStub } from "@/infrastructure/api/types";
 import { parseE2EStubsFromCookies } from "@/infrastructure/api/e2e-stubs-utils";
-import { mapReviewsList } from "./review-mapper";
+import { mapReviewsList, mapReviewModerationItem } from "./review-mapper";
 
 export async function getE2EReviewsStub(status?: ReviewStatus): Promise<ApiStub | null> {
   if (process.env.APP_ENV === "production") return null;
@@ -52,3 +52,34 @@ export async function resolveReviewsFromStub(
   }
   return result;
 }
+
+export async function getE2EModerateReviewStub(id: string): Promise<ApiStub | null> {
+  if (process.env.APP_ENV === "production") return null;
+  try {
+    const { cookies } = await import("next/headers");
+    const cookieStore = await cookies();
+    const stubs = parseE2EStubsFromCookies(cookieStore.getAll());
+    return (
+      stubs.find(
+        (s) =>
+          s.method === "POST" &&
+          (s.endpoint === `/admin/reviews/${id}/moderate` ||
+            s.endpoint === `/reviews/${id}/moderate`),
+      ) ?? null
+    );
+  } catch {
+    return null;
+  }
+}
+
+export async function resolveModerateReviewFromStub(stub: ApiStub): Promise<ReviewModerationItem> {
+  if (stub.delayMs) {
+    await new Promise((resolve) => setTimeout(resolve, stub.delayMs));
+  }
+  if (stub.status === 403) throw new ReviewError("forbidden", "Forbidden");
+  if (stub.status >= 500) throw new ReviewError("unavailable", `Failed: ${stub.status}`);
+  if (stub.status >= 400) throw new ReviewError("unknown", `Failed: ${stub.status}`);
+
+  return mapReviewModerationItem(stub.body);
+}
+
