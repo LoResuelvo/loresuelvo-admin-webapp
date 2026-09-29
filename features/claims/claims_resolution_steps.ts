@@ -50,3 +50,37 @@ Then("el formulario no se envía", async function (this: CustomWorld) {
   const statusText = await statusBadge.innerText();
   assert.ok(!statusText.includes("Resuelto"));
 });
+
+Given(
+  "que el servidor de soporte experimenta inconvenientes",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/claims/clm-101", sampleClaimDetailOpenResponse);
+    await this.stubPost("/admin/claims/clm-101/resolution", 500, {
+      error: "Internal Server Error",
+    });
+  },
+);
+
+When(
+  "intento registrar el dictamen de un reclamo",
+  async function (this: CustomWorld) {
+    await this.page.goto(new URL("/reclamos/clm-101", this.appUrl).href);
+    const openModalBtn = this.page.getByRole("button", {
+      name: /dictaminar resolución|resolver reclamo/i,
+    });
+    await openModalBtn.waitFor();
+    await openModalBtn.click();
+
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor();
+
+    const reasonInput = dialog.getByLabel(/motivo justificado|fundamentación/i);
+    await reasonInput.fill("Incumplimiento verificado de visita pactada");
+
+    const submitBtn = dialog.getByRole("button", {
+      name: /confirmar dictamen|registrar resolución/i,
+    });
+    await submitBtn.click();
+  },
+);
+
