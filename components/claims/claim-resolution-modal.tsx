@@ -20,6 +20,7 @@ export interface ClaimResolutionModalProps {
   onSubmit: (data: ClaimResolutionFormData) => Promise<void> | void;
   isSubmitting?: boolean;
   error?: string | null;
+  onRetry?: () => void;
 }
 
 interface ClaimResolutionFormProps {
@@ -27,12 +28,20 @@ interface ClaimResolutionFormProps {
   onSubmit: (data: ClaimResolutionFormData) => Promise<void> | void;
   isSubmitting: boolean;
   error: string | null;
+  onRetry?: () => void;
+}
+
+function parseCompensationCents(amount: string): number | null {
+  if (!amount) return null;
+  const cents = Math.round(Number(amount) * 100);
+  return Number.isFinite(cents) ? cents : null;
 }
 
 function useResolutionForm(
   onSubmit: (data: ClaimResolutionFormData) => Promise<void> | void,
   onClose: () => void,
   isSubmitting: boolean,
+  onRetry?: () => void,
 ) {
   const [resolutionType, setResolutionType] = useState<ResolutionType>("favor_consumer");
   const [reason, setReason] = useState("");
@@ -47,23 +56,26 @@ function useResolutionForm(
     onClose();
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const submitWithCurrentValues = async () => {
     const trimmedReason = reason.trim();
-
     if (!trimmedReason) {
       setValidationError(copy.errors.reasonRequired);
       return;
     }
-
     setValidationError(null);
-    const cents = compensationAmount ? Math.round(Number(compensationAmount) * 100) : null;
     await onSubmit({
       resolutionType,
       reason: trimmedReason,
-      compensationAmountCents: Number.isFinite(cents) ? cents : null,
+      compensationAmountCents: parseCompensationCents(compensationAmount),
     });
   };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await submitWithCurrentValues();
+  };
+
+  const handleRetry = () => (onRetry ? onRetry() : void submitWithCurrentValues());
 
   const handleReasonChange = (val: string) => {
     setReason(val);
@@ -71,16 +83,40 @@ function useResolutionForm(
   };
 
   return {
-    resolutionType,
-    setResolutionType,
-    reason,
-    handleReasonChange,
-    compensationAmount,
-    setCompensationAmount,
-    validationError,
-    handleClose,
-    handleSubmit,
+    resolutionType, setResolutionType,
+    reason, handleReasonChange,
+    compensationAmount, setCompensationAmount,
+    validationError, handleClose, handleSubmit, handleRetry,
   };
+}
+
+function ClaimResolutionErrorAlert({
+  error,
+  onRetry,
+  disabled,
+}: {
+  error: string;
+  onRetry: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <div
+      role="alert"
+      className="flex flex-col gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"
+    >
+      <p>{error}</p>
+      <div>
+        <button
+          type="button"
+          onClick={onRetry}
+          disabled={disabled}
+          className="inline-flex items-center rounded-lg bg-rose-700 px-3 py-1.5 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-rose-800 disabled:opacity-50"
+        >
+          {translations.claims.retry}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function ClaimResolutionForm({
@@ -88,17 +124,20 @@ function ClaimResolutionForm({
   onSubmit,
   isSubmitting,
   error,
+  onRetry,
 }: ClaimResolutionFormProps) {
   const ids = { type: useId(), reason: useId(), comp: useId(), error: useId() };
-  const form = useResolutionForm(onSubmit, onClose, isSubmitting);
+  const form = useResolutionForm(onSubmit, onClose, isSubmitting, onRetry);
   const copy = translations.claims.resolution;
 
   return (
     <form onSubmit={form.handleSubmit} noValidate className="space-y-4">
       {error && (
-        <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-          {error}
-        </div>
+        <ClaimResolutionErrorAlert
+          error={error}
+          onRetry={form.handleRetry}
+          disabled={isSubmitting}
+        />
       )}
       <ResolutionTypeSelect
         id={ids.type}
@@ -137,6 +176,7 @@ export function ClaimResolutionModal({
   onSubmit,
   isSubmitting = false,
   error = null,
+  onRetry,
 }: ClaimResolutionModalProps) {
   const copy = translations.claims.resolution;
 
@@ -152,7 +192,9 @@ export function ClaimResolutionModal({
         onSubmit={onSubmit}
         isSubmitting={isSubmitting}
         error={error}
+        onRetry={onRetry}
       />
     </Modal>
   );
 }
+

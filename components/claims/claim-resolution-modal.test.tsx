@@ -130,4 +130,70 @@ describe("ClaimResolutionModal", () => {
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
+
+  it("renders retry button inside error alert when error is present", () => {
+    render(
+      <ClaimResolutionModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+        error="Inconveniente con el servidor de soporte"
+      />
+    );
+
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("Inconveniente con el servidor de soporte");
+    expect(screen.getByRole("button", { name: "Reintentar" })).toBeInTheDocument();
+  });
+
+  it("calls onRetry callback when retry button is clicked", async () => {
+    const onRetry = vi.fn();
+    render(
+      <ClaimResolutionModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+        error="Inconveniente temporal"
+        onRetry={onRetry}
+      />
+    );
+
+    const retryButton = screen.getByRole("button", { name: "Reintentar" });
+    await userEvent.click(retryButton);
+
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("re-submits form data when retry button is clicked without onRetry callback", async () => {
+    const onSubmit = vi.fn();
+    const { rerender } = render(
+      <ClaimResolutionModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onSubmit={onSubmit}
+      />
+    );
+
+    const input = screen.getByLabelText("Motivo justificado");
+    await userEvent.type(input, "Demora no justificada");
+
+    rerender(
+      <ClaimResolutionModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onSubmit={onSubmit}
+        error="Error en el servidor"
+      />
+    );
+
+    const retryButton = screen.getByRole("button", { name: "Reintentar" });
+    await userEvent.click(retryButton);
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      resolutionType: "favor_consumer",
+      reason: "Demora no justificada",
+      compensationAmountCents: null,
+    });
+  });
 });
+
