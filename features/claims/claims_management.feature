@@ -16,7 +16,6 @@ Feature: Expediente de reclamos y resolución de disputas
     When accedo al expediente del reclamo en "/reclamos/clm-101"
     Then visualizo la descripción del conflicto, las fotos de evidencia y el enlace directo hacia la contratación asociada
 
-  @wip
   Scenario: 03-CLM Registrar dictamen de resolución de mediación con motivo justificado
     Given que me encuentro en el expediente de un reclamo abierto
     When registro la resolución "A favor del cliente" con el motivo "Incumplimiento de visita pactada sin aviso previo"

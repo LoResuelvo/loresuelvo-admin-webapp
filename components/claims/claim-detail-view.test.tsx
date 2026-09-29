@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 import { ClaimDetailView, type ClaimDetailViewModel } from "./claim-detail-view";
 
 const sampleClaim: ClaimDetailViewModel = {
@@ -46,5 +47,46 @@ describe("ClaimDetailView", () => {
     const opLink = screen.getByTestId("operation-link");
     expect(opLink).toHaveAttribute("href", "/operaciones/42");
     expect(opLink).toHaveTextContent("Contratación #42");
+  });
+
+  it("renders resolve button and triggers onOpenResolutionModal", async () => {
+    const onOpen = vi.fn();
+    render(<ClaimDetailView claim={sampleClaim} onOpenResolutionModal={onOpen} />);
+
+    const button = screen.getByRole("button", { name: "Dictaminar resolución" });
+    expect(button).toBeInTheDocument();
+    await userEvent.click(button);
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders success banner when successMessage is passed", () => {
+    render(
+      <ClaimDetailView
+        claim={sampleClaim}
+        successMessage="Dictamen registrado con éxito"
+      />,
+    );
+
+    expect(screen.getByTestId("claim-resolution-success")).toHaveTextContent(
+      "Dictamen registrado con éxito",
+    );
+  });
+
+  it("renders resolution card when resolution details are present", () => {
+    const resolvedClaim: ClaimDetailViewModel = {
+      ...sampleClaim,
+      status: "resolved",
+      resolution: {
+        resolutionType: "favor_consumer",
+        reason: "Incumplimiento verificado",
+      },
+    };
+
+    render(<ClaimDetailView claim={resolvedClaim} />);
+
+    expect(screen.getByTestId("claim-resolution-card")).toBeInTheDocument();
+    expect(screen.getByText("A favor del cliente")).toBeInTheDocument();
+    expect(screen.getByText("Incumplimiento verificado")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Dictaminar resolución" })).not.toBeInTheDocument();
   });
 });

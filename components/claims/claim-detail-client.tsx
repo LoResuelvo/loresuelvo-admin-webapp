@@ -1,13 +1,16 @@
 "use client";
 
+// Client container for claim detail and dispute resolution
+
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import type { ClaimDetails } from "@/domain/claims/claim";
-import { getClaimDetailsAction } from "@/app/(dashboard)/reclamos/actions";
+import { getClaimDetailsAction, resolveClaimAction } from "@/app/(dashboard)/reclamos/actions";
 import { translations } from "@/infrastructure/i18n/translations";
 import { ROUTES } from "@/lib/routes";
 import { ClaimDetailView } from "./claim-detail-view";
 import { ClaimDetailSkeleton } from "./claim-detail-skeleton";
+import { ClaimResolutionModal, type ClaimResolutionFormData } from "./claim-resolution-modal";
 
 export interface ClaimDetailClientProps {
   id: string;
@@ -93,13 +96,75 @@ function useClaimDetail(id: string) {
     loadClaim();
   }, [loadClaim]);
 
-  return { claim, isLoading, error, isNotFound, isForbidden, reload: loadClaim };
+  return { claim, setClaim, isLoading, error, isNotFound, isForbidden, reload: loadClaim };
 }
 
-export function ClaimDetailClient({ id }: ClaimDetailClientProps) {
+function useClaimResolution(
+  id: string,
+  setClaim: React.Dispatch<React.SetStateAction<ClaimDetails | null>>,
+) {
   const copy = translations.claims;
-  const { claim, isLoading, error, isNotFound, isForbidden, reload } = useClaimDetail(id);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  const handleOpen = () => setIsOpen(true);
+  const handleClose = () => {
+    if (!isSubmitting) {
+      setIsOpen(false);
+      setError(null);
+    }
+  };
+
+  const handleResolve = async (data: ClaimResolutionFormData) => {
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      const result = await resolveClaimAction(id, data);
+      if (result.success) {
+        setClaim((prev) =>
+          prev ? { ...prev, status: "resolved", resolution: result.data } : prev,
+        );
+        setSuccessMessage(copy.resolution.successMessage);
+        setIsOpen(false);
+      } else {
+        setError(result.error);
+      }
+    } catch {
+      setError(copy.detail.error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return {
+    isOpen,
+    isSubmitting,
+    error,
+    successMessage,
+    handleOpen,
+    handleClose,
+    handleResolve,
+  };
+}
+
+function ClaimDetailStatusView({
+  isForbidden,
+  isNotFound,
+  error,
+  isLoading,
+  hasClaim,
+  onRetry,
+}: {
+  isForbidden: boolean;
+  isNotFound: boolean;
+  error: string | null;
+  isLoading: boolean;
+  hasClaim: boolean;
+  onRetry: () => void;
+}) {
+  const copy = translations.claims;
   if (isForbidden) {
     return (
       <DetailAlert
@@ -111,7 +176,6 @@ export function ClaimDetailClient({ id }: ClaimDetailClientProps) {
       />
     );
   }
-
   if (isNotFound) {
     return (
       <DetailAlert
@@ -123,7 +187,6 @@ export function ClaimDetailClient({ id }: ClaimDetailClientProps) {
       />
     );
   }
-
   if (error) {
     return (
       <DetailAlert
@@ -131,15 +194,48 @@ export function ClaimDetailClient({ id }: ClaimDetailClientProps) {
         borderColor="border-rose-200"
         bgColor="bg-rose-50"
         textColor="text-rose-700"
-        onRetry={reload}
+        onRetry={onRetry}
       />
     );
   }
-
-  if (isLoading || !claim) {
+  if (isLoading || !hasClaim) {
     return <ClaimDetailSkeleton />;
   }
-
-  return <ClaimDetailView claim={claim} />;
+  return null;
 }
 
+export function ClaimDetailClient({ id }: ClaimDetailClientProps) {
+  const { claim, setClaim, isLoading, error, isNotFound, isForbidden, reload } = useClaimDetail(id);
+  const resolution = useClaimResolution(id, setClaim);
+
+  const statusElement = (
+    <ClaimDetailStatusView
+      isForbidden={isForbidden}
+      isNotFound={isNotFound}
+      error={error}
+      isLoading={isLoading}
+      hasClaim={Boolean(claim)}
+      onRetry={reload}
+    />
+  );
+  if (!claim || isLoading || isForbidden || isNotFound || error) {
+    return statusElement;
+  }
+
+  return (
+    <>
+      <ClaimDetailView
+        claim={claim}
+        onOpenResolutionModal={resolution.handleOpen}
+        successMessage={resolution.successMessage}
+      />
+      <ClaimResolutionModal
+        isOpen={resolution.isOpen}
+        onClose={resolution.handleClose}
+        onSubmit={resolution.handleResolve}
+        isSubmitting={resolution.isSubmitting}
+        error={resolution.error}
+      />
+    </>
+  );
+}

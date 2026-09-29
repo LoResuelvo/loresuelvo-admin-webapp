@@ -202,9 +202,9 @@ Then(
 );
 
 Then("veo una confirmación del dictamen registrado", async function (this: CustomWorld) {
-  const confirmation = this.page.locator('[data-testid="claim-resolution-success"], [role="status"], [role="alert"]');
-  await confirmation.first().waitFor();
-  const text = await confirmation.first().innerText();
+  const confirmation = this.page.locator('[data-testid="claim-resolution-success"]');
+  await confirmation.waitFor();
+  const text = await confirmation.innerText();
   assert.ok(
     text.toLowerCase().includes("dictamen") ||
       text.toLowerCase().includes("resolución") ||
