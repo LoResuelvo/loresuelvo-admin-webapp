@@ -173,5 +173,48 @@ Then(
   },
 );
 
+Given(
+  "que selecciono una intervención de la bitácora de auditoría",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/audit-logs", sampleAuditLogsResponse);
+    const auditPath = (ROUTES as unknown as Record<string, string>).audit ?? "/auditoria";
+    await this.page.goto(new URL(auditPath, this.appUrl).href);
+    const table = this.page.getByRole("table");
+    await table.waitFor();
+    const rows = this.page.locator("tbody tr");
+    await rows.first().waitFor();
+  },
+);
+
+When(
+  "abro la ficha de detalle de la intervención",
+  async function (this: CustomWorld) {
+    const firstRow = this.page.locator("tbody tr").first();
+    await firstRow.waitFor();
+    await firstRow.click();
+  },
+);
+
+Then(
+  "visualizo la información contextual de la acción, el origen protegido de la solicitud y su identificador de trazabilidad",
+  async function (this: CustomWorld) {
+    const modal = this.page.getByRole("dialog");
+    await modal.waitFor();
+    const modalText = await modal.innerText();
+
+    assert.ok(modalText.includes("operador@loresuelvo.com"));
+    assert.ok(modalText.includes("Acceso a chat privado"));
+    assert.ok(modalText.includes("Investigación de reporte"));
+    assert.ok(modalText.includes("Contratación #105") || modalText.includes("105"));
+
+    assert.ok(modalText.includes("192.168.1.xxx") || modalText.includes("192.168.1.***"));
+    assert.ok(!modalText.includes("192.168.1.50"));
+    assert.ok(modalText.includes("Mozilla/5.0") || modalText.includes("Admin Console"));
+
+    assert.ok(modalText.includes("aud-001"));
+  },
+);
+
+
 
 
