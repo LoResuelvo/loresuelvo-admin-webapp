@@ -38,7 +38,6 @@ Feature: Expediente de reclamos y resolución de disputas
     When accedo al detalle del reclamo
     Then se presenta una vista de carga con indicadores visuales mientras se obtienen los antecedentes
 
-  @wip
   Scenario: 07-CLM Informar falta de permisos para gestionar reclamos
     Given que mi cuenta de usuario no posee permisos de mediación
     When intento ingresar a la sección de reclamos
