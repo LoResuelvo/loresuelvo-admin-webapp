@@ -1,6 +1,17 @@
 export type ClaimantType = "consumer" | "provider";
 export type ClaimStatus = "open" | "in_review" | "resolved" | "dismissed";
 export type ClaimUrgency = "high" | "medium" | "low";
+export type ResolutionType =
+  | "favor_consumer"
+  | "favor_provider"
+  | "mutual_agreement"
+  | "dismissed";
+
+export interface ResolutionInput {
+  resolutionType: ResolutionType;
+  reason: string;
+  compensationAmountCents?: number | null;
+}
 
 export interface Claim {
   id: string;

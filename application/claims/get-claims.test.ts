@@ -20,6 +20,7 @@ describe("getClaims use case", () => {
     const repository: ClaimRepository = {
       getClaims: vi.fn().mockResolvedValue([mockClaim]),
       getClaimById: vi.fn(),
+      resolveClaim: vi.fn(),
     };
 
     const result = await getClaims(repository, "test-token", { status: "in_review" });
@@ -32,6 +33,7 @@ describe("getClaims use case", () => {
     const repository: ClaimRepository = {
       getClaims: vi.fn().mockRejectedValue(new Error("Network failure")),
       getClaimById: vi.fn(),
+      resolveClaim: vi.fn(),
     };
 
     await expect(getClaims(repository, "token")).rejects.toThrow("Network failure");

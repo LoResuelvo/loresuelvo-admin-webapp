@@ -1,8 +1,16 @@
-import type { Claim, ClaimDetails } from "@/domain/claims/claim";
+import type {
+  Claim,
+  ClaimDetails,
+  ClaimResolution,
+  ResolutionInput,
+} from "@/domain/claims/claim";
 import {
   apiClaimListItemSchema,
   apiClaimsListSchema,
   apiClaimDetailSchema,
+  apiClaimResolutionSchema,
+  apiResolutionInputSchema,
+  type ApiResolutionInput,
 } from "@/infrastructure/api/types";
 
 export function mapClaimListItem(value: unknown): Claim {
@@ -41,6 +49,36 @@ export function mapClaimsList(value: unknown): Claim[] {
   }));
 }
 
+export function mapClaimResolution(value: unknown): ClaimResolution {
+  const target =
+    value && typeof value === "object" && "resolution" in value && (value as Record<string, unknown>).resolution
+      ? (value as Record<string, unknown>).resolution
+      : value;
+  const parsed = apiClaimResolutionSchema.safeParse(target);
+  if (!parsed.success) {
+    throw new Error("Invalid claim resolution data");
+  }
+  return {
+    resolutionType: parsed.data.resolution_type,
+    reason: parsed.data.reason,
+    compensationAmountCents: parsed.data.compensation_amount_cents ?? null,
+    resolvedBy: parsed.data.resolved_by ?? null,
+    resolvedAt: parsed.data.resolved_at ?? null,
+  };
+}
+
+export function mapResolutionInputToApi(input: ResolutionInput): ApiResolutionInput {
+  const parsed = apiResolutionInputSchema.safeParse({
+    resolution_type: input.resolutionType,
+    reason: input.reason,
+    compensation_amount_cents: input.compensationAmountCents,
+  });
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? "Invalid resolution input");
+  }
+  return parsed.data;
+}
+
 export function mapClaimDetails(value: unknown): ClaimDetails {
   const parsed = apiClaimDetailSchema.safeParse(value);
   if (!parsed.success) {
@@ -59,15 +97,6 @@ export function mapClaimDetails(value: unknown): ClaimDetails {
     claimReason: parsed.data.claim_reason,
     description: parsed.data.description,
     evidencePhotoUrls: parsed.data.evidence_photo_urls,
-    resolution: parsed.data.resolution
-      ? {
-          resolutionType: parsed.data.resolution.resolution_type,
-          reason: parsed.data.resolution.reason,
-          compensationAmountCents: parsed.data.resolution.compensation_amount_cents ?? null,
-          resolvedBy: parsed.data.resolution.resolved_by ?? null,
-          resolvedAt: parsed.data.resolution.resolved_at ?? null,
-        }
-      : null,
+    resolution: parsed.data.resolution ? mapClaimResolution(parsed.data.resolution) : null,
   };
 }
-

@@ -1,7 +1,7 @@
 "use client";
 
 import { translations } from "@/infrastructure/i18n/translations";
-import type { ResolutionType } from "./claim-resolution-modal";
+import type { ResolutionType } from "@/domain/claims/claim";
 
 interface ResolutionTypeSelectProps {
   id: string;

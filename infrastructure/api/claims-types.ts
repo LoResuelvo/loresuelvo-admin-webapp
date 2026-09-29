@@ -33,3 +33,16 @@ export type ApiClaimListItem = z.infer<typeof apiClaimListItemSchema>;
 export type ApiClaimsList = z.infer<typeof apiClaimsListSchema>;
 export type ApiClaimResolution = z.infer<typeof apiClaimResolutionSchema>;
 export type ApiClaimDetail = z.infer<typeof apiClaimDetailSchema>;
+
+export const apiResolutionInputSchema = z.object({
+  resolution_type: z.enum([
+    "favor_consumer",
+    "favor_provider",
+    "mutual_agreement",
+    "dismissed",
+  ]),
+  reason: z.string().trim().min(1, "El motivo de resolución es obligatorio"),
+  compensation_amount_cents: z.number().int().nonnegative().nullable().optional(),
+});
+
+export type ApiResolutionInput = z.infer<typeof apiResolutionInputSchema>;

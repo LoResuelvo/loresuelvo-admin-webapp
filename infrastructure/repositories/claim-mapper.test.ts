@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { mapClaimListItem, mapClaimsList, mapClaimDetails } from "./claim-mapper";
+import type { ResolutionInput } from "@/domain/claims/claim";
+import {
+  mapClaimListItem,
+  mapClaimsList,
+  mapClaimDetails,
+  mapClaimResolution,
+  mapResolutionInputToApi,
+} from "./claim-mapper";
 
 describe("claim-mapper", () => {
   const validDto = {
@@ -143,6 +150,56 @@ describe("claim-mapper", () => {
       expect(() =>
         mapClaimDetails({ ...validDetailDto, claim_reason: 123 }),
       ).toThrow("Invalid claim detail data");
+    });
+  });
+
+  describe("mapClaimResolution", () => {
+    it("maps raw resolution object to ClaimResolution domain model", () => {
+      const raw = {
+        resolution_type: "favor_consumer",
+        reason: "Fallo favorable",
+        compensation_amount_cents: 10000,
+        resolved_by: "Admin",
+        resolved_at: "2026-09-28T10:00:00Z",
+      };
+      const result = mapClaimResolution(raw);
+      expect(result).toEqual({
+        resolutionType: "favor_consumer",
+        reason: "Fallo favorable",
+        compensationAmountCents: 10000,
+        resolvedBy: "Admin",
+        resolvedAt: "2026-09-28T10:00:00Z",
+      });
+    });
+
+    it("throws error when resolution payload is invalid", () => {
+      expect(() => mapClaimResolution(null)).toThrow("Invalid claim resolution data");
+      expect(() => mapClaimResolution({})).toThrow("Invalid claim resolution data");
+    });
+  });
+
+  describe("mapResolutionInputToApi", () => {
+    it("maps domain ResolutionInput to ApiResolutionInput", () => {
+      const input: ResolutionInput = {
+        resolutionType: "favor_consumer",
+        reason: "  Incumplimiento verificado  ",
+        compensationAmountCents: 5000,
+      };
+      const result = mapResolutionInputToApi(input);
+      expect(result).toEqual({
+        resolution_type: "favor_consumer",
+        reason: "Incumplimiento verificado",
+        compensation_amount_cents: 5000,
+      });
+    });
+
+    it("throws error when reason is empty", () => {
+      expect(() =>
+        mapResolutionInputToApi({
+          resolutionType: "favor_consumer",
+          reason: "   ",
+        }),
+      ).toThrow("El motivo de resolución es obligatorio");
     });
   });
 });

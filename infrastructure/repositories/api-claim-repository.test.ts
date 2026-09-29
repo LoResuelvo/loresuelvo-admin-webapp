@@ -126,5 +126,83 @@ describe("apiClaimRepository", () => {
       );
     });
   });
+
+  describe("resolveClaim", () => {
+    const sampleResolutionResponse = {
+      resolution_type: "favor_consumer",
+      reason: "Incumplimiento de visita",
+      compensation_amount_cents: 5000,
+      resolved_by: "Admin",
+      resolved_at: "2026-09-28T22:00:00Z",
+    };
+
+    it("calls POST /admin/claims/:id/resolution with payload and parses resolution", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(sampleResolutionResponse)));
+      vi.stubGlobal("fetch", fetcher);
+
+      const result = await apiClaimRepository.resolveClaim("my-token", "clm-101", {
+        resolutionType: "favor_consumer",
+        reason: "Incumplimiento de visita",
+        compensationAmountCents: 5000,
+      });
+
+      expect(fetcher).toHaveBeenCalledWith(
+        "https://api.example.com/admin/claims/clm-101/resolution",
+        expect.objectContaining({
+          method: "POST",
+          headers: {
+            Authorization: "Bearer my-token",
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            resolution_type: "favor_consumer",
+            reason: "Incumplimiento de visita",
+            compensation_amount_cents: 5000,
+          }),
+        }),
+      );
+      expect(result.resolutionType).toBe("favor_consumer");
+      expect(result.reason).toBe("Incumplimiento de visita");
+      expect(result.compensationAmountCents).toBe(5000);
+    });
+
+    it("throws ClaimError('forbidden') on 403 response", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Forbidden", { status: 403 })));
+
+      await expect(
+        apiClaimRepository.resolveClaim("token", "clm-101", {
+          resolutionType: "favor_consumer",
+          reason: "Motivo",
+        }),
+      ).rejects.toThrow(expect.objectContaining({ code: "forbidden" }));
+    });
+
+    it("throws ClaimError('notFound') on 404 response", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Not found", { status: 404 })));
+
+      await expect(
+        apiClaimRepository.resolveClaim("token", "clm-999", {
+          resolutionType: "favor_consumer",
+          reason: "Motivo",
+        }),
+      ).rejects.toThrow(expect.objectContaining({ code: "notFound" }));
+    });
+
+    it("throws ClaimError('unavailable') on 500 response", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Server error", { status: 500 })));
+
+      await expect(
+        apiClaimRepository.resolveClaim("token", "clm-101", {
+          resolutionType: "favor_consumer",
+          reason: "Motivo",
+        }),
+      ).rejects.toThrow(expect.objectContaining({ code: "unavailable" }));
+    });
+  });
 });
 

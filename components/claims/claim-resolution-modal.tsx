@@ -9,18 +9,10 @@ import {
   ResolutionReasonTextarea,
   ResolutionCompensationInput,
 } from "./claim-resolution-modal-fields";
+import type { ResolutionType, ResolutionInput } from "@/domain/claims/claim";
 
-export type ResolutionType =
-  | "favor_consumer"
-  | "favor_provider"
-  | "mutual_agreement"
-  | "dismissed";
-
-export interface ClaimResolutionFormData {
-  resolutionType: ResolutionType;
-  reason: string;
-  compensationAmountCents?: number | null;
-}
+export type { ResolutionType };
+export type ClaimResolutionFormData = ResolutionInput;
 
 export interface ClaimResolutionModalProps {
   isOpen: boolean;
