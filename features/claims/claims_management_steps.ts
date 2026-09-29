@@ -123,3 +123,35 @@ Then(
   },
 );
 
+Given(
+  "que la consulta del expediente del reclamo toma unos momentos",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/claims/clm-101",
+      status: 200,
+      body: sampleClaimDetailResponse,
+      delayMs: 3000,
+    });
+  },
+);
+
+When(
+  "accedo al detalle del reclamo",
+  async function (this: CustomWorld) {
+    await this.page.goto(new URL("/reclamos/clm-101", this.appUrl).href);
+  },
+);
+
+Then(
+  "se presenta una vista de carga con indicadores visuales mientras se obtienen los antecedentes",
+  async function (this: CustomWorld) {
+    const skeleton = this.page.getByTestId("claim-detail-skeleton");
+    await skeleton.waitFor({ state: "visible" });
+    assert.equal(await skeleton.getAttribute("aria-busy"), "true");
+    const indicators = this.page.locator("[data-testid='skeleton-indicator']");
+    assert.ok((await indicators.count()) >= 1);
+  },
+);
+
+
