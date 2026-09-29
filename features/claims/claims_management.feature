@@ -11,7 +11,6 @@ Feature: Expediente de reclamos y resolución de disputas
     When accedo a la sección de reclamos en "/reclamos"
     Then visualizo el listado de quejas con la fecha, reclamante, rubro, estado y nivel de urgencia
 
-  @wip
   Scenario: 02-CLM Consultar expediente completo del reclamo con evidencias y acceso a la contratación
     Given que existe un reclamo en estado "En revisión" con ID "clm-101"
     When accedo al expediente del reclamo en "/reclamos/clm-101"
