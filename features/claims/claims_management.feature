@@ -31,7 +31,6 @@ Feature: Expediente de reclamos y resolución de disputas
     Then veo un mensaje indicando que el motivo de resolución es obligatorio
     And el formulario no se envía
 
-  @wip
   Scenario: 05-CLM Filtrar reclamos por estado y buscar por participante
     Given que existen reclamos abiertos y resueltos de diferentes participantes
     When filtro por estado "Abierto" y busco el apellido "López"

@@ -6,6 +6,7 @@ import type { Claim } from "@/domain/claims/claim";
 import { translations } from "@/infrastructure/i18n/translations";
 import { ROUTES } from "@/lib/routes";
 import { getClaimsAction } from "@/app/(dashboard)/reclamos/actions";
+import { ClaimsFilters, type ClaimsFiltersState } from "./claims-filters";
 import { ClaimsTable } from "./claims-table";
 
 function ClaimsForbidden({ message }: { message: string }) {
@@ -46,6 +47,7 @@ export function ClaimsInboxPage() {
   const router = useRouter();
   const copy = translations.claims;
   const [claims, setClaims] = useState<Claim[]>([]);
+  const [filters, setFilters] = useState<ClaimsFiltersState>({ status: "", q: "" });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isForbidden, setIsForbidden] = useState(false);
@@ -55,7 +57,7 @@ export function ClaimsInboxPage() {
     setError(null);
     setIsForbidden(false);
     try {
-      const result = await getClaimsAction();
+      const result = await getClaimsAction(filters);
       if (result.success) {
         setClaims(result.data);
       } else {
@@ -69,7 +71,7 @@ export function ClaimsInboxPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [copy.error]);
+  }, [filters, copy.error]);
 
   useEffect(() => {
     loadClaims();
@@ -79,8 +81,12 @@ export function ClaimsInboxPage() {
     router.push(ROUTES.claimDetail(claim.id));
   };
 
+  const hasActiveFilters = filters.status !== "" || filters.q !== "";
+
   return (
     <div className="space-y-6">
+      <ClaimsFilters filters={filters} onChange={setFilters} />
+
       {isForbidden ? (
         <ClaimsForbidden message={error ?? copy.forbidden} />
       ) : error ? (
@@ -88,7 +94,11 @@ export function ClaimsInboxPage() {
       ) : isLoading ? (
         <ClaimsSkeleton />
       ) : (
-        <ClaimsTable claims={claims} onSelectClaim={handleSelectClaim} />
+        <ClaimsTable
+          claims={claims}
+          onSelectClaim={handleSelectClaim}
+          emptyMessage={hasActiveFilters ? copy.table.emptyFiltered : copy.table.empty}
+        />
       )}
     </div>
   );

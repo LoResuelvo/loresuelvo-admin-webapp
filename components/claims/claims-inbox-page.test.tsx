@@ -93,4 +93,25 @@ describe("ClaimsInboxPage", () => {
       ).toBeInTheDocument();
     });
   });
+
+  it("reloads claims when status filter or search changes", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getClaimsAction).mockResolvedValue({
+      success: true,
+      data: mockClaims,
+    });
+
+    render(<ClaimsInboxPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Ana Gómez")).toBeInTheDocument();
+    });
+
+    const statusSelect = screen.getByRole("combobox", { name: "Filtrar por estado" });
+    await user.selectOptions(statusSelect, "open");
+
+    await waitFor(() => {
+      expect(getClaimsAction).toHaveBeenCalledWith({ status: "open", q: "" });
+    });
+  });
 });
