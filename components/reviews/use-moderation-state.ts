@@ -73,6 +73,26 @@ async function performModerate(
   }
 }
 
+async function performRestore(
+  reviewId: string,
+  setState: React.Dispatch<React.SetStateAction<ModerationState>>,
+) {
+  try {
+    const res = await moderateReviewAction(reviewId, "unhide");
+    if (res.success) {
+      setState((prev) => ({
+        ...prev,
+        reviews: prev.reviews.map((r) => (r.id === res.data.id ? res.data : r)),
+        feedback: translations.moderation.feedback.restoredSuccess,
+      }));
+    } else {
+      setState((prev) => ({ ...prev, error: res.error }));
+    }
+  } catch {
+    setState((prev) => ({ ...prev, error: translations.moderation.error }));
+  }
+}
+
 export function useModerationState({
   initialReviews,
   initialStatus,
@@ -115,6 +135,7 @@ export function useModerationState({
       setState((prev) => ({ ...prev, reviewToModerate: null, modalError: null })),
     submitModerate: (data: { category: InfractionCategory; reason: string }) =>
       state.reviewToModerate ? performModerate(state.reviewToModerate.id, data, setState) : Promise.resolve(),
+    restoreReview: (review: ReviewModerationItem) => performRestore(review.id, setState),
     dismissFeedback: () => setState((prev) => ({ ...prev, feedback: null })),
   };
 }

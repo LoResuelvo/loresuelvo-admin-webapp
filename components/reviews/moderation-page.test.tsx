@@ -191,5 +191,53 @@ describe("ModerationPage", () => {
     expect(feedback).toHaveTextContent("La reseña ha sido ocultada correctamente");
     expect(screen.getByText("Ocultada")).toBeInTheDocument();
   });
+
+  it("calls moderateReviewAction with unhide when clicking restore button and shows confirmation", async () => {
+    const hiddenReview: ReviewModerationItem = {
+      ...mockReviews[0],
+      status: "hidden",
+      moderation: {
+        moderatedBy: "Admin",
+        moderatedAt: "2026-09-29T12:00:00Z",
+        category: "abusive_language",
+        reason: "Lenguaje abusivo",
+      },
+    };
+
+    vi.mocked(getReviewsAction).mockResolvedValueOnce({
+      success: true,
+      data: [hiddenReview],
+    });
+
+    const restoredReview: ReviewModerationItem = {
+      ...hiddenReview,
+      status: "visible",
+      moderation: null,
+    };
+
+    vi.mocked(moderateReviewAction).mockResolvedValueOnce({
+      success: true,
+      data: restoredReview,
+    });
+
+    render(<ModerationPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Lucía Fernández")).toBeInTheDocument();
+    });
+
+    const user = userEvent.setup();
+    const restoreBtn = screen.getByRole("button", { name: "Restablecer visibilidad" });
+    await user.click(restoreBtn);
+
+    expect(moderateReviewAction).toHaveBeenCalledWith("rev-101", "unhide");
+
+    await waitFor(() => {
+      const feedback = screen.getByTestId("moderation-feedback");
+      expect(feedback).toHaveTextContent("La visibilidad de la reseña ha sido restablecida");
+    });
+    expect(screen.getByText("Visible")).toBeInTheDocument();
+  });
 });
+
 

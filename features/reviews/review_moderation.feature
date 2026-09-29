@@ -17,7 +17,6 @@ Feature: Moderación de reseñas y comentarios
     Then el estado de la reseña pasa a "Ocultada"
     And veo una confirmación de la moderación aplicada
 
-  @wip
   Scenario: 03-REV Restablecer visibilidad pública de una reseña previamente ocultada
     Given que existe una reseña en estado "Ocultada"
     When solicito restablecer la visibilidad pública de la reseña
