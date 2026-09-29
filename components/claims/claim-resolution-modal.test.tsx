@@ -115,4 +115,19 @@ describe("ClaimResolutionModal", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent("Error al registrar la resolución");
   });
+
+  it("clears validation error when user begins typing in reason field", async () => {
+    const onSubmit = vi.fn();
+    render(<ClaimResolutionModal isOpen={true} onClose={vi.fn()} onSubmit={onSubmit} />);
+
+    const submitButton = screen.getByRole("button", { name: "Confirmar dictamen" });
+    await userEvent.click(submitButton);
+
+    expect(screen.getByRole("alert")).toHaveTextContent("El motivo de resolución es obligatorio");
+
+    const input = screen.getByLabelText("Motivo justificado");
+    await userEvent.type(input, "Se llegó a un acuerdo");
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
 });

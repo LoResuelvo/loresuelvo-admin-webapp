@@ -65,11 +65,16 @@ function useResolutionForm(
     });
   };
 
+  const handleReasonChange = (val: string) => {
+    setReason(val);
+    if (validationError) setValidationError(null);
+  };
+
   return {
     resolutionType,
     setResolutionType,
     reason,
-    setReason,
+    handleReasonChange,
     compensationAmount,
     setCompensationAmount,
     validationError,
@@ -105,7 +110,7 @@ function ClaimResolutionForm({
         id={ids.reason}
         errorId={ids.error}
         value={form.reason}
-        onChange={form.setReason}
+        onChange={form.handleReasonChange}
         error={form.validationError}
         disabled={isSubmitting}
       />
