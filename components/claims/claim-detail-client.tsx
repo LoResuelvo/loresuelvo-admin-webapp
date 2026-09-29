@@ -7,6 +7,7 @@ import { getClaimDetailsAction } from "@/app/(dashboard)/reclamos/actions";
 import { translations } from "@/infrastructure/i18n/translations";
 import { ROUTES } from "@/lib/routes";
 import { ClaimDetailView } from "./claim-detail-view";
+import { ClaimDetailSkeleton } from "./claim-detail-skeleton";
 
 export interface ClaimDetailClientProps {
   id: string;
@@ -52,22 +53,6 @@ function DetailAlert({
           {translations.claims.retry}
         </button>
       )}
-    </div>
-  );
-}
-
-function ClaimDetailLoading() {
-  const copy = translations.claims.detail;
-  return (
-    <div
-      role="status"
-      aria-busy="true"
-      aria-label={copy.loading}
-      data-testid="claim-detail-loading"
-      className="space-y-6"
-    >
-      <div className="h-64 animate-pulse rounded-2xl border border-[#1A2B48]/10 bg-white" />
-      <span className="sr-only">{copy.loading}</span>
     </div>
   );
 }
@@ -152,8 +137,9 @@ export function ClaimDetailClient({ id }: ClaimDetailClientProps) {
   }
 
   if (isLoading || !claim) {
-    return <ClaimDetailLoading />;
+    return <ClaimDetailSkeleton />;
   }
 
   return <ClaimDetailView claim={claim} />;
 }
+

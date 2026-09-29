@@ -38,7 +38,7 @@ describe("ClaimDetailClient", () => {
 
     render(<ClaimDetailClient id="clm-101" />);
 
-    expect(screen.getByTestId("claim-detail-loading")).toBeInTheDocument();
+    expect(screen.getByTestId("claim-detail-skeleton")).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText(/clm-101/)).toBeInTheDocument();

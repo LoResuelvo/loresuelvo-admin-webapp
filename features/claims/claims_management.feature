@@ -35,7 +35,6 @@ Feature: Expediente de reclamos y resolución de disputas
     When filtro por estado "Abierto" y busco el apellido "López"
     Then el listado presenta únicamente las disputas abiertas vinculadas al participante buscado
 
-  @wip
   Scenario: 06-CLM Mostrar estado de espera mientras se recupera el expediente
     Given que la consulta del expediente del reclamo toma unos momentos
     When accedo al detalle del reclamo
