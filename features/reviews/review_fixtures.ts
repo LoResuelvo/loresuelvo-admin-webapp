@@ -1,0 +1,26 @@
+export const sampleReportedReviewsListResponse = [
+  {
+    id: "rev-101",
+    created_at: "2026-09-25T14:00:00Z",
+    operation_id: 101,
+    author_name: "Lucía Fernández",
+    provider_name: "Roberto Gómez",
+    rating: 1,
+    comment: "El trabajo fue pésimo y además me insultó al retirarse.",
+    status: "reported",
+    report_reason: "Lenguaje agraviante y trato ofensivo",
+    moderation: null,
+  },
+  {
+    id: "rev-102",
+    created_at: "2026-09-24T18:30:00Z",
+    operation_id: 102,
+    author_name: "Esteban Morales",
+    provider_name: "Clara Domínguez",
+    rating: 2,
+    comment: "Publicó mis datos personales en la respuesta.",
+    status: "reported",
+    report_reason: "Divulgación de datos personales",
+    moderation: null,
+  },
+];
