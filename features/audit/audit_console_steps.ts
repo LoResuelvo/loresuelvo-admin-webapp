@@ -215,6 +215,32 @@ Then(
   },
 );
 
+Given(
+  "que la consulta de intervenciones toma unos momentos",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/audit-logs",
+      status: 200,
+      body: sampleAuditLogsResponse,
+      delayMs: 800,
+    });
+  },
+);
+
+Then(
+  "se presenta una vista de carga con indicadores visuales mientras se obtienen los datos",
+  async function (this: CustomWorld) {
+    const skeleton = this.page.locator('[aria-busy="true"]');
+    await skeleton.waitFor({ state: "visible", timeout: 2000 });
+    const ariaLabel = await skeleton.getAttribute("aria-label");
+    assert.ok(ariaLabel && ariaLabel.length > 0);
+    const pulseElement = this.page.locator(".animate-pulse").first();
+    await pulseElement.waitFor({ state: "visible", timeout: 2000 });
+    assert.ok(await pulseElement.isVisible());
+  },
+);
+
 
 
 
