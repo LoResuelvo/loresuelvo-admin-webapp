@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { Given, When, Then } from "@cucumber/cucumber";
 import { ROUTES } from "@/lib/routes";
 import { CustomWorld } from "../support/world";
-import { sampleClaimsListResponse } from "./claims_fixtures";
+import { sampleClaimsListResponse, sampleFilterClaimsResponse } from "./claims_fixtures";
 
 Given("que existen reclamos formales registrados en el sistema", async function (this: CustomWorld) {
   await this.stubGet("/admin/claims", sampleClaimsListResponse);
@@ -37,3 +37,43 @@ Then(
     assert.ok(text1.toLowerCase().includes("media") || text1.includes("Media"));
   },
 );
+
+Given(
+  "que existen reclamos abiertos y resueltos de diferentes participantes",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/claims", sampleFilterClaimsResponse);
+  },
+);
+
+When(
+  "filtro por estado {string} y busco el apellido {string}",
+  async function (this: CustomWorld, statusLabel: string, searchSurname: string) {
+    const claimsPath = (ROUTES as unknown as Record<string, string>).claims ?? "/reclamos";
+    await this.page.goto(new URL(claimsPath, this.appUrl).href);
+
+    const statusSelect = this.page.getByLabel("Filtrar por estado");
+    await statusSelect.waitFor();
+    await statusSelect.selectOption({ label: statusLabel });
+
+    const searchInput = this.page.getByPlaceholder("Buscar por participante...");
+    await searchInput.fill(searchSurname);
+  },
+);
+
+Then(
+  "el listado presenta únicamente las disputas abiertas vinculadas al participante buscado",
+  async function (this: CustomWorld) {
+    const table = this.page.getByRole("table");
+    await table.waitFor();
+    const rows = this.page.locator("tbody tr");
+    await rows.first().waitFor();
+    assert.equal(await rows.count(), 1);
+
+    const rowText = await rows.first().innerText();
+    assert.ok(rowText.includes("López") || rowText.includes("Lopez"));
+    assert.ok(rowText.toLowerCase().includes("abierto") || rowText.includes("Abierto"));
+    assert.ok(!rowText.includes("Pedro Martínez"));
+    assert.ok(!rowText.includes("Juan Silva"));
+  },
+);
+
