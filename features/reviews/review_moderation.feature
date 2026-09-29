@@ -23,7 +23,6 @@ Feature: Moderación de reseñas y comentarios
     Then el estado de la reseña pasa nuevamente a "Visible"
     And veo una confirmación del restablecimiento aplicado
 
-  @wip
   Scenario: 04-REV Validar campos obligatorios al moderar reseña
     Given que me encuentro en el formulario de moderación de una reseña
     When intento confirmar la moderación sin seleccionar una categoría de infracción
