@@ -88,3 +88,17 @@ export const sampleClaimDetailResponse = {
   ],
   resolution: null,
 };
+
+export const sampleClaimDetailOpenResponse = {
+  ...sampleClaimDetailResponse,
+  status: "open",
+  resolution: null,
+};
+
+export const sampleClaimResolutionResponse = {
+  resolution_type: "favor_consumer",
+  reason: "Incumplimiento de visita pactada sin aviso previo",
+  compensation_amount_cents: null,
+  resolved_by: "Operador LoResuelvo",
+  resolved_at: "2026-09-28T23:00:00Z",
+};

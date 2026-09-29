@@ -6,6 +6,8 @@ import {
   sampleClaimsListResponse,
   sampleFilterClaimsResponse,
   sampleClaimDetailResponse,
+  sampleClaimDetailOpenResponse,
+  sampleClaimResolutionResponse,
 } from "./claims_fixtures";
 
 Given("que existen reclamos formales registrados en el sistema", async function (this: CustomWorld) {
@@ -153,5 +155,62 @@ Then(
     assert.ok((await indicators.count()) >= 1);
   },
 );
+
+Given("que me encuentro en el expediente de un reclamo abierto", async function (this: CustomWorld) {
+  await this.stubGet("/admin/claims/clm-101", sampleClaimDetailOpenResponse);
+  await this.stubPost("/admin/claims/clm-101/resolution", 200, sampleClaimResolutionResponse);
+  await this.page.goto(new URL("/reclamos/clm-101", this.appUrl).href);
+});
+
+When(
+  "registro la resolución {string} con el motivo {string}",
+  async function (this: CustomWorld, resolutionOption: string, reasonText: string) {
+    const openModalBtn = this.page.getByRole("button", { name: /dictaminar resolución|resolver reclamo/i });
+    await openModalBtn.waitFor();
+    await openModalBtn.click();
+
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor();
+
+    const resolutionSelect = dialog.getByLabel(/tipo de resolución|dictamen/i);
+    await resolutionSelect.selectOption({ label: resolutionOption });
+
+    const reasonInput = dialog.getByLabel(/motivo justificado|fundamentación/i);
+    await reasonInput.fill(reasonText);
+
+    const submitBtn = dialog.getByRole("button", { name: /confirmar dictamen|registrar resolución/i });
+    await submitBtn.click();
+  },
+);
+
+Then(
+  "el estado del reclamo se actualiza a {string}",
+  async function (this: CustomWorld, expectedStatus: string) {
+    const statusBadge = this.page.locator('[data-testid="claim-status-badge"]');
+    await statusBadge.waitFor();
+    await this.page.waitForFunction(
+      (status) => {
+        const el = document.querySelector('[data-testid="claim-status-badge"]');
+        return el && el.textContent?.includes(status);
+      },
+      expectedStatus,
+      { timeout: 5000 },
+    );
+    const text = await statusBadge.innerText();
+    assert.ok(text.includes(expectedStatus));
+  },
+);
+
+Then("veo una confirmación del dictamen registrado", async function (this: CustomWorld) {
+  const confirmation = this.page.locator('[data-testid="claim-resolution-success"], [role="status"], [role="alert"]');
+  await confirmation.first().waitFor();
+  const text = await confirmation.first().innerText();
+  assert.ok(
+    text.toLowerCase().includes("dictamen") ||
+      text.toLowerCase().includes("resolución") ||
+      text.toLowerCase().includes("éxito") ||
+      text.toLowerCase().includes("exitosamente"),
+  );
+});
 
 
