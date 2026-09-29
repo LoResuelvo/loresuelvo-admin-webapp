@@ -130,5 +130,28 @@ describe("AuditConsolePage", () => {
       });
     });
   });
+
+  it("opens audit detail modal when clicking a row in the table", async () => {
+    vi.mocked(getAuditLogsAction).mockResolvedValue({
+      success: true,
+      data: mockEntries,
+    });
+
+    render(<AuditConsolePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("operador@loresuelvo.com")).toBeInTheDocument();
+    });
+
+    const row = screen.getByText("operador@loresuelvo.com").closest("tr")!;
+    row.click();
+
+    await waitFor(() => {
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+      expect(screen.getByText("Detalle de intervención")).toBeInTheDocument();
+      expect(screen.getByText("aud-001")).toBeInTheDocument();
+      expect(screen.getByText("192.168.1.xxx")).toBeInTheDocument();
+    });
+  });
 });
 

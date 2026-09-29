@@ -6,6 +6,7 @@ import { translations } from "@/infrastructure/i18n/translations";
 import { getAuditLogsAction } from "@/app/(dashboard)/auditoria/actions";
 import { AuditFiltersBar, type AuditFiltersState } from "./audit-filters-bar";
 import { AuditTable } from "./audit-table";
+import { AuditDetailModal } from "./audit-detail-modal";
 
 function AuditForbidden({ message }: { message: string }) {
   return (
@@ -52,6 +53,12 @@ function buildApiFilters(filters: AuditFiltersState): AuditFilters {
   };
 }
 
+interface AsyncStatus {
+  loading: boolean;
+  error: string | null;
+  forbidden: boolean;
+}
+
 export interface AuditConsolePageProps {
   initialFilters?: AuditFilters;
 }
@@ -59,32 +66,27 @@ export interface AuditConsolePageProps {
 export function AuditConsolePage({ initialFilters }: AuditConsolePageProps) {
   const copy = translations.audit;
   const [entries, setEntries] = useState<AuditLogEntry[]>([]);
+  const [selectedEntry, setSelectedEntry] = useState<AuditLogEntry | null>(null);
   const [filters, setFilters] = useState<AuditFiltersState>({
     action: initialFilters?.action ?? "",
     operator: initialFilters?.operator ?? "",
     from: initialFilters?.from ?? "",
     to: initialFilters?.to ?? "",
   });
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isForbidden, setIsForbidden] = useState(false);
+  const [status, setStatus] = useState<AsyncStatus>({ loading: true, error: null, forbidden: false });
 
   const loadAuditLogs = useCallback(async (activeFilters: AuditFiltersState) => {
-    setIsLoading(true);
-    setError(null);
-    setIsForbidden(false);
+    setStatus({ loading: true, error: null, forbidden: false });
     try {
-      const result = await getAuditLogsAction(buildApiFilters(activeFilters));
-      if (result.success) {
-        setEntries(result.data);
+      const res = await getAuditLogsAction(buildApiFilters(activeFilters));
+      if (res.success) {
+        setEntries(res.data);
+        setStatus({ loading: false, error: null, forbidden: false });
       } else {
-        if (result.isForbidden) setIsForbidden(true);
-        setError(result.error);
+        setStatus({ loading: false, error: res.error, forbidden: Boolean(res.isForbidden) });
       }
     } catch {
-      setError(copy.error);
-    } finally {
-      setIsLoading(false);
+      setStatus({ loading: false, error: copy.error, forbidden: false });
     }
   }, [copy.error]);
 
@@ -99,18 +101,24 @@ export function AuditConsolePage({ initialFilters }: AuditConsolePageProps) {
   return (
     <div className="space-y-6">
       <AuditFiltersBar filters={filters} onChange={setFilters} />
-      {isLoading ? (
+      {status.loading ? (
         <AuditConsoleSkeleton />
-      ) : isForbidden ? (
-        <AuditForbidden message={error ?? copy.forbidden} />
-      ) : error ? (
-        <AuditErrorView error={error} onRetry={() => loadAuditLogs(filters)} />
+      ) : status.forbidden ? (
+        <AuditForbidden message={status.error ?? copy.forbidden} />
+      ) : status.error ? (
+        <AuditErrorView error={status.error} onRetry={() => loadAuditLogs(filters)} />
       ) : (
         <AuditTable
           entries={entries}
           emptyMessage={hasActiveFilters ? copy.table.emptyFiltered : undefined}
+          onSelectEntry={(entry) => setSelectedEntry(entry as AuditLogEntry)}
         />
       )}
+      <AuditDetailModal
+        isOpen={Boolean(selectedEntry)}
+        onClose={() => setSelectedEntry(null)}
+        entry={selectedEntry}
+      />
     </div>
   );
 }

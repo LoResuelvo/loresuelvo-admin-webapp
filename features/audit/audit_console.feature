@@ -26,7 +26,6 @@ Feature: Consola de auditoría y registro de acciones administrativas
     When selecciono el rango temporal entre "2026-09-01" y "2026-09-20"
     Then visualizo únicamente las intervenciones comprendidas dentro del período seleccionado
 
-  @wip
   Scenario: 05-AUD Inspeccionar información detallada y contexto de una intervención
     Given que selecciono una intervención de la bitácora de auditoría
     When abro la ficha de detalle de la intervención
