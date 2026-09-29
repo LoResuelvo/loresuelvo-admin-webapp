@@ -68,3 +68,22 @@ export const sampleMixedReviewsListResponse = [
     },
   },
 ];
+
+export const sampleModeratedOffensiveReviewResponse = {
+  id: "rev-101",
+  created_at: "2026-09-25T14:00:00Z",
+  operation_id: 101,
+  author_name: "Lucía Fernández",
+  provider_name: "Roberto Gómez",
+  rating: 1,
+  comment: "El trabajo fue pésimo y además me insultó al retirarse.",
+  status: "hidden",
+  report_reason: "Lenguaje agraviante y trato ofensivo",
+  moderation: {
+    moderated_by: "Operador Admin",
+    moderated_at: "2026-09-29T12:00:00Z",
+    category: "abusive_language",
+    reason: "Lenguaje ofensivo hacia el prestador",
+  },
+};
+

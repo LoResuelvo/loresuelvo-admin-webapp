@@ -5,6 +5,7 @@ import { CustomWorld } from "../support/world";
 import {
   sampleReportedReviewsListResponse,
   sampleMixedReviewsListResponse,
+  sampleModeratedOffensiveReviewResponse,
 } from "./review_fixtures";
 
 Given(
@@ -92,3 +93,76 @@ Then(
     assert.ok(!rowText.includes("Mariana Paz"));
   },
 );
+
+Given(
+  "que identifico una reseña reportada con lenguaje agraviante",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/reviews", sampleReportedReviewsListResponse);
+    await this.stubPost(
+      "/admin/reviews/rev-101/moderate",
+      200,
+      sampleModeratedOffensiveReviewResponse,
+    );
+    const moderationPath =
+      (ROUTES as unknown as Record<string, string>).moderation ?? "/moderacion";
+    await this.page.goto(new URL(moderationPath, this.appUrl).href);
+  },
+);
+
+When(
+  "oculto la reseña seleccionando la infracción {string} y detallando el motivo",
+  async function (this: CustomWorld, infractionCategoryLabel: string) {
+    const table = this.page.getByRole("table");
+    await table.waitFor();
+    const hideButton = this.page
+      .getByRole("button", { name: /^ocultar$/i })
+      .or(this.page.getByRole("button", { name: /ocultar reseña/i }))
+      .first();
+    await hideButton.waitFor();
+    await hideButton.click();
+
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor();
+
+    const categorySelect = dialog.getByLabel(/categoría de infracción/i);
+    await categorySelect.waitFor();
+    await categorySelect.selectOption({ label: infractionCategoryLabel });
+
+    const reasonTextarea = dialog.getByLabel(/motivo/i);
+    await reasonTextarea.waitFor();
+    await reasonTextarea.fill("Lenguaje ofensivo hacia el prestador");
+
+    const confirmButton = dialog.getByRole("button", { name: /ocultar reseña/i });
+    await confirmButton.click();
+  },
+);
+
+Then(
+  "el estado de la reseña pasa a {string}",
+  async function (this: CustomWorld, expectedStatus: string) {
+    const statusCell = this.page
+      .locator("tbody tr")
+      .first()
+      .getByText(new RegExp(`^${expectedStatus}$`, "i"));
+    await statusCell.waitFor();
+    assert.ok(await statusCell.isVisible());
+  },
+);
+
+Then(
+  "veo una confirmación de la moderación aplicada",
+  async function (this: CustomWorld) {
+    const feedback = this.page
+      .locator('[data-testid="moderation-feedback"]')
+      .or(this.page.getByRole("status"))
+      .or(this.page.getByRole("alert"));
+    await feedback.waitFor();
+    const text = await feedback.innerText();
+    assert.ok(
+      text.toLowerCase().includes("ocultada") ||
+        text.toLowerCase().includes("éxito") ||
+        text.toLowerCase().includes("correctamente"),
+    );
+  },
+);
+
