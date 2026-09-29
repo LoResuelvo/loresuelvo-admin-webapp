@@ -64,4 +64,67 @@ describe("apiClaimRepository", () => {
 
     await expect(apiClaimRepository.getClaims("token")).rejects.toThrow(ClaimError);
   });
+
+  describe("getClaimById", () => {
+    const sampleDetailResponse = {
+      ...sampleListResponse[0],
+      claim_reason: "Incumplimiento de horario y cobro indebido",
+      description: "El prestador se presentó tarde.",
+      evidence_photo_urls: [
+        "https://example.com/p1.jpg",
+        "https://example.com/p2.jpg",
+      ],
+      resolution: null,
+    };
+
+    it("calls /admin/claims/:id with bearer token and parses detail", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(sampleDetailResponse)));
+      vi.stubGlobal("fetch", fetcher);
+
+      const result = await apiClaimRepository.getClaimById("my-token", "clm-101");
+
+      expect(fetcher).toHaveBeenCalledWith(
+        "https://api.example.com/admin/claims/clm-101",
+        expect.objectContaining({
+          cache: "no-store",
+          headers: {
+            Authorization: "Bearer my-token",
+            Accept: "application/json",
+          },
+        }),
+      );
+      expect(result.id).toBe("clm-101");
+      expect(result.claimReason).toBe("Incumplimiento de horario y cobro indebido");
+      expect(result.evidencePhotoUrls).toHaveLength(2);
+    });
+
+    it("throws ClaimError('notFound') on 404 response", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Not found", { status: 404 })));
+
+      await expect(apiClaimRepository.getClaimById("token", "clm-999")).rejects.toThrow(
+        expect.objectContaining({ code: "notFound" }),
+      );
+    });
+
+    it("throws ClaimError('forbidden') on 403 response", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Forbidden", { status: 403 })));
+
+      await expect(apiClaimRepository.getClaimById("token", "clm-101")).rejects.toThrow(
+        expect.objectContaining({ code: "forbidden" }),
+      );
+    });
+
+    it("throws ClaimError('unavailable') on 500 response", async () => {
+      vi.stubEnv("API_URL", "https://api.example.com");
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Server error", { status: 500 })));
+
+      await expect(apiClaimRepository.getClaimById("token", "clm-101")).rejects.toThrow(
+        expect.objectContaining({ code: "unavailable" }),
+      );
+    });
+  });
 });
+

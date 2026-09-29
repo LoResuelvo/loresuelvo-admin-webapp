@@ -1,31 +1,12 @@
 import Link from "next/link";
 import { ROUTES } from "@/lib/routes";
 import { translations } from "@/infrastructure/i18n/translations";
-import type { ClaimantType, ClaimStatus, ClaimUrgency } from "@/domain/claims/claim";
+import type { ClaimDetails, ClaimStatus, ClaimUrgency } from "@/domain/claims/claim";
 import { ClaimEvidenceGallery } from "./claim-evidence-gallery";
 import { OperationLinkCard } from "./operation-link-card";
 
-export interface ClaimDetailViewModel {
-  id: string;
-  createdAt: string;
-  operationId: number;
-  claimantType: ClaimantType;
-  claimantName: string;
-  respondentName: string;
-  categoryName: string;
-  status: ClaimStatus;
-  urgency: ClaimUrgency;
-  claimReason: string;
-  description: string;
-  evidencePhotoUrls: readonly string[];
-  resolution?: {
-    resolutionType: string;
-    reason: string;
-    compensationAmountCents?: number | null;
-    resolvedBy?: string | null;
-    resolvedAt?: string | null;
-  } | null;
-}
+export type ClaimDetailViewModel = ClaimDetails;
+
 
 export interface ClaimDetailViewProps {
   claim: ClaimDetailViewModel;

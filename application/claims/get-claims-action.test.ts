@@ -24,6 +24,7 @@ const mockClaimsList = [
 vi.mock("@/infrastructure/repositories/api-claim-repository", () => ({
   apiClaimRepository: {
     getClaims: vi.fn(),
+    getClaimById: vi.fn(),
   },
 }));
 

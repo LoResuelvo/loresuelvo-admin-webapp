@@ -19,3 +19,18 @@ export interface ClaimFilters {
   q?: string;
   urgency?: ClaimUrgency | "";
 }
+
+export interface ClaimResolution {
+  resolutionType: string;
+  reason: string;
+  compensationAmountCents?: number | null;
+  resolvedBy?: string | null;
+  resolvedAt?: string | null;
+}
+
+export interface ClaimDetails extends Claim {
+  claimReason: string;
+  description: string;
+  evidencePhotoUrls: readonly string[];
+  resolution?: ClaimResolution | null;
+}

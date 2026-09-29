@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapClaimListItem, mapClaimsList } from "./claim-mapper";
+import { mapClaimListItem, mapClaimsList, mapClaimDetails } from "./claim-mapper";
 
 describe("claim-mapper", () => {
   const validDto = {
@@ -74,4 +74,76 @@ describe("claim-mapper", () => {
     expect(() => mapClaimsList("not-an-array")).toThrow("Invalid claims list data");
     expect(() => mapClaimsList([{ id: "invalid" }])).toThrow("Invalid claims list data");
   });
+
+  describe("mapClaimDetails", () => {
+    const validDetailDto = {
+      ...validDto,
+      claim_reason: "Incumplimiento de horario y cobro indebido",
+      description: "El prestador se presentó tarde.",
+      evidence_photo_urls: [
+        "https://example.com/p1.jpg",
+        "https://example.com/p2.jpg",
+      ],
+      resolution: null,
+    };
+
+    it("maps valid DTO item to domain ClaimDetails without resolution", () => {
+      const result = mapClaimDetails(validDetailDto);
+
+      expect(result).toEqual({
+        id: "clm-101",
+        createdAt: "2026-09-24T10:00:00Z",
+        operationId: 42,
+        claimantType: "consumer",
+        claimantName: "Ana Gómez",
+        respondentName: "Carlos López",
+        categoryName: "Plomería",
+        status: "in_review",
+        urgency: "high",
+        claimReason: "Incumplimiento de horario y cobro indebido",
+        description: "El prestador se presentó tarde.",
+        evidencePhotoUrls: [
+          "https://example.com/p1.jpg",
+          "https://example.com/p2.jpg",
+        ],
+        resolution: null,
+      });
+    });
+
+    it("maps valid DTO item to domain ClaimDetails with resolution", () => {
+      const withResolutionDto = {
+        ...validDetailDto,
+        status: "resolved",
+        resolution: {
+          resolution_type: "favor_consumer",
+          reason: "Reembolso total acordado",
+          compensation_amount_cents: 5000,
+          resolved_by: "Admin",
+          resolved_at: "2026-09-25T12:00:00Z",
+        },
+      };
+
+      const result = mapClaimDetails(withResolutionDto);
+
+      expect(result.resolution).toEqual({
+        resolutionType: "favor_consumer",
+        reason: "Reembolso total acordado",
+        compensationAmountCents: 5000,
+        resolvedBy: "Admin",
+        resolvedAt: "2026-09-25T12:00:00Z",
+      });
+    });
+
+    it("throws error when mapping invalid detail DTO", () => {
+      expect(() => mapClaimDetails(null)).toThrow("Invalid claim detail data");
+      expect(() => mapClaimDetails({})).toThrow("Invalid claim detail data");
+      expect(() =>
+        mapClaimDetails({ ...validDetailDto, evidence_photo_urls: "not-an-array" }),
+      ).toThrow("Invalid claim detail data");
+      expect(() =>
+        mapClaimDetails({ ...validDetailDto, claim_reason: 123 }),
+      ).toThrow("Invalid claim detail data");
+    });
+  });
 });
+

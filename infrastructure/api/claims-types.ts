@@ -14,5 +14,22 @@ export const apiClaimListItemSchema = z.object({
 
 export const apiClaimsListSchema = z.array(apiClaimListItemSchema);
 
+export const apiClaimResolutionSchema = z.object({
+  resolution_type: z.string(),
+  reason: z.string(),
+  compensation_amount_cents: z.number().nullable().optional(),
+  resolved_by: z.string().nullable().optional(),
+  resolved_at: z.string().nullable().optional(),
+});
+
+export const apiClaimDetailSchema = apiClaimListItemSchema.extend({
+  claim_reason: z.string(),
+  description: z.string(),
+  evidence_photo_urls: z.array(z.string()),
+  resolution: apiClaimResolutionSchema.nullable().optional(),
+});
+
 export type ApiClaimListItem = z.infer<typeof apiClaimListItemSchema>;
 export type ApiClaimsList = z.infer<typeof apiClaimsListSchema>;
+export type ApiClaimResolution = z.infer<typeof apiClaimResolutionSchema>;
+export type ApiClaimDetail = z.infer<typeof apiClaimDetailSchema>;
