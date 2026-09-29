@@ -166,7 +166,7 @@ Then(
 );
 
 Given(
-  "que existe una reseña en estado \"Ocultada\"",
+  'que existe una reseña en estado "Ocultada"',
   async function (this: CustomWorld) {
     await this.stubGet("/admin/reviews", sampleHiddenReviewListResponse);
     await this.stubPost(
@@ -268,6 +268,37 @@ Then("la acción no se procesa", async function (this: CustomWorld) {
   const dialog = this.page.getByRole("dialog");
   assert.ok(await dialog.isVisible());
 });
+
+Given(
+  "que la consulta de reseñas toma unos momentos",
+  async function (this: CustomWorld) {
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/reviews",
+      status: 200,
+      body: sampleReportedReviewsListResponse,
+      delayMs: 800,
+    });
+  },
+);
+
+Then(
+  "se presenta una vista de carga con indicadores visuales mientras se recuperan los comentarios",
+  async function (this: CustomWorld) {
+    const loadingView = this.page.locator(
+      '[role="status"][aria-busy="true"][aria-label="Cargando comentarios..."]',
+    );
+    await loadingView.waitFor({ state: "visible", timeout: 3000 });
+    assert.ok(await loadingView.isVisible());
+
+    const pulseIndicator = loadingView.locator(".animate-pulse").first();
+    assert.ok(await pulseIndicator.isVisible());
+
+    const table = this.page.getByRole("table");
+    await table.waitFor({ state: "visible", timeout: 5000 });
+  },
+);
+
 
 
 
