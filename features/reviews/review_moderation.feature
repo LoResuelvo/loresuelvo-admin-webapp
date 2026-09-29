@@ -6,7 +6,6 @@ Feature: Moderación de reseñas y comentarios
   Background:
     Given que he iniciado sesión en el panel de administración
 
-  @wip
   Scenario: 01-REV Visualizar listado de reseñas reportadas con calificación y motivo
     Given que existen reseñas denunciadas por usuarios en el marketplace
     When accedo a la sección de moderación

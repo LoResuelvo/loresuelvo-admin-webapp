@@ -8,6 +8,7 @@ export const navigationTranslations = {
   metrics: "Métricas",
   claims: "Reclamos",
   audit: "Auditoría",
+  moderation: "Moderación",
   signOut: "Cerrar sesión",
   logout: "Cerrar sesión",
   mainNav: "Navegación de administración",

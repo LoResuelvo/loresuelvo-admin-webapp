@@ -32,6 +32,7 @@ describe("Sidebar", () => {
     const categoriesLink = screen.getByRole("link", { name: "Catálogo de Rubros" });
     const operationsLink = screen.getByRole("link", { name: "Centro de Operaciones" });
     const paymentsLink = screen.getByRole("link", { name: "Pagos" });
+    const moderationLink = screen.getByRole("link", { name: "Moderación" });
 
     expect(usersLink).toBeVisible();
     expect(usersLink).toHaveAttribute("href", "/usuarios");
@@ -41,6 +42,8 @@ describe("Sidebar", () => {
     expect(operationsLink).toHaveAttribute("href", "/operaciones");
     expect(paymentsLink).toBeVisible();
     expect(paymentsLink).toHaveAttribute("href", "/pagos");
+    expect(moderationLink).toBeVisible();
+    expect(moderationLink).toHaveAttribute("href", "/moderacion");
   });
 
 

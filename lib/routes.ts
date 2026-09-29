@@ -14,6 +14,7 @@ export const ROUTES = {
   claims: "/reclamos",
   claimDetail: (id: string | number) => `/reclamos/${id}`,
   audit: "/auditoria",
+  moderation: "/moderacion",
   logout: "/auth/logout",
 } as const;
 
