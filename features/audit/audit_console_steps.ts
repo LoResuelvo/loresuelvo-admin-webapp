@@ -241,6 +241,18 @@ Then(
   },
 );
 
+Given(
+  "que mi cuenta de usuario no posee permisos de auditoría",
+  async function (this: CustomWorld) {
+    await this.stubGet(
+      "/admin/audit-logs",
+      { error: "Forbidden", message: "User lacks read:admin_audit permission" },
+      403,
+    );
+  },
+);
 
-
-
+When("intento ingresar a la sección de auditoría", async function (this: CustomWorld) {
+  const auditPath = (ROUTES as unknown as Record<string, string>).audit ?? "/auditoria";
+  await this.page.goto(new URL(auditPath, this.appUrl).href);
+});
