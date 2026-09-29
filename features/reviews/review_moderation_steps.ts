@@ -319,3 +319,47 @@ When(
   },
 );
 
+Given(
+  "que el servicio de moderación experimenta dificultades de red",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/reviews", sampleReportedReviewsListResponse);
+    await this.stubPost("/admin/reviews/rev-101/moderate", 500, {
+      error: "Internal Server Error",
+      message: "Error temporal de conexión con el servicio",
+    });
+    const moderationPath =
+      (ROUTES as unknown as Record<string, string>).moderation ?? "/moderacion";
+    await this.page.goto(new URL(moderationPath, this.appUrl).href);
+    const table = this.page.getByRole("table");
+    await table.waitFor({ state: "visible" });
+  },
+);
+
+When(
+  "intento confirmar la moderación de una reseña",
+  async function (this: CustomWorld) {
+    const hideButton = this.page
+      .getByRole("button", { name: /^ocultar$/i })
+      .or(this.page.getByRole("button", { name: /ocultar reseña/i }))
+      .first();
+    await hideButton.waitFor({ state: "visible" });
+    await hideButton.click();
+
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor({ state: "visible" });
+
+    const categorySelect = dialog.getByLabel(/categoría de infracción/i);
+    await categorySelect.waitFor({ state: "visible" });
+    await categorySelect.selectOption({ value: "abusive_language" });
+
+    const reasonTextarea = dialog.getByLabel(/motivo/i);
+    await reasonTextarea.waitFor({ state: "visible" });
+    await reasonTextarea.fill("Comentario con términos inapropiados");
+
+    const confirmButton = dialog.getByRole("button", { name: /ocultar reseña/i });
+    await confirmButton.waitFor({ state: "visible" });
+    await confirmButton.click();
+  },
+);
+
+
