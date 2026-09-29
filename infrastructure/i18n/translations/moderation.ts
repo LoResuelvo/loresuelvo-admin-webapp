@@ -56,6 +56,9 @@ export const moderationTranslations = {
     restoredSuccess: "La visibilidad de la reseña ha sido restablecida",
   },
   loading: "Cargando reseñas...",
+  loadingComments: "Cargando comentarios...",
+  forbidden: "Acceso restringido: no posee permisos para consultar o moderar reseñas",
+  networkError: "Ocurrió un inconveniente al procesar la moderación",
   error: "Ocurrió un error al cargar las reseñas para moderación.",
   retry: "Reintentar",
 } as const;
