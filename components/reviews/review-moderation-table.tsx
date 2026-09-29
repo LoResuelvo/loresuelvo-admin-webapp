@@ -1,24 +1,10 @@
+import type {
+  ReviewModerationItem,
+  ReviewStatus,
+} from "@/domain/reviews/review-moderation";
 import { translations } from "@/infrastructure/i18n/translations";
 
-export type ReviewStatus = "visible" | "hidden" | "reported";
-
-export interface ReviewModerationItem {
-  id: string;
-  createdAt: string;
-  operationId: number;
-  authorName: string;
-  providerName: string;
-  rating: number;
-  comment: string;
-  status: ReviewStatus;
-  reportReason?: string | null;
-  moderation?: {
-    moderatedBy: string;
-    moderatedAt: string;
-    category: string;
-    reason: string;
-  } | null;
-}
+export type { ReviewModerationItem, ReviewStatus };
 
 export interface ReviewModerationTableProps {
   reviews: readonly ReviewModerationItem[];
