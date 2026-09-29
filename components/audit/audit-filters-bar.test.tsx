@@ -41,4 +41,18 @@ describe("AuditFiltersBar", () => {
     await user.click(clearBtn);
     expect(handleChange).toHaveBeenCalledWith({ action: "", operator: "" });
   });
+
+  it("renders operator search input and calls onChange on typing", async () => {
+    const handleChange = vi.fn();
+    const user = userEvent.setup();
+
+    render(<AuditFiltersBar filters={{ operator: "" }} onChange={handleChange} />);
+
+    const searchInput = screen.getByLabelText("Buscar por operador");
+    expect(searchInput).toBeInTheDocument();
+    expect(searchInput).toHaveAttribute("placeholder", "Buscar por correo del operador...");
+
+    await user.type(searchInput, "op");
+    expect(handleChange).toHaveBeenCalled();
+  });
 });

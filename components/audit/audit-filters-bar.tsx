@@ -23,6 +23,25 @@ const ACTION_OPTIONS: Array<{ value: AuditAction; labelKey: keyof typeof transla
   { value: "review_moderation", labelKey: "review_moderation" },
 ];
 
+function SearchIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4 text-[#536176]"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+      />
+    </svg>
+  );
+}
+
 function ActionFilterSelect({
   value,
   onChange,
@@ -54,6 +73,35 @@ function ActionFilterSelect({
   );
 }
 
+function OperatorSearchInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const copy = translations.audit;
+  return (
+    <div className="relative flex-1">
+      <label htmlFor="audit-operator-search" className="sr-only">
+        {copy.filters.operatorLabel}
+      </label>
+      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+        <SearchIcon />
+      </div>
+      <input
+        id="audit-operator-search"
+        type="search"
+        aria-label={copy.filters.operatorLabel}
+        placeholder={copy.filters.operatorPlaceholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-10 w-full rounded-xl border border-[#1A2B48]/10 bg-white pl-10 pr-3.5 text-sm text-[#1A2B48] placeholder-[#536176]/70 focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
+      />
+    </div>
+  );
+}
+
 export function AuditFiltersBar({
   filters,
   onChange,
@@ -63,6 +111,10 @@ export function AuditFiltersBar({
 
   const handleActionChange = (action: AuditAction | "") => {
     onChange({ ...filters, action });
+  };
+
+  const handleOperatorChange = (operator: string) => {
+    onChange({ ...filters, operator });
   };
 
   const handleClear = () => {
@@ -81,6 +133,10 @@ export function AuditFiltersBar({
         <ActionFilterSelect
           value={filters.action ?? ""}
           onChange={handleActionChange}
+        />
+        <OperatorSearchInput
+          value={filters.operator ?? ""}
+          onChange={handleOperatorChange}
         />
       </div>
 
