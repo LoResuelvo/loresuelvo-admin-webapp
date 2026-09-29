@@ -79,3 +79,39 @@ Then(
   },
 );
 
+Given(
+  "que distintos operadores han registrado intervenciones en la plataforma",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/audit-logs", sampleAuditLogsResponse);
+  },
+);
+
+When(
+  "busco los registros asociados al correo {string}",
+  async function (this: CustomWorld, operatorEmail: string) {
+    const auditPath = (ROUTES as unknown as Record<string, string>).audit ?? "/auditoria";
+    if (!this.page.url().includes(auditPath)) {
+      await this.page.goto(new URL(auditPath, this.appUrl).href);
+    }
+    const searchInput = this.page.getByLabel("Buscar por operador");
+    await searchInput.waitFor();
+    await searchInput.fill(operatorEmail);
+  },
+);
+
+Then(
+  "el listado expone exclusivamente las intervenciones realizadas por dicho operador",
+  async function (this: CustomWorld) {
+    const table = this.page.getByRole("table");
+    await table.waitFor();
+    const rows = this.page.locator("tbody tr");
+    await rows.first().waitFor();
+    assert.equal(await rows.count(), 1);
+
+    const text = await rows.first().innerText();
+    assert.ok(text.includes("operador@loresuelvo.com"));
+    assert.ok(!text.includes("soporte@loresuelvo.com"));
+  },
+);
+
+
