@@ -22,7 +22,6 @@ Feature: Expediente de reclamos y resolución de disputas
     Then el estado del reclamo se actualiza a "Resuelto"
     And veo una confirmación del dictamen registrado
 
-  @wip
   Scenario: 04-CLM Validar campos obligatorios al emitir resolución de reclamo
     Given que me encuentro en el formulario de dictamen del reclamo
     When intento confirmar la resolución sin completar el motivo justificado
