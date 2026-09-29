@@ -94,4 +94,21 @@ describe("AuditConsolePage", () => {
     const select = screen.getByLabelText("Filtrar por acción");
     expect(select).toBeInTheDocument();
   });
+
+  it("renders operator search input in AuditFiltersBar", async () => {
+    vi.mocked(getAuditLogsAction).mockResolvedValue({
+      success: true,
+      data: mockEntries,
+    });
+
+    render(<AuditConsolePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("operador@loresuelvo.com")).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByLabelText("Buscar por operador");
+    expect(searchInput).toBeInTheDocument();
+  });
 });
+

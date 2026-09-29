@@ -16,7 +16,6 @@ Feature: Consola de auditoría y registro de acciones administrativas
     When filtro los registros por la acción "Acceso a chat privado"
     Then se presentan únicamente las intervenciones vinculadas a la inspección de mensajes
 
-  @wip
   Scenario: 03-AUD Filtrar registros por operador interviniente
     Given que distintos operadores han registrado intervenciones en la plataforma
     When busco los registros asociados al correo "operador@loresuelvo.com"
