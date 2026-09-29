@@ -29,16 +29,34 @@ export const moderationTranslations = {
   },
   infractions: {
     abusive_language: "Lenguaje abusivo u ofensivo",
-    personal_data: "Datos personales",
-    spam: "Spam o contenido comercial",
-    off_topic: "Contenido irrelevante o fuera de lugar",
+    personal_data: "Divulgación de datos personales",
+    spam: "Spam o publicidad no deseada",
+    off_topic: "Contenido no relacionado con el servicio",
   },
   actions: {
     hide: "Ocultar reseña",
     restore: "Restablecer visibilidad",
     viewOperation: "Ver contratación",
   },
+  modal: {
+    title: "Ocultar reseña",
+    categoryLabel: "Categoría de infracción",
+    categoryPlaceholder: "Selecciona una categoría",
+    reasonLabel: "Motivo detallado",
+    reasonPlaceholder: "Describe el motivo por el cual se oculta la reseña...",
+    cancel: "Cancelar",
+    confirm: "Ocultar reseña",
+    submitting: "Ocultando...",
+    errors: {
+      categoryRequired: "La categoría de infracción es requerida",
+    },
+  },
+  feedback: {
+    hiddenSuccess: "La reseña ha sido ocultada correctamente",
+    restoredSuccess: "La visibilidad de la reseña ha sido restablecida",
+  },
   loading: "Cargando reseñas...",
   error: "Ocurrió un error al cargar las reseñas para moderación.",
   retry: "Reintentar",
 } as const;
+
