@@ -68,6 +68,11 @@ Then(
   async function (this: CustomWorld) {
     const table = this.page.getByRole("table");
     await table.waitFor();
+    await this.page.waitForFunction(
+      () => document.querySelectorAll("tbody tr").length === 1,
+      null,
+      { timeout: 5000 },
+    );
     const rows = this.page.locator("tbody tr");
     await rows.first().waitFor();
     assert.equal(await rows.count(), 1);
@@ -104,6 +109,11 @@ Then(
   async function (this: CustomWorld) {
     const table = this.page.getByRole("table");
     await table.waitFor();
+    await this.page.waitForFunction(
+      () => document.querySelectorAll("tbody tr").length === 1,
+      null,
+      { timeout: 5000 },
+    );
     const rows = this.page.locator("tbody tr");
     await rows.first().waitFor();
     assert.equal(await rows.count(), 1);
@@ -143,6 +153,11 @@ Then(
   async function (this: CustomWorld) {
     const table = this.page.getByRole("table");
     await table.waitFor();
+    await this.page.waitForFunction(
+      () => document.querySelectorAll("tbody tr").length === 2,
+      null,
+      { timeout: 5000 },
+    );
     const rows = this.page.locator("tbody tr");
     await rows.first().waitFor();
     assert.equal(await rows.count(), 2);

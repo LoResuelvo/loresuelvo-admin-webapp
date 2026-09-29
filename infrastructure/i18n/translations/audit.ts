@@ -26,6 +26,8 @@ export const auditTranslations = {
     actionAll: "Todas las acciones",
     operatorLabel: "Buscar por operador",
     operatorPlaceholder: "Buscar por correo del operador...",
+    dateFrom: "Fecha desde",
+    dateTo: "Fecha hasta",
     clear: "Limpiar filtros",
   },
   status: {

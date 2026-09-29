@@ -39,7 +39,7 @@ describe("AuditFiltersBar", () => {
     expect(clearBtn).toBeInTheDocument();
 
     await user.click(clearBtn);
-    expect(handleChange).toHaveBeenCalledWith({ action: "", operator: "" });
+    expect(handleChange).toHaveBeenCalledWith({ action: "", operator: "", from: "", to: "" });
   });
 
   it("renders operator search input and calls onChange on typing", async () => {
@@ -54,5 +54,47 @@ describe("AuditFiltersBar", () => {
 
     await user.type(searchInput, "op");
     expect(handleChange).toHaveBeenCalled();
+  });
+
+  it("renders date range inputs and calls onChange on date change", async () => {
+    const handleChange = vi.fn();
+    const user = userEvent.setup();
+
+    render(<AuditFiltersBar filters={{ from: "", to: "" }} onChange={handleChange} />);
+
+    const fromInput = screen.getByLabelText("Fecha desde");
+    const toInput = screen.getByLabelText("Fecha hasta");
+
+    expect(fromInput).toBeInTheDocument();
+    expect(toInput).toBeInTheDocument();
+
+    await user.type(fromInput, "2026-09-01");
+    expect(handleChange).toHaveBeenCalledWith({ from: "2026-09-01", to: "" });
+
+    await user.type(toInput, "2026-09-20");
+    expect(handleChange).toHaveBeenCalledWith({ from: "", to: "2026-09-20" });
+  });
+
+  it("renders clear button when date filters are active and clears all filters", async () => {
+    const handleChange = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <AuditFiltersBar
+        filters={{ from: "2026-09-01", to: "2026-09-20" }}
+        onChange={handleChange}
+      />,
+    );
+
+    const clearBtn = screen.getByRole("button", { name: "Limpiar filtros" });
+    expect(clearBtn).toBeInTheDocument();
+
+    await user.click(clearBtn);
+    expect(handleChange).toHaveBeenCalledWith({
+      action: "",
+      operator: "",
+      from: "",
+      to: "",
+    });
   });
 });

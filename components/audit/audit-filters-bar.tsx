@@ -4,6 +4,8 @@ import { translations } from "@/infrastructure/i18n/translations";
 export interface AuditFiltersState {
   action?: AuditAction | "";
   operator?: string;
+  from?: string;
+  to?: string;
 }
 
 export interface AuditFiltersBarProps {
@@ -51,7 +53,7 @@ function ActionFilterSelect({
 }) {
   const copy = translations.audit;
   return (
-    <div className="flex flex-col gap-1.5 sm:w-64">
+    <div className="flex flex-col gap-1.5 sm:w-56">
       <label htmlFor="audit-action-filter" className="sr-only">
         {copy.filters.actionLabel}
       </label>
@@ -102,41 +104,83 @@ function OperatorSearchInput({
   );
 }
 
+function DateRangeFilterInputs({
+  from,
+  to,
+  onFromChange,
+  onToChange,
+}: {
+  from: string;
+  to: string;
+  onFromChange: (val: string) => void;
+  onToChange: (val: string) => void;
+}) {
+  const copy = translations.audit;
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-1">
+        <label htmlFor="audit-date-from" className="sr-only">
+          {copy.filters.dateFrom}
+        </label>
+        <input
+          id="audit-date-from"
+          type="date"
+          aria-label={copy.filters.dateFrom}
+          value={from}
+          onChange={(e) => onFromChange(e.target.value)}
+          className="h-10 rounded-xl border border-[#1A2B48]/10 bg-white px-3 text-sm text-[#1A2B48] focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
+        />
+      </div>
+      <span className="text-xs text-[#536176]">–</span>
+      <div className="flex flex-col gap-1">
+        <label htmlFor="audit-date-to" className="sr-only">
+          {copy.filters.dateTo}
+        </label>
+        <input
+          id="audit-date-to"
+          type="date"
+          aria-label={copy.filters.dateTo}
+          value={to}
+          onChange={(e) => onToChange(e.target.value)}
+          className="h-10 rounded-xl border border-[#1A2B48]/10 bg-white px-3 text-sm text-[#1A2B48] focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
+        />
+      </div>
+    </div>
+  );
+}
+
 export function AuditFiltersBar({
   filters,
   onChange,
   className = "",
 }: AuditFiltersBarProps) {
   const copy = translations.audit;
-
-  const handleActionChange = (action: AuditAction | "") => {
-    onChange({ ...filters, action });
-  };
-
-  const handleOperatorChange = (operator: string) => {
-    onChange({ ...filters, operator });
-  };
-
-  const handleClear = () => {
-    onChange({ action: "", operator: "" });
-  };
-
-  const hasActiveFilters = Boolean(filters.action || filters.operator);
+  const update = (patch: Partial<AuditFiltersState>) => onChange({ ...filters, ...patch });
+  const handleClear = () => onChange({ action: "", operator: "", from: "", to: "" });
+  const hasActiveFilters = Boolean(
+    filters.action || filters.operator || filters.from || filters.to,
+  );
 
   return (
     <div
       role="search"
       aria-label="Filtros de auditoría"
-      className={`flex flex-col gap-3 rounded-2xl border border-[#1A2B48]/10 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between ${className}`.trim()}
+      className={`flex flex-col gap-3 rounded-2xl border border-[#1A2B48]/10 bg-white p-4 shadow-xs lg:flex-row lg:items-center lg:justify-between ${className}`.trim()}
     >
       <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
         <ActionFilterSelect
           value={filters.action ?? ""}
-          onChange={handleActionChange}
+          onChange={(action) => update({ action })}
         />
         <OperatorSearchInput
           value={filters.operator ?? ""}
-          onChange={handleOperatorChange}
+          onChange={(operator) => update({ operator })}
+        />
+        <DateRangeFilterInputs
+          from={filters.from ?? ""}
+          to={filters.to ?? ""}
+          onFromChange={(from) => update({ from })}
+          onToChange={(to) => update({ to })}
         />
       </div>
 
@@ -144,7 +188,7 @@ export function AuditFiltersBar({
         <button
           type="button"
           onClick={handleClear}
-          className="self-start text-xs font-medium text-[#536176] hover:text-[#1A2B48] sm:self-center"
+          className="self-start text-xs font-medium text-[#536176] hover:text-[#1A2B48] lg:self-center"
         >
           {copy.filters.clear}
         </button>
