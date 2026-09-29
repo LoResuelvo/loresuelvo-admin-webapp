@@ -213,4 +213,19 @@ Then("veo una confirmación del dictamen registrado", async function (this: Cust
   );
 });
 
+Given("que mi cuenta de usuario no posee permisos de mediación", async function (this: CustomWorld) {
+  await this.stubGet(
+    "/admin/claims",
+    { error: "Forbidden", message: "User lacks read:admin_claims permission" },
+    403,
+  );
+});
+
+When("intento ingresar a la sección de reclamos", async function (this: CustomWorld) {
+  const claimsPath = (ROUTES as unknown as Record<string, string>).claims ?? "/reclamos";
+  await this.page.goto(new URL(claimsPath, this.appUrl).href);
+});
+
+
+
 
