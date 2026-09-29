@@ -8,17 +8,31 @@ import { ModerateReviewModal } from "./moderate-review-modal";
 import { useModerationState } from "./use-moderation-state";
 import { ModerationSkeleton } from "./moderation-skeleton";
 
-function ModerationError({ error, onRetry }: { error: string; onRetry: () => void }) {
+function ModerationError({
+  error,
+  isForbidden = false,
+  onRetry,
+}: {
+  error: string;
+  isForbidden?: boolean;
+  onRetry: () => void;
+}) {
+  const message = isForbidden
+    ? translations.moderation.forbidden
+    : error;
+
   return (
     <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
-      <p className="font-medium">{error}</p>
-      <button
-        type="button"
-        onClick={onRetry}
-        className="mt-4 inline-flex items-center rounded-lg bg-[#147560] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#105F4E] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]"
-      >
-        {translations.moderation.retry}
-      </button>
+      <p className="font-medium">{message}</p>
+      {!isForbidden && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-4 inline-flex items-center rounded-lg bg-[#147560] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#105F4E] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]"
+        >
+          {translations.moderation.retry}
+        </button>
+      )}
     </div>
   );
 }
@@ -69,7 +83,11 @@ export function ModerationPage(props: ModerationPageProps = {}) {
         />
       )}
       {state.error ? (
-        <ModerationError error={state.error} onRetry={state.reload} />
+        <ModerationError
+          error={state.error}
+          isForbidden={state.isForbidden}
+          onRetry={state.reload}
+        />
       ) : state.isLoading ? (
         <ModerationSkeleton />
       ) : (

@@ -39,7 +39,6 @@ Feature: Moderación de reseñas y comentarios
     When accedo a la sección de moderación
     Then se presenta una vista de carga con indicadores visuales mientras se recuperan los comentarios
 
-  @wip
   Scenario: 07-REV Informar falta de permisos para acceder a la moderación
     Given que mi cuenta de usuario no posee permisos de moderación
     When intento ingresar a la sección de moderación

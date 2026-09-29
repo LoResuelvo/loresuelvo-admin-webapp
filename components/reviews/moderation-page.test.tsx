@@ -239,6 +239,24 @@ describe("ModerationPage", () => {
     });
     expect(screen.getByText("Visible")).toBeInTheDocument();
   });
+
+  it("displays forbidden access message without retry button when access is restricted", async () => {
+    vi.mocked(getReviewsAction).mockResolvedValueOnce({
+      success: false,
+      error: "Ocurrió un error al cargar las reseñas para moderación.",
+      isForbidden: true,
+    });
+
+    render(<ModerationPage />);
+
+    await waitFor(() => {
+      const alert = screen.getByRole("alert");
+      expect(alert).toHaveTextContent(/acceso restringido|permisos/i);
+    });
+
+    expect(screen.queryByRole("button", { name: /reintentar/i })).not.toBeInTheDocument();
+  });
 });
+
 
 

@@ -20,6 +20,7 @@ interface ModerationState {
   statusFilter: ReviewStatus | undefined;
   isLoading: boolean;
   error: string | null;
+  isForbidden: boolean;
   reviewToModerate: ReviewModerationItem | null;
   isSubmitting: boolean;
   modalError: string | null;
@@ -35,6 +36,7 @@ function defaultState(
     statusFilter: status,
     isLoading: !reviews,
     error: null,
+    isForbidden: false,
     reviewToModerate: null,
     isSubmitting: false,
     modalError: null,
@@ -103,17 +105,23 @@ export function useModerationState({
   const isFirstRender = useRef(true);
 
   const loadReviews = useCallback(async (status?: ReviewStatus) => {
-    setState((prev) => ({ ...prev, isLoading: true, error: null }));
+    setState((prev) => ({ ...prev, isLoading: true, error: null, isForbidden: false }));
     try {
       const res = await getReviewsAction(status);
       setState((prev) => ({
         ...prev,
         reviews: res.success ? res.data : prev.reviews,
         error: res.success ? null : res.error,
+        isForbidden: res.success ? false : Boolean(res.isForbidden),
         isLoading: false,
       }));
     } catch {
-      setState((prev) => ({ ...prev, error: translations.moderation.error, isLoading: false }));
+      setState((prev) => ({
+        ...prev,
+        error: translations.moderation.error,
+        isForbidden: false,
+        isLoading: false,
+      }));
     }
   }, []);
 
