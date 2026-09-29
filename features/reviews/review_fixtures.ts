@@ -24,3 +24,47 @@ export const sampleReportedReviewsListResponse = [
     moderation: null,
   },
 ];
+
+export const sampleMixedReviewsListResponse = [
+  {
+    id: "rev-201",
+    created_at: "2026-09-25T10:00:00Z",
+    operation_id: 201,
+    author_name: "Gonzalo Arias",
+    provider_name: "Valeria Ríos",
+    rating: 5,
+    comment: "Excelente servicio y puntualidad.",
+    status: "visible",
+    report_reason: null,
+    moderation: null,
+  },
+  {
+    id: "rev-202",
+    created_at: "2026-09-24T11:00:00Z",
+    operation_id: 202,
+    author_name: "Mariana Paz",
+    provider_name: "Esteban Quito",
+    rating: 1,
+    comment: "El técnico cobró de más y fue agresivo.",
+    status: "reported",
+    report_reason: "Lenguaje abusivo",
+    moderation: null,
+  },
+  {
+    id: "rev-203",
+    created_at: "2026-09-23T15:00:00Z",
+    operation_id: 203,
+    author_name: "Lucas Benítez",
+    provider_name: "Florencia Peña",
+    rating: 1,
+    comment: "Contenido difamatorio y ofensivo.",
+    status: "hidden",
+    report_reason: "Lenguaje ofensivo hacia el prestador",
+    moderation: {
+      moderated_by: "Operador Admin",
+      moderated_at: "2026-09-23T16:00:00Z",
+      category: "abusive_language",
+      reason: "Uso explícito de agravios e insultos",
+    },
+  },
+];
