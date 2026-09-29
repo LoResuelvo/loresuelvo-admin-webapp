@@ -220,4 +220,54 @@ Then(
   },
 );
 
+Given(
+  "que me encuentro en el formulario de moderación de una reseña",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/reviews", sampleReportedReviewsListResponse);
+    const moderationPath =
+      (ROUTES as unknown as Record<string, string>).moderation ?? "/moderacion";
+    await this.page.goto(new URL(moderationPath, this.appUrl).href);
+    const table = this.page.getByRole("table");
+    await table.waitFor();
+    const hideButton = this.page
+      .getByRole("button", { name: /^ocultar$/i })
+      .or(this.page.getByRole("button", { name: /ocultar reseña/i }))
+      .first();
+    await hideButton.waitFor();
+    await hideButton.click();
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor();
+  },
+);
+
+When(
+  "intento confirmar la moderación sin seleccionar una categoría de infracción",
+  async function (this: CustomWorld) {
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor();
+    const confirmButton = dialog.getByRole("button", { name: /ocultar reseña/i });
+    await confirmButton.waitFor();
+    await confirmButton.click();
+  },
+);
+
+Then(
+  "veo un mensaje indicando que la categoría de infracción es requerida",
+  async function (this: CustomWorld) {
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor();
+    const errorMessage = dialog
+      .getByRole("alert")
+      .or(dialog.getByText(/la categoría de infracción es requerida/i));
+    await errorMessage.waitFor();
+    assert.ok(await errorMessage.isVisible());
+  },
+);
+
+Then("la acción no se procesa", async function (this: CustomWorld) {
+  const dialog = this.page.getByRole("dialog");
+  assert.ok(await dialog.isVisible());
+});
+
+
 
