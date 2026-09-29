@@ -87,3 +87,37 @@ export const sampleModeratedOffensiveReviewResponse = {
   },
 };
 
+export const sampleHiddenReviewListResponse = [
+  {
+    id: "rev-203",
+    created_at: "2026-09-23T15:00:00Z",
+    operation_id: 203,
+    author_name: "Lucas Benítez",
+    provider_name: "Florencia Peña",
+    rating: 1,
+    comment: "Contenido difamatorio y ofensivo.",
+    status: "hidden",
+    report_reason: "Lenguaje ofensivo hacia el prestador",
+    moderation: {
+      moderated_by: "Operador Admin",
+      moderated_at: "2026-09-23T16:00:00Z",
+      category: "abusive_language",
+      reason: "Uso explícito de agravios e insultos",
+    },
+  },
+];
+
+export const sampleRestoredReviewResponse = {
+  id: "rev-203",
+  created_at: "2026-09-23T15:00:00Z",
+  operation_id: 203,
+  author_name: "Lucas Benítez",
+  provider_name: "Florencia Peña",
+  rating: 1,
+  comment: "Contenido difamatorio y ofensivo.",
+  status: "visible",
+  report_reason: "Lenguaje ofensivo hacia el prestador",
+  moderation: null,
+};
+
+

@@ -6,6 +6,8 @@ import {
   sampleReportedReviewsListResponse,
   sampleMixedReviewsListResponse,
   sampleModeratedOffensiveReviewResponse,
+  sampleHiddenReviewListResponse,
+  sampleRestoredReviewResponse,
 } from "./review_fixtures";
 
 Given(
@@ -162,4 +164,60 @@ Then(
     );
   },
 );
+
+Given(
+  "que existe una reseña en estado \"Ocultada\"",
+  async function (this: CustomWorld) {
+    await this.stubGet("/admin/reviews", sampleHiddenReviewListResponse);
+    await this.stubPost(
+      "/admin/reviews/rev-203/moderate",
+      200,
+      sampleRestoredReviewResponse,
+    );
+    const moderationPath =
+      (ROUTES as unknown as Record<string, string>).moderation ?? "/moderacion";
+    await this.page.goto(new URL(moderationPath, this.appUrl).href);
+  },
+);
+
+When(
+  "solicito restablecer la visibilidad pública de la reseña",
+  async function (this: CustomWorld) {
+    const table = this.page.getByRole("table");
+    await table.waitFor();
+    const restoreButton = this.page
+      .getByRole("button", { name: /restablecer/i })
+      .first();
+    await restoreButton.waitFor();
+    await restoreButton.click();
+  },
+);
+
+Then(
+  "el estado de la reseña pasa nuevamente a {string}",
+  async function (this: CustomWorld, expectedStatus: string) {
+    const statusCell = this.page
+      .locator("tbody tr")
+      .first()
+      .getByText(new RegExp(`^${expectedStatus}$`, "i"));
+    await statusCell.waitFor();
+    assert.ok(await statusCell.isVisible());
+  },
+);
+
+Then(
+  "veo una confirmación del restablecimiento aplicado",
+  async function (this: CustomWorld) {
+    const feedback = this.page.locator('[data-testid="moderation-feedback"]');
+    await feedback.waitFor();
+    const text = await feedback.innerText();
+    assert.ok(
+      text.toLowerCase().includes("restablecida") ||
+        text.toLowerCase().includes("visible") ||
+        text.toLowerCase().includes("éxito") ||
+        text.toLowerCase().includes("correctamente"),
+    );
+  },
+);
+
 
