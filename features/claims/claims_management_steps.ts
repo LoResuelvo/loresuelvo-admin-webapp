@@ -2,7 +2,11 @@ import assert from "node:assert/strict";
 import { Given, When, Then } from "@cucumber/cucumber";
 import { ROUTES } from "@/lib/routes";
 import { CustomWorld } from "../support/world";
-import { sampleClaimsListResponse, sampleFilterClaimsResponse } from "./claims_fixtures";
+import {
+  sampleClaimsListResponse,
+  sampleFilterClaimsResponse,
+  sampleClaimDetailResponse,
+} from "./claims_fixtures";
 
 Given("que existen reclamos formales registrados en el sistema", async function (this: CustomWorld) {
   await this.stubGet("/admin/claims", sampleClaimsListResponse);
@@ -65,6 +69,11 @@ Then(
   async function (this: CustomWorld) {
     const table = this.page.getByRole("table");
     await table.waitFor();
+    await this.page.waitForFunction(
+      () => document.querySelectorAll("tbody tr").length === 1,
+      null,
+      { timeout: 5000 },
+    );
     const rows = this.page.locator("tbody tr");
     await rows.first().waitFor();
     assert.equal(await rows.count(), 1);
@@ -74,6 +83,43 @@ Then(
     assert.ok(rowText.toLowerCase().includes("abierto") || rowText.includes("Abierto"));
     assert.ok(!rowText.includes("Pedro Martínez"));
     assert.ok(!rowText.includes("Juan Silva"));
+  },
+);
+
+Given(
+  "que existe un reclamo en estado {string} con ID {string}",
+  async function (this: CustomWorld, _statusLabel: string, claimId: string) {
+    await this.stubGet(`/admin/claims/${claimId}`, sampleClaimDetailResponse);
+  },
+);
+
+When(
+  "accedo al expediente del reclamo en {string}",
+  async function (this: CustomWorld, path: string) {
+    await this.page.goto(new URL(path, this.appUrl).href);
+  },
+);
+
+Then(
+  "visualizo la descripción del conflicto, las fotos de evidencia y el enlace directo hacia la contratación asociada",
+  async function (this: CustomWorld) {
+    const description = this.page.locator('[data-testid="claim-description"]');
+    await description.waitFor();
+    const text = await description.innerText();
+    assert.ok(
+      text.includes("El prestador se presentó dos horas tarde") ||
+        text.includes("Incumplimiento de horario y cobro indebido"),
+    );
+
+    const photos = this.page.locator('[data-testid="claim-evidence-gallery"] img');
+    await photos.first().waitFor();
+    const count = await photos.count();
+    assert.ok(count >= 2);
+
+    const opLink = this.page.locator('[data-testid="operation-link"]');
+    await opLink.waitFor();
+    const href = await opLink.getAttribute("href");
+    assert.ok(href?.includes("/operaciones/42"));
   },
 );
 

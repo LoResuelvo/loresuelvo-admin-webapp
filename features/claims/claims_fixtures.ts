@@ -69,3 +69,22 @@ export const sampleFilterClaimsResponse = [
     urgency: "low",
   },
 ];
+
+export const sampleClaimDetailResponse = {
+  id: "clm-101",
+  created_at: "2026-09-24T10:00:00Z",
+  operation_id: 42,
+  claimant_type: "consumer",
+  claimant_name: "Ana Gómez",
+  respondent_name: "Carlos López",
+  category_name: "Plomería",
+  status: "in_review",
+  urgency: "high",
+  claim_reason: "Incumplimiento de horario y cobro indebido",
+  description: "El prestador se presentó dos horas tarde y exigió un adicional no presupuestado en efectivo.",
+  evidence_photo_urls: [
+    "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&w=800&q=80",
+  ],
+  resolution: null,
+};
