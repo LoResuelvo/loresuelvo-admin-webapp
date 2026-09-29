@@ -3,6 +3,7 @@ import { authTranslations } from "./translations/auth";
 import { categoriesTranslations } from "./translations/categories";
 import { claimsTranslations } from "./translations/claims";
 import { metricsTranslations } from "./translations/metrics";
+import { moderationTranslations } from "./translations/moderation";
 import { navigationTranslations } from "./translations/navigation";
 import { operationsTranslations } from "./translations/operations";
 import { paymentsTranslations } from "./translations/payments";
@@ -14,6 +15,7 @@ export const translations = {
   categories: categoriesTranslations,
   claims: claimsTranslations,
   metrics: metricsTranslations,
+  moderation: moderationTranslations,
   navigation: navigationTranslations,
   operations: operationsTranslations,
   payments: paymentsTranslations,
