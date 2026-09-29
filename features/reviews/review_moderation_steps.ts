@@ -299,6 +299,23 @@ Then(
   },
 );
 
+Given(
+  "que mi cuenta de usuario no posee permisos de moderación",
+  async function (this: CustomWorld) {
+    await this.stubGet(
+      "/admin/reviews",
+      { error: "Forbidden", message: "User lacks moderation permission" },
+      403,
+    );
+  },
+);
 
-
+When(
+  "intento ingresar a la sección de moderación",
+  async function (this: CustomWorld) {
+    const moderationPath =
+      (ROUTES as unknown as Record<string, string>).moderation ?? "/moderacion";
+    await this.page.goto(new URL(moderationPath, this.appUrl).href);
+  },
+);
 
