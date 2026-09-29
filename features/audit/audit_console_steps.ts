@@ -256,3 +256,20 @@ When("intento ingresar a la sección de auditoría", async function (this: Custo
   const auditPath = (ROUTES as unknown as Record<string, string>).audit ?? "/auditoria";
   await this.page.goto(new URL(auditPath, this.appUrl).href);
 });
+
+Given(
+  "que el servicio de auditoría experimenta inconvenientes",
+  async function (this: CustomWorld) {
+    await this.stubGet(
+      "/admin/audit-logs",
+      { error: "Internal Server Error" },
+      500,
+    );
+  },
+);
+
+When("intento consultar la consola de auditoría", async function (this: CustomWorld) {
+  const auditPath = (ROUTES as unknown as Record<string, string>).audit ?? "/auditoria";
+  await this.page.goto(new URL(auditPath, this.appUrl).href);
+});
+
