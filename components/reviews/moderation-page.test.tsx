@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { ReviewModerationItem } from "@/domain/reviews/review-moderation";
@@ -6,9 +6,13 @@ import { ModerationPage } from "./moderation-page";
 
 vi.mock("@/app/(dashboard)/moderacion/actions", () => ({
   getReviewsAction: vi.fn(),
+  moderateReviewAction: vi.fn(),
 }));
 
-import { getReviewsAction } from "@/app/(dashboard)/moderacion/actions";
+import {
+  getReviewsAction,
+  moderateReviewAction,
+} from "@/app/(dashboard)/moderacion/actions";
 
 const mockReviews: ReviewModerationItem[] = [
   {
@@ -127,4 +131,65 @@ describe("ModerationPage", () => {
     expect(screen.queryByLabelText("Cargando reseñas")).not.toBeInTheDocument();
     expect(screen.getByText("Lucía Fernández")).toBeInTheDocument();
   });
+
+  it("opens modal on hide button click, submits moderation and shows confirmation", async () => {
+    vi.mocked(getReviewsAction).mockResolvedValueOnce({
+      success: true,
+      data: mockReviews,
+    });
+
+    const moderatedReview: ReviewModerationItem = {
+      ...mockReviews[0],
+      status: "hidden",
+      moderation: {
+        moderatedBy: "Admin",
+        moderatedAt: "2026-09-29T12:00:00Z",
+        category: "abusive_language",
+        reason: "Lenguaje abusivo",
+      },
+    };
+
+    vi.mocked(moderateReviewAction).mockResolvedValueOnce({
+      success: true,
+      data: moderatedReview,
+    });
+
+    render(<ModerationPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Lucía Fernández")).toBeInTheDocument();
+    });
+
+    const user = userEvent.setup();
+    const hideBtn = screen.getByRole("button", { name: "Ocultar reseña" });
+    await user.click(hideBtn);
+
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+
+    const categorySelect = screen.getByLabelText("Categoría de infracción");
+    await user.selectOptions(categorySelect, "abusive_language");
+
+    const reasonTextarea = screen.getByLabelText("Motivo detallado");
+    await user.type(reasonTextarea, "Lenguaje ofensivo");
+
+    const confirmBtn = within(dialog).getByRole("button", { name: "Ocultar reseña" });
+    await user.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    expect(moderateReviewAction).toHaveBeenCalledWith(
+      "rev-101",
+      "hide",
+      "abusive_language",
+      "Lenguaje ofensivo",
+    );
+
+    const feedback = screen.getByTestId("moderation-feedback");
+    expect(feedback).toHaveTextContent("La reseña ha sido ocultada correctamente");
+    expect(screen.getByText("Ocultada")).toBeInTheDocument();
+  });
 });
+

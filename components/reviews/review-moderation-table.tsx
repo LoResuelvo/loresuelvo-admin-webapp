@@ -11,6 +11,8 @@ export interface ReviewModerationTableProps {
   className?: string;
   emptyMessage?: string;
   onSelectReview?: (review: ReviewModerationItem) => void;
+  onHideReview?: (review: ReviewModerationItem) => void;
+  onRestoreReview?: (review: ReviewModerationItem) => void;
 }
 
 const statusStyles: Record<ReviewStatus, string> = {
@@ -64,17 +66,61 @@ function ReviewModerationTableHeader() {
         <th scope="col" className="px-6 py-4 text-left">{copy.reportReason}</th>
         <th scope="col" className="px-6 py-4 text-left">{copy.status}</th>
         <th scope="col" className="px-6 py-4 text-left">{copy.date}</th>
+        <th scope="col" className="px-6 py-4 text-left">{copy.actions}</th>
       </tr>
     </thead>
+  );
+}
+
+interface ReviewActionButtonsProps {
+  review: ReviewModerationItem;
+  onHide?: (review: ReviewModerationItem) => void;
+  onRestore?: (review: ReviewModerationItem) => void;
+}
+
+function ReviewActionButtons({ review, onHide, onRestore }: ReviewActionButtonsProps) {
+  const actions = translations.moderation.actions;
+  if (review.status === "hidden") {
+    return (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRestore?.(review);
+        }}
+        className="inline-flex items-center rounded-lg border border-[#147560]/30 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-[#147560] transition-colors hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]"
+      >
+        {actions.restore}
+      </button>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onHide?.(review);
+      }}
+      className="inline-flex items-center rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
+    >
+      {actions.hide}
+    </button>
   );
 }
 
 interface ReviewModerationTableRowProps {
   review: ReviewModerationItem;
   onSelectReview?: (review: ReviewModerationItem) => void;
+  onHideReview?: (review: ReviewModerationItem) => void;
+  onRestoreReview?: (review: ReviewModerationItem) => void;
 }
 
-function ReviewModerationTableRow({ review, onSelectReview }: ReviewModerationTableRowProps) {
+function ReviewModerationTableRow({
+  review,
+  onSelectReview,
+  onHideReview,
+  onRestoreReview,
+}: ReviewModerationTableRowProps) {
   const copy = translations.moderation.table;
   const reportReasonText = review.reportReason || copy.noReason;
 
@@ -92,29 +138,22 @@ function ReviewModerationTableRow({ review, onSelectReview }: ReviewModerationTa
         onSelectReview ? "cursor-pointer focus:bg-[#F4F1EE]/50 focus:outline-none focus:ring-1 focus:ring-[#147560]" : ""
       }`.trim()}
     >
-      <td className="px-6 py-4 font-medium text-sm text-[#1A2B48]">
-        {review.authorName}
-      </td>
-      <td className="px-6 py-4 text-sm text-[#536176]">
-        {review.providerName}
-      </td>
+      <td className="px-6 py-4 font-medium text-sm text-[#1A2B48]">{review.authorName}</td>
+      <td className="px-6 py-4 text-sm text-[#536176]">{review.providerName}</td>
       <td className="px-6 py-4 text-sm">
         <div className="flex items-center gap-1.5" aria-label={`Calificación: ${review.rating} de 5`}>
           <StarIcon />
           <span className="font-semibold text-[#1A2B48]">{review.rating}</span>
         </div>
       </td>
-      <td className="px-6 py-4 text-sm text-[#536176] max-w-xs break-words">
-        {review.comment}
-      </td>
-      <td className="px-6 py-4 text-sm text-[#536176] max-w-xs break-words">
-        {reportReasonText}
-      </td>
+      <td className="px-6 py-4 text-sm text-[#536176] max-w-xs break-words">{review.comment}</td>
+      <td className="px-6 py-4 text-sm text-[#536176] max-w-xs break-words">{reportReasonText}</td>
       <td className="px-6 py-4 text-sm">
         <ReviewStatusBadge status={review.status} />
       </td>
-      <td className="px-6 py-4 text-sm text-[#536176] whitespace-nowrap">
-        {formatDate(review.createdAt)}
+      <td className="px-6 py-4 text-sm text-[#536176] whitespace-nowrap">{formatDate(review.createdAt)}</td>
+      <td className="px-6 py-4 text-sm whitespace-nowrap">
+        <ReviewActionButtons review={review} onHide={onHideReview} onRestore={onRestoreReview} />
       </td>
     </tr>
   );
@@ -125,15 +164,15 @@ export function ReviewModerationTable({
   className = "",
   emptyMessage,
   onSelectReview,
+  onHideReview,
+  onRestoreReview,
 }: ReviewModerationTableProps) {
   const copy = translations.moderation.table;
 
   if (reviews.length === 0) {
     return (
       <div className={`rounded-2xl border border-[#1A2B48]/10 bg-white p-12 text-center ${className}`.trim()}>
-        <p className="text-sm font-medium text-[#536176]">
-          {emptyMessage || copy.empty}
-        </p>
+        <p className="text-sm font-medium text-[#536176]">{emptyMessage || copy.empty}</p>
       </div>
     );
   }
@@ -141,10 +180,7 @@ export function ReviewModerationTable({
   return (
     <div className={`overflow-hidden rounded-2xl border border-[#1A2B48]/10 bg-white shadow-xs ${className}`.trim()}>
       <div className="overflow-x-auto">
-        <table
-          aria-label={copy.ariaLabel}
-          className="w-full border-collapse text-left"
-        >
+        <table aria-label={copy.ariaLabel} className="w-full border-collapse text-left">
           <ReviewModerationTableHeader />
           <tbody className="divide-y divide-[#1A2B48]/5">
             {reviews.map((review) => (
@@ -152,6 +188,8 @@ export function ReviewModerationTable({
                 key={review.id}
                 review={review}
                 onSelectReview={onSelectReview}
+                onHideReview={onHideReview}
+                onRestoreReview={onRestoreReview}
               />
             ))}
           </tbody>

@@ -11,7 +11,6 @@ Feature: Moderación de reseñas y comentarios
     When accedo a la sección de moderación
     Then visualizo el listado de reseñas con el autor, prestador calificado, calificación, comentario y motivo del reporte
 
-  @wip
   Scenario: 02-REV Ocultar reseña ofensiva con categoría de infracción y motivo justificado
     Given que identifico una reseña reportada con lenguaje agraviante
     When oculto la reseña seleccionando la infracción "Lenguaje abusivo u ofensivo" y detallando el motivo

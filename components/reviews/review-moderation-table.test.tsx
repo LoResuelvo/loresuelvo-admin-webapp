@@ -65,6 +65,7 @@ describe("ReviewModerationTable", () => {
     expect(screen.getByText("Motivo del reporte")).toBeInTheDocument();
     expect(screen.getByText("Estado")).toBeInTheDocument();
     expect(screen.getByText("Fecha")).toBeInTheDocument();
+    expect(screen.getByText("Acciones")).toBeInTheDocument();
 
     const row0 = screen.getByText("Lucía Fernández").closest("tr")!;
     expect(within(row0).getByText("Roberto Gómez")).toBeInTheDocument();
@@ -145,4 +146,43 @@ describe("ReviewModerationTable", () => {
     expect(handleSelect).toHaveBeenCalledTimes(1);
     expect(handleSelect).toHaveBeenCalledWith(mockReviews[1]);
   });
+
+  it("calls onHideReview when clicking the hide button", async () => {
+    const handleHide = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <ReviewModerationTable
+        reviews={mockReviews}
+        onHideReview={handleHide}
+      />,
+    );
+
+    const row0 = screen.getByText("Lucía Fernández").closest("tr")!;
+    const hideBtn = within(row0).getByRole("button", { name: "Ocultar reseña" });
+    await user.click(hideBtn);
+
+    expect(handleHide).toHaveBeenCalledTimes(1);
+    expect(handleHide).toHaveBeenCalledWith(mockReviews[0]);
+  });
+
+  it("calls onRestoreReview when clicking the restore button on hidden review", async () => {
+    const handleRestore = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <ReviewModerationTable
+        reviews={mockReviews}
+        onRestoreReview={handleRestore}
+      />,
+    );
+
+    const row1 = screen.getByText("Esteban Morales").closest("tr")!;
+    const restoreBtn = within(row1).getByRole("button", { name: "Restablecer visibilidad" });
+    await user.click(restoreBtn);
+
+    expect(handleRestore).toHaveBeenCalledTimes(1);
+    expect(handleRestore).toHaveBeenCalledWith(mockReviews[1]);
+  });
 });
+

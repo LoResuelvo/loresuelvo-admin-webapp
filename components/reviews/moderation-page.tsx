@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReviewModerationItem, ReviewStatus } from "@/domain/reviews/review-moderation";
 import { translations } from "@/infrastructure/i18n/translations";
-import { getReviewsAction } from "@/app/(dashboard)/moderacion/actions";
 import { ReviewModerationTable } from "./review-moderation-table";
 import { ReviewStatusTabs } from "./review-status-tabs";
+import { ModerateReviewModal } from "./moderate-review-modal";
+import { useModerationState } from "./use-moderation-state";
 
 function ModerationError({ error, onRetry }: { error: string; onRetry: () => void }) {
   return (
@@ -30,67 +30,70 @@ function ModerationSkeleton() {
   );
 }
 
+function ModerationFeedbackBanner({
+  message,
+  onDismiss,
+}: {
+  message: string;
+  onDismiss: () => void;
+}) {
+  return (
+    <div
+      data-testid="moderation-feedback"
+      role="status"
+      aria-live="polite"
+      className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800"
+    >
+      <span>{message}</span>
+      <button
+        type="button"
+        onClick={onDismiss}
+        aria-label="Cerrar notificación"
+        className="text-xs font-semibold text-emerald-700 hover:text-emerald-900"
+      >
+        ✕
+      </button>
+    </div>
+  );
+}
+
 export interface ModerationPageProps {
   initialReviews?: ReviewModerationItem[];
   initialStatus?: ReviewStatus;
 }
 
-export function ModerationPage({ initialReviews, initialStatus }: ModerationPageProps = {}) {
+export function ModerationPage(props: ModerationPageProps = {}) {
   const copy = translations.moderation;
-  const [reviews, setReviews] = useState<ReviewModerationItem[]>(initialReviews ?? []);
-  const [statusFilter, setStatusFilter] = useState<ReviewStatus | undefined>(initialStatus);
-  const [isLoading, setIsLoading] = useState(!initialReviews);
-  const [error, setError] = useState<string | null>(null);
-  const isFirstRender = useRef(true);
-
-  const loadReviews = useCallback(async (status?: ReviewStatus) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const result = await getReviewsAction(status);
-      if (result.success) {
-        setReviews(result.data);
-      } else {
-        setError(result.error);
-      }
-    } catch {
-      setError(copy.error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [copy.error]);
-
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      if (initialReviews) {
-        return;
-      }
-    }
-    loadReviews(statusFilter);
-  }, [loadReviews, statusFilter, initialReviews]);
-
-  const handleStatusChange = (status?: ReviewStatus) => {
-    setStatusFilter(status);
-  };
+  const state = useModerationState(props);
 
   return (
     <div className="space-y-6">
-      <ReviewStatusTabs
-        currentStatus={statusFilter}
-        onStatusChange={handleStatusChange}
-      />
-
-      {error ? (
-        <ModerationError error={error} onRetry={() => loadReviews(statusFilter)} />
-      ) : isLoading ? (
+      <ReviewStatusTabs currentStatus={state.statusFilter} onStatusChange={state.setStatusFilter} />
+      {state.feedback && (
+        <ModerationFeedbackBanner
+          message={state.feedback}
+          onDismiss={state.dismissFeedback}
+        />
+      )}
+      {state.error ? (
+        <ModerationError error={state.error} onRetry={state.reload} />
+      ) : state.isLoading ? (
         <ModerationSkeleton />
       ) : (
         <ReviewModerationTable
-          reviews={reviews}
-          emptyMessage={statusFilter ? copy.table.emptyFiltered : copy.table.empty}
+          reviews={state.reviews}
+          emptyMessage={state.statusFilter ? copy.table.emptyFiltered : copy.table.empty}
+          onHideReview={state.openModerateModal}
         />
       )}
+      <ModerateReviewModal
+        isOpen={Boolean(state.reviewToModerate)}
+        onClose={state.closeModerateModal}
+        review={state.reviewToModerate}
+        onSubmit={state.submitModerate}
+        isSubmitting={state.isSubmitting}
+        error={state.modalError}
+      />
     </div>
   );
 }

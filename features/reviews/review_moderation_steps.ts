@@ -152,10 +152,7 @@ Then(
 Then(
   "veo una confirmación de la moderación aplicada",
   async function (this: CustomWorld) {
-    const feedback = this.page
-      .locator('[data-testid="moderation-feedback"]')
-      .or(this.page.getByRole("status"))
-      .or(this.page.getByRole("alert"));
+    const feedback = this.page.locator('[data-testid="moderation-feedback"]');
     await feedback.waitFor();
     const text = await feedback.innerText();
     assert.ok(
