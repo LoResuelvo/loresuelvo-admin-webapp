@@ -43,7 +43,6 @@ Feature: Expediente de reclamos y resolución de disputas
     When intento ingresar a la sección de reclamos
     Then el sistema me informa que el acceso está restringido
 
-  @wip
   Scenario: 08-CLM Manejar errores de comunicación al consultar o resolver reclamos
     Given que el servidor de soporte experimenta inconvenientes
     When intento registrar el dictamen de un reclamo
