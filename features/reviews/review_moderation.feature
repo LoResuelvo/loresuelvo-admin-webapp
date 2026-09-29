@@ -34,7 +34,6 @@ Feature: Moderación de reseñas y comentarios
     When filtro el listado por estado "Ocultada"
     Then el listado presenta únicamente las reseñas que fueron retiradas de la vista pública
 
-  @wip
   Scenario: 06-REV Mostrar estado de espera mientras se consultan las reseñas
     Given que la consulta de reseñas toma unos momentos
     When accedo a la sección de moderación

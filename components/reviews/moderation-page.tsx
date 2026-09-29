@@ -6,6 +6,7 @@ import { ReviewModerationTable } from "./review-moderation-table";
 import { ReviewStatusTabs } from "./review-status-tabs";
 import { ModerateReviewModal } from "./moderate-review-modal";
 import { useModerationState } from "./use-moderation-state";
+import { ModerationSkeleton } from "./moderation-skeleton";
 
 function ModerationError({ error, onRetry }: { error: string; onRetry: () => void }) {
   return (
@@ -18,14 +19,6 @@ function ModerationError({ error, onRetry }: { error: string; onRetry: () => voi
       >
         {translations.moderation.retry}
       </button>
-    </div>
-  );
-}
-
-function ModerationSkeleton() {
-  return (
-    <div aria-busy="true" aria-label="Cargando reseñas" className="space-y-4">
-      <div className="h-64 animate-pulse rounded-2xl border border-[#1A2B48]/10 bg-white" />
     </div>
   );
 }

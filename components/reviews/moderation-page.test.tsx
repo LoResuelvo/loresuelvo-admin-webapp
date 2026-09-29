@@ -62,7 +62,8 @@ describe("ModerationPage", () => {
 
     render(<ModerationPage />);
 
-    expect(screen.getByLabelText("Cargando reseñas")).toBeInTheDocument();
+    expect(screen.getByTestId("moderation-skeleton")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");
 
     await waitFor(() => {
       expect(screen.getByText("Lucía Fernández")).toBeInTheDocument();
