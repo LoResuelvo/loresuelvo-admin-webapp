@@ -32,7 +32,6 @@ Feature: Moderación de reseñas y comentarios
     Then veo un mensaje indicando que la categoría de infracción es requerida
     And la acción no se procesa
 
-  @wip
   Scenario: 05-REV Filtrar reseñas por estado de moderación
     Given que existen reseñas visibles, reportadas y ocultadas
     When filtro el listado por estado "Ocultada"

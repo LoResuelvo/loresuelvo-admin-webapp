@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReviewModerationItem, ReviewStatus } from "@/domain/reviews/review-moderation";
 import { translations } from "@/infrastructure/i18n/translations";
 import { getReviewsAction } from "@/app/(dashboard)/moderacion/actions";
 import { ReviewModerationTable } from "./review-moderation-table";
+import { ReviewStatusTabs } from "./review-status-tabs";
 
 function ModerationError({ error, onRetry }: { error: string; onRetry: () => void }) {
   return (
@@ -40,12 +41,13 @@ export function ModerationPage({ initialReviews, initialStatus }: ModerationPage
   const [statusFilter, setStatusFilter] = useState<ReviewStatus | undefined>(initialStatus);
   const [isLoading, setIsLoading] = useState(!initialReviews);
   const [error, setError] = useState<string | null>(null);
+  const isFirstRender = useRef(true);
 
-  const loadReviews = useCallback(async () => {
+  const loadReviews = useCallback(async (status?: ReviewStatus) => {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await getReviewsAction(statusFilter);
+      const result = await getReviewsAction(status);
       if (result.success) {
         setReviews(result.data);
       } else {
@@ -56,18 +58,31 @@ export function ModerationPage({ initialReviews, initialStatus }: ModerationPage
     } finally {
       setIsLoading(false);
     }
-  }, [statusFilter, copy.error]);
+  }, [copy.error]);
 
   useEffect(() => {
-    if (!initialReviews) {
-      loadReviews();
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      if (initialReviews) {
+        return;
+      }
     }
-  }, [loadReviews, initialReviews]);
+    loadReviews(statusFilter);
+  }, [loadReviews, statusFilter, initialReviews]);
+
+  const handleStatusChange = (status?: ReviewStatus) => {
+    setStatusFilter(status);
+  };
 
   return (
     <div className="space-y-6">
+      <ReviewStatusTabs
+        currentStatus={statusFilter}
+        onStatusChange={handleStatusChange}
+      />
+
       {error ? (
-        <ModerationError error={error} onRetry={loadReviews} />
+        <ModerationError error={error} onRetry={() => loadReviews(statusFilter)} />
       ) : isLoading ? (
         <ModerationSkeleton />
       ) : (

@@ -25,6 +25,26 @@ const mockReviews: ReviewModerationItem[] = [
   },
 ];
 
+const mockHiddenReviews: ReviewModerationItem[] = [
+  {
+    id: "rev-203",
+    createdAt: "2026-09-23T15:00:00Z",
+    operationId: 203,
+    authorName: "Lucas Benítez",
+    providerName: "Florencia Peña",
+    rating: 1,
+    comment: "Contenido difamatorio y ofensivo.",
+    status: "hidden",
+    reportReason: "Lenguaje ofensivo",
+    moderation: {
+      moderatedBy: "Operador Admin",
+      moderatedAt: "2026-09-23T16:00:00Z",
+      category: "abusive_language",
+      reason: "Uso explícito de agravios",
+    },
+  },
+];
+
 describe("ModerationPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -46,6 +66,34 @@ describe("ModerationPage", () => {
 
     expect(screen.getByText("Roberto Gómez")).toBeInTheDocument();
     expect(screen.getByText("El trabajo fue pésimo.")).toBeInTheDocument();
+  });
+
+  it("filters reviews when clicking a status tab", async () => {
+    vi.mocked(getReviewsAction).mockResolvedValueOnce({
+      success: true,
+      data: mockReviews,
+    });
+
+    render(<ModerationPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Lucía Fernández")).toBeInTheDocument();
+    });
+
+    vi.mocked(getReviewsAction).mockResolvedValueOnce({
+      success: true,
+      data: mockHiddenReviews,
+    });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("tab", { name: "Ocultadas" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Lucas Benítez")).toBeInTheDocument();
+    });
+
+    expect(getReviewsAction).toHaveBeenCalledWith("hidden");
+    expect(screen.queryByText("Lucía Fernández")).not.toBeInTheDocument();
   });
 
   it("displays error and allows retry", async () => {
@@ -73,7 +121,7 @@ describe("ModerationPage", () => {
     });
   });
 
-  it("renders with initial reviews without loading state", () => {
+  it("renders with initial reviews without initial loading skeleton", () => {
     render(<ModerationPage initialReviews={mockReviews} />);
 
     expect(screen.queryByLabelText("Cargando reseñas")).not.toBeInTheDocument();
