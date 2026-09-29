@@ -7,6 +7,7 @@ export const navigationTranslations = {
   payments: "Pagos",
   metrics: "Métricas",
   claims: "Reclamos",
+  audit: "Auditoría",
   signOut: "Cerrar sesión",
   logout: "Cerrar sesión",
   mainNav: "Navegación de administración",

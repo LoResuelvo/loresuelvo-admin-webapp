@@ -6,7 +6,6 @@ Feature: Consola de auditoría y registro de acciones administrativas
   Background:
     Given que he iniciado sesión en el panel de administración
 
-  @wip
   Scenario: 01-AUD Visualizar bitácora cronológica de acciones de operadores con motivo justificado
     Given que existen intervenciones administrativas registradas en la plataforma
     When accedo a la sección de auditoría

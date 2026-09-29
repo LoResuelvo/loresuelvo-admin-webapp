@@ -13,6 +13,7 @@ export const ROUTES = {
   metrics: "/metricas",
   claims: "/reclamos",
   claimDetail: (id: string | number) => `/reclamos/${id}`,
+  audit: "/auditoria",
   logout: "/auth/logout",
 } as const;
 

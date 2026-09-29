@@ -80,6 +80,14 @@ function ClaimsIcon() {
   );
 }
 
+function AuditIcon() {
+  return (
+    <svg aria-hidden="true" className="size-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.25-8.25-3.286Z" />
+    </svg>
+  );
+}
+
 function LogoutIcon() {
   return (
     <svg aria-hidden="true" className="size-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
@@ -88,10 +96,69 @@ function LogoutIcon() {
   );
 }
 
-export function Sidebar({ profile, className = "" }: SidebarProps) {
+function SidebarNav() {
   const copy = translations.navigation;
   const linkClass = "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#536176] hover:bg-[#F4F1EE] hover:text-[#1A2B48] transition-colors";
   const activeLinkClass = "bg-[#1A2B48] text-[#F4F1EE] hover:bg-[#1A2B48] hover:text-[#F4F1EE]";
+
+  return (
+    <nav aria-label={copy.mainNav} className="flex-1 p-4 space-y-1">
+      <NavLink href={ROUTES.users} className={linkClass} activeClassName={activeLinkClass}>
+        <UsersIcon />
+        <span>{copy.users}</span>
+      </NavLink>
+
+      <NavLink href={ROUTES.categories} className={linkClass} activeClassName={activeLinkClass}>
+        <CategoriesIcon />
+        <span>{copy.categories}</span>
+      </NavLink>
+
+      <NavLink href={ROUTES.operations} className={linkClass} activeClassName={activeLinkClass}>
+        <OperationsIcon />
+        <span>{copy.operations}</span>
+      </NavLink>
+
+      <NavLink href={ROUTES.payments} className={linkClass} activeClassName={activeLinkClass}>
+        <PaymentsIcon />
+        <span>{copy.payments}</span>
+      </NavLink>
+
+      <NavLink href={ROUTES.metrics} className={linkClass} activeClassName={activeLinkClass}>
+        <MetricsIcon />
+        <span>{copy.metrics}</span>
+      </NavLink>
+
+      <NavLink href={ROUTES.claims} className={linkClass} activeClassName={activeLinkClass}>
+        <ClaimsIcon />
+        <span>{copy.claims}</span>
+      </NavLink>
+
+      <NavLink href={ROUTES.audit} className={linkClass} activeClassName={activeLinkClass}>
+        <AuditIcon />
+        <span>{copy.audit}</span>
+      </NavLink>
+    </nav>
+  );
+}
+
+function SidebarFooter() {
+  const copy = translations.navigation;
+  return (
+    <div className="p-4 border-t border-[#1A2B48]/10">
+      <a
+        href={ROUTES.logout}
+        role="button"
+        className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-[#536176] hover:bg-[#F4F1EE] hover:text-[#1A2B48] transition-colors"
+      >
+        <LogoutIcon />
+        <span>{copy.signOut}</span>
+      </a>
+    </div>
+  );
+}
+
+export function Sidebar({ profile, className = "" }: SidebarProps) {
+  const copy = translations.navigation;
 
   return (
     <aside
@@ -99,50 +166,8 @@ export function Sidebar({ profile, className = "" }: SidebarProps) {
       className={`w-72 shrink-0 bg-white border-r border-[#1A2B48]/10 flex flex-col ${className}`.trim()}
     >
       <SidebarHeader profile={profile} />
-
-      <nav aria-label={copy.mainNav} className="flex-1 p-4 space-y-1">
-        <NavLink href={ROUTES.users} className={linkClass} activeClassName={activeLinkClass}>
-          <UsersIcon />
-          <span>{copy.users}</span>
-        </NavLink>
-
-        <NavLink href={ROUTES.categories} className={linkClass} activeClassName={activeLinkClass}>
-          <CategoriesIcon />
-          <span>{copy.categories}</span>
-        </NavLink>
-
-        <NavLink href={ROUTES.operations} className={linkClass} activeClassName={activeLinkClass}>
-          <OperationsIcon />
-          <span>{copy.operations}</span>
-        </NavLink>
-
-        <NavLink href={ROUTES.payments} className={linkClass} activeClassName={activeLinkClass}>
-          <PaymentsIcon />
-          <span>{copy.payments}</span>
-        </NavLink>
-
-        <NavLink href={ROUTES.metrics} className={linkClass} activeClassName={activeLinkClass}>
-          <MetricsIcon />
-          <span>{copy.metrics}</span>
-        </NavLink>
-
-        <NavLink href={ROUTES.claims} className={linkClass} activeClassName={activeLinkClass}>
-          <ClaimsIcon />
-          <span>{copy.claims}</span>
-        </NavLink>
-      </nav>
-
-
-      <div className="p-4 border-t border-[#1A2B48]/10">
-        <a
-          href={ROUTES.logout}
-          role="button"
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-[#536176] hover:bg-[#F4F1EE] hover:text-[#1A2B48] transition-colors"
-        >
-          <LogoutIcon />
-          <span>{copy.signOut}</span>
-        </a>
-      </div>
+      <SidebarNav />
+      <SidebarFooter />
     </aside>
   );
 }
