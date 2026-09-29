@@ -80,5 +80,6 @@ export * from "./operations-types";
 export * from "./payments-types";
 export * from "./metrics-types";
 export * from "./claims-types";
+export * from "./audit-types";
 
 
