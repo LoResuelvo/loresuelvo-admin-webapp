@@ -7,6 +7,7 @@ import { getAuditLogsAction } from "@/app/(dashboard)/auditoria/actions";
 import { AuditFiltersBar, type AuditFiltersState } from "./audit-filters-bar";
 import { AuditTable } from "./audit-table";
 import { AuditDetailModal } from "./audit-detail-modal";
+import { AuditSkeleton } from "./audit-skeleton";
 
 function AuditForbidden({ message }: { message: string }) {
   return (
@@ -31,15 +32,6 @@ function AuditErrorView({ error, onRetry }: { error: string; onRetry: () => void
       >
         {copy.retry}
       </button>
-    </div>
-  );
-}
-
-function AuditConsoleSkeleton() {
-  const copy = translations.audit;
-  return (
-    <div aria-busy="true" aria-label={copy.loading} className="space-y-4">
-      <div className="h-64 animate-pulse rounded-2xl border border-[#1A2B48]/10 bg-white" />
     </div>
   );
 }
@@ -102,7 +94,7 @@ export function AuditConsolePage({ initialFilters }: AuditConsolePageProps) {
     <div className="space-y-6">
       <AuditFiltersBar filters={filters} onChange={setFilters} />
       {status.loading ? (
-        <AuditConsoleSkeleton />
+        <AuditSkeleton />
       ) : status.forbidden ? (
         <AuditForbidden message={status.error ?? copy.forbidden} />
       ) : status.error ? (

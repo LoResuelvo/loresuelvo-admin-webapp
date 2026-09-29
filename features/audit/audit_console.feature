@@ -31,7 +31,6 @@ Feature: Consola de auditoría y registro de acciones administrativas
     When abro la ficha de detalle de la intervención
     Then visualizo la información contextual de la acción, el origen protegido de la solicitud y su identificador de trazabilidad
 
-  @wip
   Scenario: 06-AUD Mostrar estado de espera mientras se recupera la bitácora
     Given que la consulta de intervenciones toma unos momentos
     When accedo a la sección de auditoría
