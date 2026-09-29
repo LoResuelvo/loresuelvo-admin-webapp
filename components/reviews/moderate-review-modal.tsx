@@ -12,25 +12,21 @@ export interface ModerateReviewModalProps {
   onSubmit: (data: { category: InfractionCategory; reason: string }) => Promise<void> | void;
   isSubmitting?: boolean;
   error?: string | null;
+  onRetry?: () => void;
 }
 
-const infractionOptions: readonly {
-  value: InfractionCategory;
-  labelKey: keyof typeof translations.moderation.infractions;
-}[] = [
+const infractionOptions = [
   { value: "abusive_language", labelKey: "abusive_language" },
   { value: "personal_data", labelKey: "personal_data" },
   { value: "spam", labelKey: "spam" },
   { value: "off_topic", labelKey: "off_topic" },
-];
+] as const;
 
 function ReviewSnippet({ review }: { review: ReviewModerationItem }) {
   const copy = translations.moderation;
   return (
     <div className="rounded-xl bg-[#F4F1EE]/60 p-3 text-xs text-[#536176] space-y-1">
-      <p>
-        <strong className="text-[#1A2B48]">{copy.table.author}:</strong> {review.authorName}
-      </p>
+      <p><strong className="text-[#1A2B48]">{copy.table.author}:</strong> {review.authorName}</p>
       <p className="line-clamp-2 italic">&ldquo;{review.comment}&rdquo;</p>
     </div>
   );
@@ -49,9 +45,7 @@ function CategorySelect({ id, errorId, value, error, disabled, onChange }: Categ
   const copy = translations.moderation;
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-sm font-medium text-[#1A2B48]">
-        {copy.modal.categoryLabel}
-      </label>
+      <label htmlFor={id} className="block text-sm font-medium text-[#1A2B48]">{copy.modal.categoryLabel}</label>
       <select
         id={id}
         value={value}
@@ -65,16 +59,10 @@ function CategorySelect({ id, errorId, value, error, disabled, onChange }: Categ
       >
         <option value="">{copy.modal.categoryPlaceholder}</option>
         {infractionOptions.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {copy.infractions[opt.labelKey]}
-          </option>
+          <option key={opt.value} value={opt.value}>{copy.infractions[opt.labelKey]}</option>
         ))}
       </select>
-      {error && (
-        <p id={errorId} role="alert" className="text-xs font-medium text-rose-600">
-          {error}
-        </p>
-      )}
+      {error && <p id={errorId} role="alert" className="text-xs font-medium text-rose-600">{error}</p>}
     </div>
   );
 }
@@ -90,9 +78,7 @@ function ReasonTextarea({ id, value, disabled, onChange }: ReasonTextareaProps) 
   const copy = translations.moderation;
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-sm font-medium text-[#1A2B48]">
-        {copy.modal.reasonLabel}
-      </label>
+      <label htmlFor={id} className="block text-sm font-medium text-[#1A2B48]">{copy.modal.reasonLabel}</label>
       <textarea
         id={id}
         value={value}
@@ -176,6 +162,7 @@ interface ModerateReviewFormProps {
   onClose: () => void;
   isSubmitting: boolean;
   error: string | null;
+  onRetry?: () => void;
 }
 
 function ModerateReviewForm({
@@ -184,6 +171,7 @@ function ModerateReviewForm({
   onClose,
   isSubmitting,
   error,
+  onRetry,
 }: ModerateReviewFormProps) {
   const categoryId = useId();
   const reasonId = useId();
@@ -193,8 +181,19 @@ function ModerateReviewForm({
   return (
     <form onSubmit={form.handleSubmit} noValidate className="space-y-4">
       {error && (
-        <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-          {error}
+        <div
+          role="alert"
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"
+        >
+          <span>{error}</span>
+          <button
+            type={onRetry ? "button" : "submit"}
+            onClick={onRetry}
+            disabled={isSubmitting}
+            className="inline-flex items-center justify-center rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-rose-700 disabled:opacity-50"
+          >
+            {translations.moderation.retry}
+          </button>
         </div>
       )}
       {review && <ReviewSnippet review={review} />}
@@ -224,6 +223,7 @@ export function ModerateReviewModal({
   onSubmit,
   isSubmitting = false,
   error = null,
+  onRetry,
 }: ModerateReviewModalProps) {
   const copy = translations.moderation;
 
@@ -235,6 +235,7 @@ export function ModerateReviewModal({
         onClose={onClose}
         isSubmitting={isSubmitting}
         error={error}
+        onRetry={onRetry}
       />
     </Modal>
   );

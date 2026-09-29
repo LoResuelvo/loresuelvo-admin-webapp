@@ -150,4 +150,28 @@ describe("ModerateReviewModal", () => {
     expect(screen.getByLabelText(copy.modal.categoryLabel)).toBeDisabled();
     expect(screen.getByLabelText(copy.modal.reasonLabel)).toBeDisabled();
   });
+
+  it("renders a retry button when error is provided and retries on click", async () => {
+    const user = userEvent.setup();
+    const handleSubmit = vi.fn();
+    render(
+      <ModerateReviewModal
+        isOpen={true}
+        onClose={vi.fn()}
+        review={mockReview}
+        onSubmit={handleSubmit}
+        error="Fallo al conectar con el servidor"
+      />,
+    );
+
+    const retryButton = screen.getByRole("button", { name: copy.retry });
+    expect(retryButton).toBeInTheDocument();
+
+    const select = screen.getByLabelText(copy.modal.categoryLabel);
+    await user.selectOptions(select, "abusive_language");
+    await user.click(retryButton);
+
+    expect(handleSubmit).toHaveBeenCalled();
+  });
 });
+

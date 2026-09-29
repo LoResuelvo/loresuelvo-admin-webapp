@@ -44,7 +44,6 @@ Feature: Moderación de reseñas y comentarios
     When intento ingresar a la sección de moderación
     Then el sistema me informa que el acceso está restringido
 
-  @wip
   Scenario: 08-REV Manejar inconvenientes de conexión al moderar reseñas
     Given que el servicio de moderación experimenta dificultades de red
     When intento confirmar la moderación de una reseña
