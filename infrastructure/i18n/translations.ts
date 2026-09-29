@@ -1,3 +1,4 @@
+import { auditTranslations } from "./translations/audit";
 import { authTranslations } from "./translations/auth";
 import { categoriesTranslations } from "./translations/categories";
 import { claimsTranslations } from "./translations/claims";
@@ -8,6 +9,7 @@ import { paymentsTranslations } from "./translations/payments";
 import { usersTranslations } from "./translations/users";
 
 export const translations = {
+  audit: auditTranslations,
   auth: authTranslations,
   categories: categoriesTranslations,
   claims: claimsTranslations,
