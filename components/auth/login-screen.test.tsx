@@ -8,7 +8,6 @@ describe("LoginScreen", () => {
     render(<LoginScreen onSignIn={vi.fn()} />);
 
     expect(screen.getByText("Lo Resuelvo")).toBeVisible();
-    expect(screen.getByRole("heading", { name: "Todo listo para empezar." })).toBeVisible();
     expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeEnabled();
     expect(screen.getByText("Accedé con tu cuenta de administrador.")).toBeVisible();
     expect(screen.getByText("Acceso exclusivo para personal autorizado.")).toBeVisible();

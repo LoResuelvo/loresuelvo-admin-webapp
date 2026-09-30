@@ -30,21 +30,13 @@ export async function getPaymentsAction(
     const result = await getPayments(apiPaymentRepository, token, filters);
     return { success: true, data: result };
   } catch (error: unknown) {
-    if (error instanceof PaymentError) {
-      if (error.code === "forbidden") {
-        return {
-          success: false,
-          error: translations.payments.forbidden,
-          isForbidden: true,
-        };
-      }
+    if (error instanceof PaymentError && error.code === "forbidden") {
       return {
         success: false,
-        error: translations.payments.error,
+        error: translations.payments.forbidden,
+        isForbidden: true,
       };
     }
-    const message =
-      error instanceof Error ? error.message : translations.payments.error;
-    return { success: false, error: message };
+    return { success: false, error: translations.payments.error };
   }
 }

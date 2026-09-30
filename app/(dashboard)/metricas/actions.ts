@@ -30,21 +30,13 @@ export async function getFunnelAction(
     const data = await getConversionFunnel(apiMetricRepository, token, filters);
     return { success: true, data };
   } catch (error: unknown) {
-    if (error instanceof MetricError) {
-      if (error.code === "forbidden") {
-        return {
-          success: false,
-          error: translations.metrics.forbidden,
-          isForbidden: true,
-        };
-      }
+    if (error instanceof MetricError && error.code === "forbidden") {
       return {
         success: false,
-        error: translations.metrics.error,
+        error: translations.metrics.forbidden,
+        isForbidden: true,
       };
     }
-    const message =
-      error instanceof Error ? error.message : translations.metrics.error;
-    return { success: false, error: message };
+    return { success: false, error: translations.metrics.error };
   }
 }

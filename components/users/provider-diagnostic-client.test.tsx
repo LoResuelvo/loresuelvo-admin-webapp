@@ -118,7 +118,7 @@ describe("ProviderDiagnosticClient", () => {
     render(<ProviderDiagnosticClient id={201} />);
 
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent(/error/i);
+      expect(screen.getByRole("alert")).toHaveTextContent(/No pudimos cargar el diagnóstico operativo del prestador/);
     });
     expect(screen.getByRole("button", { name: /reintentar/i })).toBeInTheDocument();
   });

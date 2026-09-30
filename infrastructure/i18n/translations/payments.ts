@@ -42,7 +42,7 @@ export const paymentsTranslations = {
   },
   loading: "Cargando pagos...",
   empty: "No hay transacciones disponibles",
-  error: "Ocurrió un error al cargar los pagos",
+  error: "No pudimos cargar los pagos. Reintentá en unos minutos. Si el problema continúa, contactá al equipo de soporte.",
   retry: "Reintentar",
   forbidden: "No posees permisos para consultar información financiera. El acceso está restringido.",
 } as const;

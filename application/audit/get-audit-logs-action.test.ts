@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { AuditError } from "@/domain/audit/audit-error";
 import type { AuditLogEntry } from "@/domain/audit/audit-log";
+import { translations } from "@/infrastructure/i18n/translations";
 
 vi.mock("@/infrastructure/auth/auth-session", () => ({
   authSession: {
@@ -76,7 +77,7 @@ describe("getAuditLogsAction", () => {
 
     expect(result).toEqual({
       success: false,
-      error: "Ocurrió un error al cargar la bitácora de auditoría.",
+      error: translations.audit.error,
     });
   });
 });

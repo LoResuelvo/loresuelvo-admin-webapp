@@ -51,7 +51,7 @@ export const auditTranslations = {
     close: "Cerrar",
   },
   loading: "Cargando bitácora de auditoría...",
-  error: "Ocurrió un error al cargar la bitácora de auditoría.",
+  error: "No pudimos cargar los registros de auditoría. Reintentá en unos minutos. Si el problema continúa, contactá al equipo de soporte.",
   forbidden: "No posees permisos suficientes para acceder a la consola de auditoría.",
   retry: "Reintentar",
 } as const;

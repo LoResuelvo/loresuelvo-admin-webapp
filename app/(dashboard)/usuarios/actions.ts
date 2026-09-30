@@ -119,9 +119,7 @@ export async function getProviderDiagnosticAction(
         error: translations.users.diagnostic.error,
       };
     }
-    const message =
-      error instanceof Error ? error.message : translations.users.diagnostic.error;
-    return { success: false, error: message };
+    return { success: false, error: translations.users.diagnostic.error };
   }
 }
 

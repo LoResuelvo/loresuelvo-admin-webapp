@@ -10,7 +10,7 @@ export const metricsTranslations = {
   empty: "No hay suficiente volumen para generar el embudo",
   loading: "Procesando agregaciones...",
   forbidden: "El acceso a las métricas está restringido para tu perfil de usuario",
-  error: "No se pudo obtener las métricas operativas",
+  error: "No pudimos cargar las métricas. Reintentá en unos minutos. Si el problema continúa, contactá al equipo de soporte.",
   retry: "Reintentar",
   filters: {
     period: {

@@ -56,7 +56,7 @@ describe("getFunnelAction", () => {
     });
   });
 
-  it("returns error message when generic error is thrown", async () => {
+  it("returns safe translated guidance when generic error is thrown", async () => {
     vi.mocked(apiMetricRepository.getFunnel).mockRejectedValue(
       new Error("Network connection lost"),
     );
@@ -65,7 +65,7 @@ describe("getFunnelAction", () => {
 
     expect(result).toEqual({
       success: false,
-      error: "Network connection lost",
+      error: translations.metrics.error,
     });
   });
 });

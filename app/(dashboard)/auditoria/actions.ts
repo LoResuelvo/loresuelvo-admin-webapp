@@ -31,20 +31,13 @@ export async function getAuditLogsAction(
     const data = await getAuditLogs(apiAuditRepository, token, filters);
     return { success: true, data };
   } catch (error: unknown) {
-    if (error instanceof AuditError) {
-      if (error.code === "forbidden") {
-        return {
-          success: false,
-          error: copy.forbidden,
-          isForbidden: true,
-        };
-      }
+    if (error instanceof AuditError && error.code === "forbidden") {
       return {
         success: false,
-        error: copy.error,
+        error: copy.forbidden,
+        isForbidden: true,
       };
     }
-    const message = error instanceof Error ? error.message : copy.error;
-    return { success: false, error: message };
+    return { success: false, error: copy.error };
   }
 }
