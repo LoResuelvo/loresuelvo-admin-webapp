@@ -1,450 +1,163 @@
 import { describe, expect, it } from "vitest";
-import {
-  mapOperations,
-  mapUnifiedOperationDetail,
-  mapAuditedConversation,
-} from "./operation-mapper";
-
-describe("operation-mapper", () => {
-  const sampleSnakeCaseItem = {
-    id: "op-1",
-    job_request_id: 101,
-    service_proposal_id: 201,
-    work_order_id: 301,
-    consumer: {
-      id: 1,
-      name: "Juan",
-      surname: "Pérez",
-      email: "juan.perez@example.com",
+import { mapOperations, mapUnifiedOperationDetail } from "./operation-mapper";
+import { operation, party } from "./operation-fixtures";
+const proposal = {
+  id: 8,
+  status: "accepted",
+  description: "Reparación",
+  amount_cents: 10000,
+  currency: "ARS",
+  created_on: "2026-09-20T12:00:00Z",
+  scheduled_on: "2026-09-21T12:00:00Z",
+  estimated_duration_minutes: 60,
+  deposit_cents: 2000,
+  platform_fee_total_cents: 1000,
+  platform_fee_due_now_cents: 500,
+  service_balance_cents: 8000,
+  platform_fee_balance_cents: 500
+};
+const image = {
+  file_id: "61f99ae1-a8b8-4591-8a9b-012393e7b54d",
+  original_name: "Foto.jpg",
+  mime_type: "image/jpeg",
+  purpose: "job_request_image",
+  created_on: "2026-09-20T12:00:00Z"
+};
+const detail = {
+  id: "jr-1",
+  started_on: "2026-09-20T12:00:00Z",
+  consumer: party,
+  provider: {
+    ...party,
+    id: 2
+  },
+  category: {
+    id: 9,
+    name: "Carpintería"
+  },
+  address: {
+    street: "Mitre",
+    street_number: "123",
+    floor: null,
+    unit: "A",
+    source: "current_consumer_address"
+  },
+  job_request: {
+    id: 1,
+    status: "accepted",
+    title: "Puerta",
+    description: "No cierra",
+    created_on: "2026-09-20T12:00:00Z",
+    images: [image]
+  },
+  service_proposal: proposal,
+  related_proposals: [{
+      ...proposal,
+      id: 9,
+      operation_id: "sp-9"
+    }],
+  source_assessment: {
+    id: 7,
+    version: 1,
+    outcome: "professional_required",
+    category: null,
+    title: "Puerta",
+    description: "Marco roto",
+    based_on_message_id: 1,
+    created_on: "2026-09-20T12:00:00Z"
+  },
+  work_order: {
+    id: 10,
+    status: "paid",
+    accepted_on: "2026-09-20T13:00:00Z",
+    completion_reported_on: "2026-09-21T13:00:00Z",
+    balance_paid_on: "2026-09-21T14:00:00Z",
+    completion_report: {
+      description: "Reparada",
+      reported_on: "2026-09-21T13:00:00Z",
+      images: [{
+          ...image,
+          purpose: "work_order_completion_image"
+        }]
     },
-    provider: {
-      id: 2,
-      name: "Carlos",
-      surname: "López",
-      email: "carlos.lopez@example.com",
-    },
-    category: {
-      id: 1,
-      name: "Plomería",
-    },
-    status: "in_progress" as const,
-    bottleneck: "stalled" as const,
-    next_action_by: "provider" as const,
-    created_at: "2026-09-18T10:00:00Z",
-    updated_at: "2026-09-20T14:30:00Z",
-  };
-
-  const sampleCamelCaseItem = {
-    id: "op-2",
-    jobRequestId: 102,
-    serviceProposalId: 202,
-    workOrderId: 302,
-    consumer: {
-      id: 3,
-      name: "María",
-      surname: "Gómez",
-      email: "maria.gomez@example.com",
-    },
-    provider: {
-      id: 4,
-      name: "Roberto",
-      surname: "Díaz",
-      email: "roberto.diaz@example.com",
-    },
-    category: {
-      id: 2,
-      name: "Electricidad",
-    },
-    status: "quoted" as const,
-    bottleneck: "pending_proposal_24h" as const,
-    nextActionBy: "consumer" as const,
-    createdAt: "2026-09-21T09:00:00Z",
-    updatedAt: "2026-09-22T11:00:00Z",
-  };
-
-  it("maps array of snake_case items correctly", () => {
-    const result = mapOperations([sampleSnakeCaseItem]);
-
-    expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({
-      id: "op-1",
-      jobRequestId: 101,
-      serviceProposalId: 201,
-      workOrderId: 301,
-      consumer: {
-        id: 1,
-        name: "Juan",
-        surname: "Pérez",
-        email: "juan.perez@example.com",
-      },
-      provider: {
-        id: 2,
-        name: "Carlos",
-        surname: "López",
-        email: "carlos.lopez@example.com",
-      },
-      category: {
-        id: 1,
-        name: "Plomería",
-      },
-      status: "in_progress",
-      bottleneck: "stalled",
-      nextActionBy: "provider",
-      createdAt: "2026-09-18T10:00:00Z",
-      updatedAt: "2026-09-20T14:30:00Z",
+    review: {
+      rating: 5,
+      description: "Buen trabajo"
+    }
+  },
+  payment_milestones: [],
+  timeline: [{
+      type: "balance_paid",
+      source_type: "work_order",
+      source_id: "10",
+      occurred_on: "2026-09-21T14:00:00Z"
+    }]
+};
+describe("operation mapper validation", () => {
+  it("rejects the obsolete flattened DTO instead of inventing missing evidence", () => {
+    expect(() => mapOperations([{
+        id: "op-1",
+        status: "requested"
+      }])).toThrow();
+  });
+  it("maps every actual alert without conflating it with a persisted status", () => {
+    expect(mapOperations({
+      operations: [{
+          ...operation,
+          alerts: ["booking_deadline_passed", "stalled"]
+        }],
+      next_cursor: null
+    }).operations[0]).toMatchObject({
+      status: "request_accepted",
+      alerts: ["booking_deadline_passed", "stalled"]
     });
   });
-
-  it("maps array of camelCase items correctly", () => {
-    const result = mapOperations([sampleCamelCaseItem]);
-
-    expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({
-      id: "op-2",
-      jobRequestId: 102,
-      serviceProposalId: 202,
-      workOrderId: 302,
-      consumer: {
-        id: 3,
-        name: "María",
-        surname: "Gómez",
-        email: "maria.gomez@example.com",
+  it("keeps selected proposal separate from related operations and maps persisted evidence", () => {
+    const mapped = mapUnifiedOperationDetail(detail);
+    expect(mapped.proposals).toEqual([{
+        id: 8,
+        amountCents: 10000,
+        bookingDepositCents: 2000,
+        estimatedDuration: "60",
+        estimatedDurationMinutes: 60,
+        scheduledFor: "2026-09-21T12:00:00Z",
+        description: "Reparación",
+        status: "accepted",
+        createdAt: "2026-09-20T12:00:00Z"
+      }]);
+    expect(mapped).toMatchObject({
+      status: "work_order_paid",
+      currentAddress: "Mitre 123 A",
+      request: {
+        sourceAssessmentId: "7",
+        diagnosticSummary: "Marco roto",
+        photos: [`/api/admin/operations/jr-1/images/${image.file_id}`]
       },
-      provider: {
-        id: 4,
-        name: "Roberto",
-        surname: "Díaz",
-        email: "roberto.diaz@example.com",
-      },
-      category: {
-        id: 2,
-        name: "Electricidad",
-      },
-      status: "quoted",
-      bottleneck: "pending_proposal_24h",
-      nextActionBy: "consumer",
-      createdAt: "2026-09-21T09:00:00Z",
-      updatedAt: "2026-09-22T11:00:00Z",
-    });
-  });
-
-  it("maps wrapped object responses ({ operations: [...] } and { items: [...] })", () => {
-    const wrappedResult = mapOperations({ operations: [sampleSnakeCaseItem] });
-    expect(wrappedResult).toHaveLength(1);
-
-    const itemsResult = mapOperations({ items: [sampleCamelCaseItem] });
-    expect(itemsResult).toHaveLength(1);
-  });
-
-  it("handles numeric IDs by converting them to string", () => {
-    const itemWithNumericId = {
-      ...sampleSnakeCaseItem,
-      id: 999,
-    };
-    const result = mapOperations([itemWithNumericId]);
-    expect(result[0].id).toBe("999");
-  });
-
-  it("throws on invalid data", () => {
-    expect(() => mapOperations("invalid-string")).toThrow("Invalid operations data");
-    expect(() => mapOperations([{ id: 1 }])).toThrow("Invalid operations data");
-  });
-});
-
-describe("mapUnifiedOperationDetail", () => {
-  const sampleSnakeDetail = {
-    id: "op-101",
-    status: "in_progress" as const,
-    created_at: "2026-09-18T10:00:00Z",
-    category: {
-      id: 1,
-      name: "Plomería",
-    },
-    consumer: {
-      id: 10,
-      name: "Ana",
-      surname: "Martínez",
-      email: "ana.martinez@example.com",
-      profile_photo_url: null,
-    },
-    provider: {
-      id: 20,
-      name: "Carlos",
-      surname: "López",
-      email: "carlos.lopez@example.com",
-      profile_photo_url: "https://example.com/carlos.jpg",
-    },
-    current_address: "Av. Corrientes 1234, CABA",
-    request: {
-      id: 501,
-      title: "Reparación de cañería en cocina",
-      description: "Pérdida continua de agua bajo la bacha de la cocina.",
-      status: "in_progress",
-      source_assessment_id: "asm-77",
-      diagnostic_summary: "Posible fisura en sifón de desagüe.",
-      photos: ["https://example.com/photos/leak-1.jpg"],
-    },
-    timeline: [
-      {
-        type: "job_requested",
-        title: "Solicitud creada",
-        timestamp: "2026-09-18T10:00:00Z",
-      },
-    ],
-  };
-
-  const sampleCamelDetail = {
-    id: 102,
-    status: "quoted" as const,
-    createdAt: "2026-09-19T10:00:00Z",
-    category: {
-      id: 2,
-      name: "Electricidad",
-    },
-    consumer: {
-      id: 11,
-      name: "María",
-      surname: "Gómez",
-      email: "maria.gomez@example.com",
-      profilePhotoUrl: "https://example.com/maria.jpg",
-    },
-    provider: {
-      id: 21,
-      name: "Roberto",
-      surname: "Díaz",
-      email: "roberto.diaz@example.com",
-    },
-    currentAddress: "Belgrano 567, CABA",
-    request: {
-      id: 502,
-      title: "Cortocircuito en disyuntor",
-      description: "Salta la térmica al encender el horno eléctrico.",
-      status: "quoted",
-      sourceAssessmentId: null,
-      diagnosticSummary: null,
-      photos: [],
-    },
-    timeline: [],
-  };
-
-  it("maps snake_case detail payload correctly", () => {
-    const result = mapUnifiedOperationDetail(sampleSnakeDetail);
-    expect(result.id).toBe("op-101");
-    expect(result.status).toBe("in_progress");
-    expect(result.createdAt).toBe("2026-09-18T10:00:00Z");
-    expect(result.category).toEqual({ id: 1, name: "Plomería" });
-    expect(result.consumer.name).toBe("Ana");
-    expect(result.consumer.profilePhotoUrl).toBeNull();
-    expect(result.provider.name).toBe("Carlos");
-    expect(result.provider.profilePhotoUrl).toBe("https://example.com/carlos.jpg");
-    expect(result.currentAddress).toBe("Av. Corrientes 1234, CABA");
-    expect(result.request.title).toBe("Reparación de cañería en cocina");
-    expect(result.request.sourceAssessmentId).toBe("asm-77");
-    expect(result.request.diagnosticSummary).toBe("Posible fisura en sifón de desagüe.");
-    expect(result.request.photos).toEqual(["https://example.com/photos/leak-1.jpg"]);
-    expect(result.timeline).toHaveLength(1);
-    expect(result.timeline[0].type).toBe("job_requested");
-    expect(result.proposals).toEqual([]);
-    expect(result.order).toBeNull();
-  });
-
-  it("maps camelCase detail payload and converts numeric id to string", () => {
-    const result = mapUnifiedOperationDetail(sampleCamelDetail);
-    expect(result.id).toBe("102");
-    expect(result.status).toBe("quoted");
-    expect(result.category.name).toBe("Electricidad");
-    expect(result.consumer.profilePhotoUrl).toBe("https://example.com/maria.jpg");
-    expect(result.provider.profilePhotoUrl).toBeNull();
-    expect(result.currentAddress).toBe("Belgrano 567, CABA");
-    expect(result.timeline).toHaveLength(0);
-    expect(result.proposals).toEqual([]);
-    expect(result.order).toBeNull();
-  });
-
-  it("maps proposals and order with snake_case and nested completion/review correctly", () => {
-    const detailWithOrder = {
-      ...sampleSnakeDetail,
-      proposals: [
-        {
-          id: 201,
-          amount_cents: 4500000,
-          booking_deposit_cents: 900000,
-          estimated_duration: "3 días",
-          description: "Desmonte y sellado",
-          status: "accepted",
-          created_at: "2026-09-19T11:30:00Z",
-        },
-      ],
       order: {
-        id: 301,
-        status: "completed",
-        scheduled_for: "2026-09-25T09:00:00Z",
-        completion_report: {
-          completed_at: "2026-09-25T14:00:00Z",
-          notes: "Trabajo realizado exitosamente sin pérdidas.",
-          photos: ["https://example.com/photo-after.jpg"],
-        },
+        id: 10,
+        completionReport: { notes: "Reparada" },
         review: {
           rating: 5,
-          comment: "Excelente servicio, muy puntual.",
-          created_at: "2026-09-25T15:00:00Z",
-        },
+          comment: "Buen trabajo",
+          createdAt: null
+        }
       },
-    };
-
-    const result = mapUnifiedOperationDetail(detailWithOrder);
-    expect(result.proposals).toHaveLength(1);
-    expect(result.proposals[0]).toEqual({
-      id: 201,
-      amountCents: 4500000,
-      bookingDepositCents: 900000,
-      estimatedDuration: "3 días",
-      description: "Desmonte y sellado",
-      status: "accepted",
-      createdAt: "2026-09-19T11:30:00Z",
-    });
-
-    expect(result.order).toEqual({
-      id: 301,
-      status: "completed",
-      scheduledFor: "2026-09-25T09:00:00Z",
-      completionReport: {
-        completedAt: "2026-09-25T14:00:00Z",
-        notes: "Trabajo realizado exitosamente sin pérdidas.",
-        photos: ["https://example.com/photo-after.jpg"],
-      },
-      review: {
-        rating: 5,
-        comment: "Excelente servicio, muy puntual.",
-        createdAt: "2026-09-25T15:00:00Z",
-      },
+      timeline: [{
+          type: "balance_paid",
+          timestamp: "2026-09-21T14:00:00Z"
+        }]
     });
   });
-
-  it("maps proposals and order with camelCase fields correctly", () => {
-    const detailWithCamelOrder = {
-      ...sampleCamelDetail,
-      proposals: [
-        {
-          id: 202,
-          amountCents: 3000000,
-          bookingDepositCents: 600000,
-          estimatedDuration: "1 día",
-          description: "Revisión térmica",
-          status: "pending",
-          createdAt: "2026-09-20T08:00:00Z",
-        },
-      ],
-      order: {
-        id: 302,
-        status: "scheduled",
-        scheduledFor: "2026-09-26T10:00:00Z",
-        completionReport: null,
-        review: null,
-      },
-    };
-
-    const result = mapUnifiedOperationDetail(detailWithCamelOrder);
-    expect(result.proposals[0].amountCents).toBe(3000000);
-    expect(result.proposals[0].bookingDepositCents).toBe(600000);
-    expect(result.order?.scheduledFor).toBe("2026-09-26T10:00:00Z");
-    expect(result.order?.completionReport).toBeNull();
-    expect(result.order?.review).toBeNull();
-  });
-
-  it("maps wrapped detail responses ({ operation: ... } and { data: ... })", () => {
-    const wrappedOp = mapUnifiedOperationDetail({ operation: sampleSnakeDetail });
-    expect(wrappedOp.id).toBe("op-101");
-
-    const wrappedData = mapUnifiedOperationDetail({ data: sampleCamelDetail });
-    expect(wrappedData.id).toBe("102");
-  });
-
-  it("throws on invalid detail data", () => {
-    expect(() => mapUnifiedOperationDetail(null)).toThrow("Invalid operation detail data");
-    expect(() => mapUnifiedOperationDetail({ id: "invalid-missing-fields" })).toThrow(
-      "Invalid operation detail data",
-    );
+  it("rejects malformed persisted evidence", () => {
+    expect(() => mapUnifiedOperationDetail({
+      ...detail,
+      job_request: {
+        ...detail.job_request,
+        images: [{
+            ...image,
+            file_id: "unsafe"
+          }]
+      }
+    })).toThrow();
   });
 });
-
-describe("mapAuditedConversation", () => {
-  const sampleSnakeConversation = {
-    items: [
-      {
-        id: 1,
-        sender_id: 10,
-        sender_role: "consumer" as const,
-        content: "Hola, ¿cómo estás?",
-        sent_at: "2026-09-18T10:15:00Z",
-        attachments: [
-          {
-            id: 101,
-            file_name: "evidencia.png",
-            url: "https://example.com/evidencia.png",
-          },
-        ],
-      },
-    ],
-    pagination: {
-      page: 1,
-      limit: 20,
-      total: 1,
-    },
-  };
-
-  it("maps snake_case conversation payload correctly", () => {
-    const result = mapAuditedConversation(sampleSnakeConversation);
-
-    expect(result.total).toBe(1);
-    expect(result.items).toHaveLength(1);
-    expect(result.items[0]).toEqual({
-      id: 1,
-      senderId: 10,
-      senderRole: "consumer",
-      content: "Hola, ¿cómo estás?",
-      sentAt: "2026-09-18T10:15:00Z",
-      attachments: [
-        {
-          id: 101,
-          fileName: "evidencia.png",
-          url: "https://example.com/evidencia.png",
-        },
-      ],
-    });
-  });
-
-  it("maps camelCase conversation payload correctly", () => {
-    const camelConversation = {
-      items: [
-        {
-          id: 2,
-          senderId: 20,
-          senderRole: "provider" as const,
-          content: "Todo bien, voy para allá.",
-          sentAt: "2026-09-18T10:20:00Z",
-          attachments: [],
-        },
-      ],
-      total: 1,
-    };
-
-    const result = mapAuditedConversation(camelConversation);
-    expect(result.total).toBe(1);
-    expect(result.items[0].senderRole).toBe("provider");
-    expect(result.items[0].senderId).toBe(20);
-  });
-
-  it("maps array of items directly", () => {
-    const result = mapAuditedConversation(sampleSnakeConversation.items);
-    expect(result.total).toBe(1);
-    expect(result.items).toHaveLength(1);
-  });
-
-  it("throws on invalid conversation data", () => {
-    expect(() => mapAuditedConversation(null)).toThrow("Invalid audited conversation data");
-    expect(() => mapAuditedConversation("not an object")).toThrow("Invalid audited conversation data");
-  });
-});
-
-

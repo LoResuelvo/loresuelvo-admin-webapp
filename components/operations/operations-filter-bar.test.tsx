@@ -11,7 +11,7 @@ describe("OperationsFilterBar", () => {
     expect(select).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Todas las alertas" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Estancada > 24h" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Propuesta demorada > 24h" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /Propuesta demorada > 24h/ })).toBeDisabled();
     expect(screen.getByRole("option", { name: "Al día" })).toBeInTheDocument();
   });
 

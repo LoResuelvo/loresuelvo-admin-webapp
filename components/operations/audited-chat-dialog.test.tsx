@@ -31,6 +31,42 @@ describe("AuditedChatDialog", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
+  it("discards a pending private response after closing the dialog", async () => {
+    const user = userEvent.setup();
+    let resolvePage!: (page: AuditedConversationResult) => void;
+    const pending = new Promise<AuditedConversationResult>((resolve) => { resolvePage = resolve; });
+    const onClose = vi.fn();
+    const { rerender } = render(<AuditedChatDialog isOpen onClose={onClose} operationId="jr-101" onFetchConversation={() => pending} />);
+    await user.selectOptions(screen.getByRole("combobox"), "Reclamo de cliente");
+    await user.click(screen.getByRole("button", { name: /confirmar acceso/i }));
+    await user.click(screen.getByRole("button", { name: "Cerrar modal" }));
+    rerender(<AuditedChatDialog isOpen={false} onClose={onClose} operationId="jr-101" onFetchConversation={() => pending} />);
+    resolvePage(sampleResult);
+    rerender(<AuditedChatDialog isOpen onClose={onClose} operationId="jr-101" onFetchConversation={() => pending} />);
+    expect(screen.queryByText("Hola mundo")).not.toBeInTheDocument();
+    expect(screen.getByRole("combobox")).toHaveValue("");
+  });
+
+  it("appends the next audited page with the same reason and retains loaded messages after a retry", async () => {
+    const user = userEvent.setup();
+    const handleFetch = vi.fn()
+      .mockResolvedValueOnce({ ...sampleResult, nextCursor: "cursor-2" })
+      .mockRejectedValueOnce(new Error("Error al obtener la conversación auditada."))
+      .mockResolvedValueOnce({ items: [{ ...sampleResult.items[0], id: 2, content: "Segunda página" }], total: 1, nextCursor: null });
+    render(<AuditedChatDialog isOpen onClose={vi.fn()} operationId="jr-101" onFetchConversation={handleFetch} />);
+    await user.selectOptions(screen.getByRole("combobox"), "Reclamo de cliente");
+    await user.click(screen.getByRole("button", { name: /confirmar acceso/i }));
+    expect(await screen.findByText("Hola mundo")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /cargar más mensajes/i }));
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(screen.getByText("Hola mundo")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /reintentar/i }));
+    expect(await screen.findByText("Segunda página")).toBeInTheDocument();
+    expect(handleFetch).toHaveBeenLastCalledWith("Reclamo de cliente", "cursor-2");
+    expect(screen.getByText("Hola mundo")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /cargar más mensajes/i })).not.toBeInTheDocument();
+  });
+
   it("shows validation error when attempting to confirm without selecting a reason", async () => {
     const user = userEvent.setup();
     render(
@@ -169,6 +205,4 @@ describe("AuditedChatDialog", () => {
     expect(await screen.findByText("Hola mundo")).toBeInTheDocument();
   });
 });
-
-
 

@@ -1,9 +1,10 @@
+import { translations } from "@/infrastructure/i18n/translations";
 import type { ActionResponsible } from "@/domain/operations/operation-summary";
 
 export type { ActionResponsible };
 
 export interface ResponsibleBadgeProps {
-  responsible: ActionResponsible;
+  responsible: ActionResponsible | null;
   className?: string;
 }
 
@@ -30,14 +31,14 @@ const responsibleConfig: Record<
 };
 
 export function ResponsibleBadge({ responsible, className = "" }: ResponsibleBadgeProps) {
-  const config = responsibleConfig[responsible] ?? responsibleConfig.none;
+  const config = (responsible ? responsibleConfig[responsible] : undefined) ?? responsibleConfig.none;
 
   return (
     <span
       data-testid="responsible-badge"
       className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${config.container} ${className}`.trim()}
     >
-      {config.label}
+      {responsible === null ? translations.operations.unavailable : config.label}
     </span>
   );
 }

@@ -92,7 +92,7 @@ export const usersTranslations = {
         title: "Cobros",
         connected: "Conectado",
         disconnected: "Desconectado",
-        disconnectedAlert: "No puede recibir señas ni pagos",
+        cannotReceivePayments: "No puede recibir señas ni pagos",
         canReceivePayments: "Habilitado para recibir cobros",
         accountLabel: "Cuenta de cobro",
       },
@@ -157,6 +157,7 @@ export const usersTranslations = {
       registeredAtLabel: "Fecha de registro",
       addressLabel: "Dirección habitual",
       zoneLabel: "Zona de cobertura",
+      notAvailable: "No disponible",
     },
     history: {
       title: "Historial de Contrataciones",
@@ -182,11 +183,21 @@ export const usersTranslations = {
         emptyFiltered: "No se encontraron interacciones con los filtros seleccionados",
       },
       statuses: {
+        accepted: "Aceptada",
+        rejected: "Rechazada",
+        scheduled: "Programada",
+        awaiting_payment: "Pendiente de pago",
+        paid: "Completada",
         completed: "Completada",
         in_progress: "En progreso",
         cancelled: "Cancelada",
         pending: "Pendiente",
       },
+      notAvailable: "No disponible",
+      loading: "Buscando interacciones...",
+      loadingMore: "Cargando más interacciones...",
+      loadMore: "Cargar más interacciones",
+      retry: "Reintentar",
       viewOperation: "Ver en Centro de Operaciones",
       empty: "El consumidor no registra contrataciones previas",
     },
@@ -198,4 +209,3 @@ export const usersTranslations = {
     retry: "Reintentar",
   },
 } as const;
-

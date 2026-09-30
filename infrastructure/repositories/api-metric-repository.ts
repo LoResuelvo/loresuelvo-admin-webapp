@@ -6,6 +6,32 @@ import type { ApiStub } from "@/infrastructure/api/types";
 import { parseE2EStubsFromCookies } from "@/infrastructure/api/e2e-stubs-utils";
 import { mapConversionFunnel } from "./metric-mapper";
 
+function matchesFunnelFilters(endpoint: string, filters?: FunnelFilters): boolean {
+  const expected = new URLSearchParams();
+  if (filters?.from) expected.set("from", filters.from);
+  if (filters?.to) expected.set("to", filters.to);
+  if (filters?.categoryId) {
+    expected.set("category_id", String(filters.categoryId));
+  }
+
+  const actual = new URL(endpoint, "http://metrics-stub.local").searchParams;
+  const sortedActual = Array.from(actual.entries()).sort(
+    ([leftKey, leftValue], [rightKey, rightValue]) =>
+      leftKey.localeCompare(rightKey) || leftValue.localeCompare(rightValue),
+  );
+  const sortedExpected = Array.from(expected.entries()).sort(
+    ([leftKey, leftValue], [rightKey, rightValue]) =>
+      leftKey.localeCompare(rightKey) || leftValue.localeCompare(rightValue),
+  );
+
+  return JSON.stringify(sortedActual) === JSON.stringify(sortedExpected);
+}
+
+function isFunnelEndpoint(endpoint: string): boolean {
+  const { pathname } = new URL(endpoint, "http://metrics-stub.local");
+  return pathname === "/admin/metrics/funnel" || pathname === "/metrics/funnel";
+}
+
 async function getE2EFunnelStub(filters?: FunnelFilters): Promise<ApiStub | null> {
   if (process.env.APP_ENV === "production") return null;
   try {
@@ -15,53 +41,11 @@ async function getE2EFunnelStub(filters?: FunnelFilters): Promise<ApiStub | null
     const funnelStubs = stubs.filter(
       (s) =>
         s.method === "GET" &&
-        (s.endpoint.startsWith("/admin/metrics/funnel") ||
-          s.endpoint.startsWith("/metrics/funnel")),
+        isFunnelEndpoint(s.endpoint),
     );
     if (funnelStubs.length === 0) return null;
 
-    if (filters) {
-      if (filters.categoryId !== undefined) {
-        const categoryMatch = funnelStubs.find(
-          (s) =>
-            s.endpoint.includes(`category_id=${filters.categoryId}`) ||
-            s.endpoint.includes(`categoryId=${filters.categoryId}`),
-        );
-        if (categoryMatch) return categoryMatch;
-      }
-
-      if (filters.from || filters.to) {
-        const dateMatch = funnelStubs.find((s) => {
-          if (filters.from && filters.to) {
-            return (
-              s.endpoint.includes(`from=${encodeURIComponent(filters.from)}`) ||
-              s.endpoint.includes(`from=${filters.from}`) ||
-              s.endpoint.includes(`range=30d`)
-            );
-          }
-          if (filters.from) {
-            return (
-              s.endpoint.includes(`from=${encodeURIComponent(filters.from)}`) ||
-              s.endpoint.includes(`from=${filters.from}`)
-            );
-          }
-          if (filters.to) {
-            return (
-              s.endpoint.includes(`to=${encodeURIComponent(filters.to)}`) ||
-              s.endpoint.includes(`to=${filters.to}`)
-            );
-          }
-          return false;
-        });
-        if (dateMatch) return dateMatch;
-      }
-    }
-
-    return (
-      funnelStubs.find((s) => !s.endpoint.includes("?")) ??
-      funnelStubs[0] ??
-      null
-    );
+    return funnelStubs.find((stub) => matchesFunnelFilters(stub.endpoint, filters)) ?? null;
   } catch {
     return null;
   }

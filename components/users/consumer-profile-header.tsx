@@ -9,11 +9,11 @@ export interface ConsumerProfileHeaderProps {
   name: string;
   surname: string;
   email: string;
-  phone: string;
+  phone?: string;
   profilePhotoUrl?: string;
   registeredAt: string;
-  currentAddress: string;
-  coverageZone: ConsumerCoverageZone;
+  currentAddress?: string;
+  coverageZone?: ConsumerCoverageZone;
 }
 
 function formatDate(isoOrDate: string): string {
@@ -69,7 +69,7 @@ function ConsumerContactInfo({
   registeredAt,
 }: {
   email: string;
-  phone: string;
+  phone?: string;
   registeredAt: string;
 }) {
   const copy = translations.users.consumerDetail.profile;
@@ -81,7 +81,7 @@ function ConsumerContactInfo({
       </span>
       <span aria-hidden="true" className="text-[#1A2B48]/20">•</span>
       <span>
-        <strong className="font-medium text-[#1A2B48]/70">{copy.phoneLabel}:</strong> {phone}
+        <strong className="font-medium text-[#1A2B48]/70">{copy.phoneLabel}:</strong> {phone ?? copy.notAvailable}
       </span>
       <span aria-hidden="true" className="text-[#1A2B48]/20">•</span>
       <span>
@@ -95,8 +95,8 @@ function ConsumerAddressBadge({
   currentAddress,
   coverageZone,
 }: {
-  currentAddress: string;
-  coverageZone: ConsumerCoverageZone;
+  currentAddress?: string;
+  coverageZone?: ConsumerCoverageZone;
 }) {
   const copy = translations.users.consumerDetail.profile;
 
@@ -105,9 +105,11 @@ function ConsumerAddressBadge({
       <span className="text-xs font-semibold uppercase tracking-wider text-[#1A2B48]/60">
         {copy.addressLabel}
       </span>
-      <span className="font-semibold text-sm text-[#1A2B48]">{currentAddress}</span>
+      <span className="font-semibold text-sm text-[#1A2B48]">
+        {currentAddress ?? copy.notAvailable}
+      </span>
       <span className="inline-flex items-center rounded-lg bg-[#147560]/10 px-2.5 py-0.5 font-medium text-xs text-[#147560]">
-        {coverageZone.name}
+        {coverageZone?.name ?? copy.notAvailable}
       </span>
     </div>
   );

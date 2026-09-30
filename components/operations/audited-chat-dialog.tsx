@@ -18,6 +18,7 @@ export interface AuditedChatDialogProps {
   readonly providerName?: string;
   readonly onFetchConversation?: (
     reason: string,
+    cursor?: string,
   ) => Promise<AuditedConversationResult>;
 }
 
@@ -100,7 +101,7 @@ function AuditedChatErrorState({
               : "border border-red-300 bg-white text-red-800 hover:bg-red-50"
           }`}
         >
-          {isForbidden ? translations.operations.chat.close : "Volver"}
+          {isForbidden ? translations.operations.chat.close : translations.operations.chat.back}
         </button>
         {!isForbidden && (
           <button
@@ -121,6 +122,8 @@ interface SuccessViewProps {
   readonly consumerName?: string;
   readonly providerName?: string;
   readonly onClose: () => void;
+  readonly onLoadMore: () => void;
+  readonly isLoading: boolean;
 }
 
 function AuditedChatSuccessView({
@@ -128,17 +131,30 @@ function AuditedChatSuccessView({
   consumerName,
   providerName,
   onClose,
+  onLoadMore,
+  isLoading,
 }: SuccessViewProps) {
   return (
     <div className="space-y-4">
+      {result.sharedConversation && (
+        <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+          {translations.operations.chat.sharedConversation}
+        </p>
+      )}
       <AuditedMessagesList
         messages={result.items}
         consumerName={consumerName}
         providerName={providerName}
       />
+      {result.nextCursor && (
+        <button type="button" onClick={onLoadMore} disabled={isLoading}
+          className="rounded-lg border border-[#1A2B48]/20 px-3 py-1.5 text-sm font-medium disabled:opacity-50">
+          {isLoading ? translations.operations.chat.loading : translations.operations.chat.loadMore}
+        </button>
+      )}
       <div className="flex items-center justify-between pt-3 border-t border-[#1A2B48]/10 text-xs text-[#536176]">
-        <span>
-          Total: {result.total} {result.total === 1 ? "mensaje" : "mensajes"}
+        <span role="status" aria-live="polite">
+          {translations.operations.chat.loadedMessages}: {result.items.length}
         </span>
         <button
           type="button"
@@ -170,7 +186,9 @@ export function AuditedChatDialog({
     handleConfirmAccess,
     handleReasonChange,
     handleClearError,
-  } = useAuditedChatDialogState({ onClose, onFetchConversation });
+    handleLoadMore,
+    handleRetry,
+  } = useAuditedChatDialogState({ isOpen, onClose, onFetchConversation });
 
   return (
     <Modal
@@ -189,21 +207,23 @@ export function AuditedChatDialog({
             onConfirm={handleConfirmAccess}
           />
         )}
-        {isLoading && <AuditedChatLoadingState />}
+        {isLoading && !conversationResult && <AuditedChatLoadingState />}
         {error && !isLoading && (
           <AuditedChatErrorState
             error={error}
             isForbidden={isForbidden}
-            onBack={handleClearError}
-            onRetry={handleConfirmAccess}
+            onBack={isForbidden ? handleClose : handleClearError}
+            onRetry={handleRetry}
           />
         )}
-        {conversationResult && !isLoading && (
+        {conversationResult && (
           <AuditedChatSuccessView
             result={conversationResult}
             consumerName={consumerName}
             providerName={providerName}
             onClose={handleClose}
+            onLoadMore={handleLoadMore}
+            isLoading={isLoading}
           />
         )}
       </div>

@@ -1,17 +1,12 @@
 import { translations } from "@/infrastructure/i18n/translations";
 
-export type PeriodOption = "7d" | "30d" | "90d";
+import type { PeriodOption } from "@/domain/metrics/funnel-date-range";
+export { computeDateRange, type PeriodOption } from "@/domain/metrics/funnel-date-range";
 
 export interface CategoryOption {
   readonly id: number;
   readonly name: string;
 }
-
-export const DEFAULT_CATEGORIES: readonly CategoryOption[] = [
-  { id: 1, name: "Plomería" },
-  { id: 2, name: "Electricidad" },
-  { id: 3, name: "Gas" },
-];
 
 export interface FunnelFiltersBarProps {
   selectedPeriod?: PeriodOption;
@@ -25,20 +20,6 @@ export interface FunnelFiltersBarProps {
   onToDateChange?: (date: string) => void;
   onApplyFilters?: () => void;
   className?: string;
-}
-
-export function computeDateRange(
-  preset: PeriodOption,
-  referenceDate: Date = new Date("2026-09-24T00:00:00Z"),
-): { from: string; to: string } {
-  const days = preset === "7d" ? 7 : preset === "30d" ? 30 : 90;
-  const to = new Date(referenceDate);
-  const from = new Date(referenceDate);
-  from.setDate(to.getDate() - days);
-  return {
-    from: from.toISOString().split("T")[0],
-    to: to.toISOString().split("T")[0],
-  };
 }
 
 function PeriodFilterSelect({
@@ -183,7 +164,7 @@ export function FunnelFiltersBar({
   onPeriodChange,
   selectedCategoryId = "",
   onCategoryChange,
-  categoryOptions = DEFAULT_CATEGORIES,
+  categoryOptions = [],
   fromDate,
   toDate,
   onFromDateChange,

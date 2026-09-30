@@ -9,39 +9,52 @@ describe("fetchConsumerHistory", () => {
   });
 
   const sampleConsumerHistoryDto = {
-    id: 301,
-    name: "Carlos",
-    surname: "López",
-    email: "carlos@example.com",
-    phone: "+54 11 4444-2222",
-    profile_photo_url: "https://storage.loresuelvo.internal/profiles/301.jpg",
-    registered_at: "2026-09-01T10:00:00-03:00",
-    current_address: "Av. Rivadavia 4500",
-    coverage_zone: {
-      id: 6,
-      name: "Comuna 6",
-    },
-    history: [
-      {
-        resource_id: 105,
-        operation_id: 105,
-        resource_type: "work_order",
-        category_name: "Plomería",
-        provider: {
-          id: 201,
-          name: "Juan Gómez",
-          profile_photo_url: "https://storage.loresuelvo.internal/profiles/201.jpg",
-        },
-        status: "completed",
-        total_amount_cents: 2000000,
-        created_at: "2026-09-20T10:00:00-03:00",
+    consumer: {
+      id: 301,
+      role: "consumer",
+      name: "Carlos",
+      surname: "López",
+      email: "carlos@example.com",
+      profile_photo_url: "https://storage.loresuelvo.internal/profiles/301.jpg",
+      created_on: "2026-09-01T10:00:00-03:00",
+      address: {
+        street: "Av. Rivadavia",
+        street_number: "4500",
+        floor: null,
+        unit: null,
+        source: "current_consumer_profile",
       },
-    ],
-    pagination: {
-      page: 1,
+      coverage_zone: {
+        id: 6,
+        name: "Comuna 6",
+        enabled: true,
+        source: "current_consumer_profile",
+      },
+    },
+    summary: { job_requests: 3, service_proposals: 2, work_orders: 4 },
+    page: {
+      items: [
+        {
+          type: "work_order",
+          id: 105,
+          status: "paid",
+          provider: { id: 201, name: "Juan", surname: "Gómez" },
+          occurred_on: "2026-09-20T10:00:00-03:00",
+          operation: {
+            id: "jr-105",
+            url: "/admin/operations/jr-105",
+            required_permission: "read:admin_operations",
+            chat_required_permission: "read:admin_chat_audit",
+          },
+          job_request_id: 5,
+          service_proposal_id: 17,
+          accepted_on: "2026-09-19T10:00:00-03:00",
+          completion_reported_on: "2026-09-20T10:00:00-03:00",
+          balance_paid_on: "2026-09-20T10:01:00-03:00",
+        },
+      ],
       limit: 20,
-      total: 1,
-      total_pages: 1,
+      next_cursor: "signed-next-page",
     },
   };
 
@@ -51,12 +64,14 @@ describe("fetchConsumerHistory", () => {
     vi.stubGlobal("fetch", fetcher);
 
     const result = await fetchConsumerHistory("test-token", 301, {
-      status: "completed",
+      status: "paid",
       resourceType: "work_order",
+      limit: 20,
+      cursor: "signed-next-page",
     });
 
     expect(fetcher).toHaveBeenCalledWith(
-      "https://api.example.com/admin/consumers/301/history?resource_type=work_order&status=completed",
+      "https://api.example.com/admin/consumers/301/history?type=work_order&status=paid&limit=20&cursor=signed-next-page",
       expect.objectContaining({
         cache: "no-store",
         headers: {
@@ -68,9 +83,22 @@ describe("fetchConsumerHistory", () => {
     expect(result.id).toBe(301);
     expect(result.name).toBe("Carlos");
     expect(result.currentAddress).toBe("Av. Rivadavia 4500");
-    expect(result.coverageZone.name).toBe("Comuna 6");
+    expect(result.coverageZone).toEqual({ id: 6, name: "Comuna 6" });
+    expect(result.phone).toBeUndefined();
     expect(result.history).toHaveLength(1);
-    expect(result.history[0].categoryName).toBe("Plomería");
+    expect(result.history[0]).toMatchObject({
+      operationId: "jr-105",
+      resourceType: "work_order",
+      provider: { name: "Juan Gómez" },
+      status: "paid",
+    });
+    expect(result.history[0]).not.toHaveProperty("categoryName");
+    expect(result.history[0]).not.toHaveProperty("totalAmountCents");
+    expect(result.pagination).toEqual({
+      limit: 20,
+      hasMore: true,
+      nextCursor: "signed-next-page",
+    });
   });
 
   it("throws forbidden UserError when API returns 403", async () => {

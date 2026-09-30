@@ -1,180 +1,175 @@
 import { z } from "zod";
-
+const id = z.number().int().positive();
+const timestamp = z.string().datetime({ offset: true });
 export const apiOperationPartySchema = z.object({
-  id: z.number().int().positive(),
-  name: z.string().trim().min(1),
-  surname: z.string().trim().min(1),
-  email: z.string().email(),
+  id,
+  name: z.string(),
+  surname: z.string()
 });
-
-export type ApiOperationParty = z.infer<typeof apiOperationPartySchema>;
-
 export const apiOperationCategorySchema = z.object({
-  id: z.number().int().positive(),
-  name: z.string().trim().min(1),
+  id,
+  name: z.string()
 });
-
-export const apiOperationBottleneckSchema = z.enum([
-  "pending_proposal_24h",
-  "pending_booking_deposit",
-  "scheduled_today",
-  "delayed_service",
-  "pending_final_payment",
-  "stalled",
-  "none",
-]);
-
 export const apiOperationStatusSchema = z.enum([
-  "requested",
-  "quoted",
-  "in_progress",
-  "completed",
-  "cancelled",
+  "request_pending",
+  "request_accepted",
+  "proposal_pending",
+  "proposal_rejected",
+  "work_order_scheduled",
+  "work_order_awaiting_payment",
+  "work_order_paid"
 ]);
-
-export const apiOperationResponsibleSchema = z.enum([
-  "consumer",
-  "provider",
-  "platform",
-  "none",
+export const apiOperationBottleneckSchema = z.enum([
+  "request_pending_over_24h",
+  "booking_deadline_passed",
+  "delayed",
+  "stalled"
 ]);
-
+export const apiOperationResponsibleSchema = z.enum(["consumer", "provider", "none"]);
+const requestSummary = z.object({
+  id,
+  status: z.enum(["pending", "accepted"]),
+  created_on: timestamp
+});
+const proposalSummary = z.object({
+  id,
+  status: z.enum(["pending", "accepted", "rejected"]),
+  created_on: timestamp,
+  scheduled_on: timestamp,
+  estimated_duration_minutes: z.number(),
+  booking_payment_deadline: timestamp
+});
+const orderSummary = z.object({
+  id,
+  status: z.enum(["scheduled", "awaiting_payment", "paid"]),
+  accepted_on: timestamp,
+  completion_reported_on: timestamp.nullable(),
+  balance_paid_on: timestamp.nullable()
+});
 export const apiOperationItemSchema = z.object({
-  id: z.union([z.string(), z.number()]).transform(String),
-  job_request_id: z.number().int().positive().optional(),
-  jobRequestId: z.number().int().positive().optional(),
-  service_proposal_id: z.number().int().positive().optional(),
-  serviceProposalId: z.number().int().positive().optional(),
-  work_order_id: z.number().int().positive().optional(),
-  workOrderId: z.number().int().positive().optional(),
+  id: z.string().regex(/^(jr|sp)-[1-9][0-9]*$/),
+  stage: apiOperationStatusSchema,
+  started_on: timestamp,
+  job_request: requestSummary.nullable(),
+  service_proposal: proposalSummary.nullable(),
+  work_order: orderSummary.nullable(),
   consumer: apiOperationPartySchema,
   provider: apiOperationPartySchema,
-  category: apiOperationCategorySchema,
-  status: apiOperationStatusSchema,
-  bottleneck: apiOperationBottleneckSchema,
-  next_action_by: apiOperationResponsibleSchema.optional(),
-  nextActionBy: apiOperationResponsibleSchema.optional(),
-  created_at: z.string().optional(),
-  createdAt: z.string().optional(),
-  updated_at: z.string().optional(),
-  updatedAt: z.string().optional(),
+  category: apiOperationCategorySchema.nullable(),
+  alerts: z.array(apiOperationBottleneckSchema),
+  next_action_owner: apiOperationResponsibleSchema.nullable(),
+  last_business_advance_on: timestamp.nullable(),
+  limitations: z.array(z.enum(["request_acceptance_time_unavailable"]))
 });
-
-export type ApiOperationItem = z.infer<typeof apiOperationItemSchema>;
-
-export const apiOperationsResponseSchema = z.union([
-  z.array(apiOperationItemSchema),
-  z.object({ operations: z.array(apiOperationItemSchema) }),
-  z.object({ items: z.array(apiOperationItemSchema) }),
-]);
-
-export type ApiOperationsResponse = z.infer<typeof apiOperationsResponseSchema>;
-
-export const apiTimelineMilestoneSchema = z.object({
-  type: z.string().min(1),
-  title: z.string().min(1),
-  timestamp: z.string().min(1),
+export const apiOperationsResponseSchema = z.object({
+  operations: z.array(apiOperationItemSchema),
+  next_cursor: z.string().nullable()
 });
-
-export type ApiTimelineMilestone = z.infer<typeof apiTimelineMilestoneSchema>;
-
-export const apiOperationPartyDetailSchema = z.object({
-  id: z.number().int().positive(),
-  name: z.string().trim().min(1),
-  surname: z.string().trim().min(1),
-  email: z.string().email(),
-  profile_photo_url: z.string().nullish(),
-  profilePhotoUrl: z.string().nullish(),
+const image = z.object({
+  file_id: z.string().uuid(),
+  original_name: z.string(),
+  mime_type: z.enum(["image/jpeg", "image/png", "image/webp"]),
+  purpose: z.enum(["job_request_image", "work_order_completion_image"]),
+  created_on: timestamp
 });
-
-export type ApiOperationPartyDetail = z.infer<typeof apiOperationPartyDetailSchema>;
-
-export const apiRequestDetailSchema = z.object({
-  id: z.number().int().positive(),
-  title: z.string().min(1),
-  description: z.string().min(1),
-  status: z.string().min(1),
-  source_assessment_id: z.string().nullish(),
-  sourceAssessmentId: z.string().nullish(),
-  diagnostic_summary: z.string().nullish(),
-  diagnosticSummary: z.string().nullish(),
-  photos: z.array(z.string()).default([]),
+export const apiOperationPartyDetailSchema = apiOperationPartySchema;
+export const apiRequestDetailSchema = requestSummary.extend({
+  title: z.string(),
+  description: z.string(),
+  images: z.array(image)
 });
-
-export type ApiRequestDetail = z.infer<typeof apiRequestDetailSchema>;
-
 export const apiProposalDetailSchema = z.object({
-  id: z.number().int().positive(),
-  amount_cents: z.number().int().nonnegative().optional(),
-  amountCents: z.number().int().nonnegative().optional(),
-  booking_deposit_cents: z.number().int().nonnegative().optional(),
-  bookingDepositCents: z.number().int().nonnegative().optional(),
-  estimated_duration: z.string().optional().default(""),
-  estimatedDuration: z.string().optional(),
-  description: z.string().optional().default(""),
-  status: z.string().optional().default("sent"),
-  created_at: z.string().optional().default(""),
-  createdAt: z.string().optional(),
+  id,
+  status: z.enum(["pending", "accepted", "rejected"]),
+  description: z.string(),
+  amount_cents: z.number().int(),
+  currency: z.literal("ARS"),
+  created_on: timestamp,
+  scheduled_on: timestamp,
+  estimated_duration_minutes: z.number().int(),
+  deposit_cents: z.number().int(),
+  platform_fee_total_cents: z.number().int(),
+  platform_fee_due_now_cents: z.number().int(),
+  service_balance_cents: z.number().int(),
+  platform_fee_balance_cents: z.number().int()
 });
-
-export type ApiProposalDetail = z.infer<typeof apiProposalDetailSchema>;
-
 export const apiCompletionReportSchema = z.object({
-  completed_at: z.string().optional().default(""),
-  completedAt: z.string().optional(),
-  notes: z.string().optional().default(""),
-  photos: z.array(z.string()).default([]),
+  description: z.string(),
+  reported_on: timestamp,
+  images: z.array(image)
 });
-
-export type ApiCompletionReport = z.infer<typeof apiCompletionReportSchema>;
-
 export const apiServiceReviewSchema = z.object({
-  rating: z.number().min(0).max(5).default(0),
-  comment: z.string().optional().default(""),
-  created_at: z.string().optional().default(""),
-  createdAt: z.string().optional(),
+  rating: z.number().int().min(1).max(5),
+  description: z.string()
 });
-
-export type ApiServiceReview = z.infer<typeof apiServiceReviewSchema>;
-
-export const apiOrderDetailSchema = z.object({
-  id: z.number().int().positive(),
-  status: z.string().min(1),
-  scheduled_for: z.string().nullish(),
-  scheduledFor: z.string().nullish(),
-  completion_report: apiCompletionReportSchema.nullish(),
-  completionReport: apiCompletionReportSchema.nullish(),
-  review: apiServiceReviewSchema.nullish(),
+export const apiOrderDetailSchema = orderSummary.extend({
+  completion_report: apiCompletionReportSchema.nullable(),
+  review: apiServiceReviewSchema.nullable()
 });
-
-export type ApiOrderDetail = z.infer<typeof apiOrderDetailSchema>;
-
+export const apiTimelineMilestoneSchema = z.object({
+  type: z.enum([
+    "job_request_created",
+    "service_proposal_created",
+    "work_order_accepted",
+    "completion_reported",
+    "balance_paid",
+    "payment_intent_created"
+  ]),
+  source_type: z.enum([
+    "job_request",
+    "service_proposal",
+    "work_order",
+    "payment_intent"
+  ]),
+  source_id: z.string(),
+  occurred_on: timestamp
+});
 export const apiUnifiedOperationDetailItemSchema = z.object({
-  id: z.union([z.string(), z.number()]).transform(String),
-  status: apiOperationStatusSchema,
-  created_at: z.string().optional(),
-  createdAt: z.string().optional(),
-  category: apiOperationCategorySchema,
-  consumer: apiOperationPartyDetailSchema,
-  provider: apiOperationPartyDetailSchema,
-  current_address: z.string().optional(),
-  currentAddress: z.string().optional(),
-  request: apiRequestDetailSchema,
-  proposals: z.array(apiProposalDetailSchema).default([]),
-  order: apiOrderDetailSchema.nullish(),
-  payment_milestones: z.unknown().optional(),
-  paymentMilestones: z.unknown().optional(),
-  timeline: z.array(apiTimelineMilestoneSchema).default([]),
+  id: z.string().regex(/^(jr|sp)-[1-9][0-9]*$/),
+  started_on: timestamp,
+  job_request: apiRequestDetailSchema.nullable(),
+  service_proposal: apiProposalDetailSchema.nullable(),
+  related_proposals: z.array(apiProposalDetailSchema.extend({ operation_id: z.string() })),
+  work_order: apiOrderDetailSchema.nullable(),
+  payment_milestones: z.array(z.object({
+    id: z.string().uuid(),
+    purpose: z.enum(["booking_deposit", "service_balance"]),
+    status: z.string(),
+    created_on: timestamp
+  })),
+  timeline: z.array(apiTimelineMilestoneSchema),
+  consumer: apiOperationPartySchema,
+  provider: apiOperationPartySchema,
+  category: apiOperationCategorySchema.nullable(),
+  address: z.object({
+    street: z.string(),
+    street_number: z.string(),
+    floor: z.string().nullable(),
+    unit: z.string().nullable(),
+    source: z.literal("current_consumer_address")
+  }).nullable(),
+  source_assessment: z.object({
+    id,
+    version: z.number(),
+    outcome: z.string(),
+    category: apiOperationCategorySchema.nullable(),
+    title: z.string(),
+    description: z.string(),
+    based_on_message_id: id,
+    created_on: timestamp
+  }).nullable()
 });
-
+export const apiUnifiedOperationDetailResponseSchema = apiUnifiedOperationDetailItemSchema;
+export type ApiOperationParty = z.infer<typeof apiOperationPartySchema>;
+export type ApiOperationCategory = z.infer<typeof apiOperationCategorySchema>;
+export type ApiOperationItem = z.infer<typeof apiOperationItemSchema>;
+export type ApiOperationsResponse = z.infer<typeof apiOperationsResponseSchema>;
+export type ApiTimelineMilestone = z.infer<typeof apiTimelineMilestoneSchema>;
+export type ApiOperationPartyDetail = z.infer<typeof apiOperationPartyDetailSchema>;
+export type ApiRequestDetail = z.infer<typeof apiRequestDetailSchema>;
+export type ApiProposalDetail = z.infer<typeof apiProposalDetailSchema>;
+export type ApiCompletionReport = z.infer<typeof apiCompletionReportSchema>;
+export type ApiServiceReview = z.infer<typeof apiServiceReviewSchema>;
+export type ApiOrderDetail = z.infer<typeof apiOrderDetailSchema>;
 export type ApiUnifiedOperationDetailItem = z.infer<typeof apiUnifiedOperationDetailItemSchema>;
-
-export const apiUnifiedOperationDetailResponseSchema = z.union([
-  apiUnifiedOperationDetailItemSchema,
-  z.object({ operation: apiUnifiedOperationDetailItemSchema }),
-  z.object({ data: apiUnifiedOperationDetailItemSchema }),
-]);
-
-export type ApiUnifiedOperationDetailResponse = z.infer<
-  typeof apiUnifiedOperationDetailResponseSchema
->;
+export type ApiUnifiedOperationDetailResponse = z.infer<typeof apiUnifiedOperationDetailResponseSchema>;

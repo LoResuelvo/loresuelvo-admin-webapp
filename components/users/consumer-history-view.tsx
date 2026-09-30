@@ -5,9 +5,31 @@ import { ConsumerHistoryList } from "./consumer-history-list";
 
 export interface ConsumerHistoryViewProps {
   consumer: ConsumerDetail;
+  selectedType?: string;
+  selectedStatus?: string;
+  isHistoryLoading?: boolean;
+  isLoadingMore?: boolean;
+  isLoadMoreError?: boolean;
+  historyError?: string | null;
+  onTypeChange?: (type: string) => void;
+  onStatusChange?: (status: string) => void;
+  onLoadMore?: () => void;
+  onRetryHistory?: () => void;
 }
 
-export function ConsumerHistoryView({ consumer }: ConsumerHistoryViewProps) {
+export function ConsumerHistoryView({
+  consumer,
+  selectedType,
+  selectedStatus,
+  isHistoryLoading,
+  isLoadingMore,
+  isLoadMoreError,
+  historyError,
+  onTypeChange,
+  onStatusChange,
+  onLoadMore,
+  onRetryHistory,
+}: ConsumerHistoryViewProps) {
   return (
     <div
       role="region"
@@ -25,7 +47,20 @@ export function ConsumerHistoryView({ consumer }: ConsumerHistoryViewProps) {
         coverageZone={consumer.coverageZone}
       />
 
-      <ConsumerHistoryList history={consumer.history} />
+      <ConsumerHistoryList
+        history={consumer.history}
+        selectedType={selectedType}
+        selectedStatus={selectedStatus}
+        pagination={consumer.pagination}
+        isLoading={isHistoryLoading}
+        isLoadingMore={isLoadingMore}
+        preserveHistoryOnError={isLoadMoreError}
+        error={historyError}
+        onTypeChange={onTypeChange}
+        onStatusChange={onStatusChange}
+        onLoadMore={onLoadMore}
+        onRetry={onRetryHistory}
+      />
     </div>
   );
 }

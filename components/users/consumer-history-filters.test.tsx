@@ -14,24 +14,27 @@ describe("ConsumerHistoryFilters", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders default options for all types and all statuses", () => {
-    render(<ConsumerHistoryFilters />);
+  it("requires an interaction type before selecting an API-supported status", () => {
+    const { rerender } = render(<ConsumerHistoryFilters />);
 
     const typeSelect = screen.getByRole("combobox", { name: "Tipo de interacción" });
     const statusSelect = screen.getByRole("combobox", { name: "Estado" });
 
     expect(typeSelect).toHaveValue("all");
     expect(statusSelect).toHaveValue("all");
+    expect(statusSelect).toBeDisabled();
     expect(screen.getByRole("option", { name: "Todos los tipos" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Órdenes de trabajo" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Propuestas de servicio" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Solicitudes de trabajo" })).toBeInTheDocument();
 
     expect(screen.getByRole("option", { name: "Todos los estados" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Completada" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "En progreso" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Cancelada" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Pendiente" })).toBeInTheDocument();
+
+    rerender(<ConsumerHistoryFilters selectedType="work_order" />);
+    expect(screen.getByRole("combobox", { name: "Estado" })).toBeEnabled();
+    expect(screen.getByRole("option", { name: "Completada" })).toHaveValue("paid");
+    expect(screen.getByRole("option", { name: "Programada" })).toHaveValue("scheduled");
+    expect(screen.getByRole("option", { name: "Pendiente de pago" })).toHaveValue("awaiting_payment");
   });
 
   it("calls onTypeChange when type is selected", () => {
@@ -46,19 +49,24 @@ describe("ConsumerHistoryFilters", () => {
 
   it("calls onStatusChange when status is selected", () => {
     const handleStatusChange = vi.fn();
-    render(<ConsumerHistoryFilters onStatusChange={handleStatusChange} />);
+    render(
+      <ConsumerHistoryFilters
+        selectedType="work_order"
+        onStatusChange={handleStatusChange}
+      />,
+    );
 
     const statusSelect = screen.getByRole("combobox", { name: "Estado" });
-    fireEvent.change(statusSelect, { target: { value: "completed" } });
+    fireEvent.change(statusSelect, { target: { value: "paid" } });
 
-    expect(handleStatusChange).toHaveBeenCalledWith("completed");
+    expect(handleStatusChange).toHaveBeenCalledWith("paid");
   });
 
   it("reflects selected values passed in props", () => {
     render(
       <ConsumerHistoryFilters
         selectedType="service_proposal"
-        selectedStatus="in_progress"
+        selectedStatus="rejected"
       />,
     );
 
@@ -67,6 +75,6 @@ describe("ConsumerHistoryFilters", () => {
     ).toHaveValue("service_proposal");
     expect(
       screen.getByRole("combobox", { name: "Estado" }),
-    ).toHaveValue("in_progress");
+    ).toHaveValue("rejected");
   });
 });

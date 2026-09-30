@@ -3,20 +3,21 @@ import type { AuditedConversationResult } from "@/domain/operations/audited-mess
 import { OperationError } from "@/domain/operations/operation-error";
 import type { ApiStub } from "@/infrastructure/api/types";
 import { parseE2EStubsFromCookies } from "@/infrastructure/api/e2e-stubs-utils";
-import { mapAuditedConversation } from "./mappers/operation-mapper";
+import { mapAuditedConversation } from "./mappers/audited-conversation-mapper";
 
-async function getE2EAuditedConversationStub(id: string): Promise<ApiStub | null> {
+async function getE2EAuditedConversationStub(id: string, cursor?: string): Promise<ApiStub | null> {
   if (process.env.APP_ENV === "production") return null;
   try {
     const { cookies } = await import("next/headers");
     const cookieStore = await cookies();
     const stubs = parseE2EStubsFromCookies(cookieStore.getAll());
+    const query = cursor ? `?${new URLSearchParams({ cursor })}` : "";
     return (
       stubs.find(
         (s) =>
           s.method === "GET" &&
-          (s.endpoint === `/admin/operations/${id}/conversation` ||
-            s.endpoint === `/operations/${id}/conversation`),
+          (s.endpoint === `/admin/operations/${id}/conversation${query}` ||
+            s.endpoint === `/operations/${id}/conversation${query}`),
       ) ?? null
     );
   } catch {
@@ -63,16 +64,18 @@ async function fetchAuditedConversationFromApi(
   token: string,
   id: string,
   reason: string,
+  cursor?: string,
 ): Promise<AuditedConversationResult> {
   const baseUrl = process.env.API_URL;
   if (!baseUrl) {
     throw new Error("API_URL is not configured");
   }
 
-  const url = `${baseUrl.replace(/\/$/, "")}/admin/operations/${id}/conversation`;
+  const url = new URL(`${baseUrl.replace(/\/$/, "")}/admin/operations/${encodeURIComponent(id)}/conversation`);
+  if (cursor) url.searchParams.set("cursor", cursor);
   let response: Response;
   try {
-    response = await fetch(url, {
+    response = await fetch(url.toString(), {
       headers: {
         Authorization: `Bearer ${token}`,
         "X-Audit-Reason": reason,
@@ -98,10 +101,11 @@ export async function fetchOrResolveAuditedConversation(
   token: string,
   id: string,
   reason: string,
+  cursor?: string,
 ): Promise<AuditedConversationResult> {
-  const stub = await getE2EAuditedConversationStub(id);
+  const stub = await getE2EAuditedConversationStub(id, cursor);
   if (stub) {
     return resolveAuditedConversationFromStub(stub);
   }
-  return fetchAuditedConversationFromApi(token, id, reason);
+  return fetchAuditedConversationFromApi(token, id, reason, cursor);
 }

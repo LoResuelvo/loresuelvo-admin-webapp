@@ -70,6 +70,7 @@ function PaymentConditionCard({
 
   return (
     <div
+      data-testid="payments-condition-card"
       className={`flex flex-col justify-between rounded-xl border p-5 shadow-2xs ${
         isConnected
           ? "border-[#1A2B48]/10 bg-white"
@@ -94,10 +95,10 @@ function PaymentConditionCard({
 
         <p
           className={`mt-3 text-sm font-semibold ${
-            isConnected ? "text-[#1A2B48]" : "text-red-700"
+            canReceivePayments ? "text-[#1A2B48]" : "text-red-700"
           }`}
         >
-          {isConnected ? copy.canReceivePayments : copy.disconnectedAlert}
+          {canReceivePayments ? copy.canReceivePayments : copy.cannotReceivePayments}
         </p>
       </div>
 
@@ -105,10 +106,6 @@ function PaymentConditionCard({
         {isConnected && accountId ? (
           <span>
             {copy.accountLabel}: <strong className="font-mono">{accountId}</strong>
-          </span>
-        ) : !canReceivePayments ? (
-          <span className="text-red-600 font-medium">
-            {copy.disconnectedAlert}
           </span>
         ) : null}
       </div>

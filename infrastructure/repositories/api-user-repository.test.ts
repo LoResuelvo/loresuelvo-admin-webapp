@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { UserError } from "@/domain/users/user-error";
+import type { ApiConsumerHistoryResponse } from "@/infrastructure/api/user-types";
 import { apiUserRepository } from "./api-user-repository";
 
 describe("apiUserRepository", () => {
@@ -176,24 +177,39 @@ describe("apiUserRepository", () => {
   describe("getConsumerHistory", () => {
     it("delegates to fetchConsumerHistory", async () => {
       vi.stubEnv("API_URL", "https://api.example.com");
-      const sample = {
-        id: 301,
-        name: "Carlos",
-        surname: "López",
-        email: "carlos@example.com",
-        phone: "+54 11 4444-2222",
-        registered_at: "2026-09-01T10:00:00-03:00",
-        current_address: "Av. Rivadavia 4500",
-        coverage_zone: { id: 6, name: "Comuna 6" },
-        history: [],
-        pagination: { page: 1, limit: 20, total: 0, total_pages: 0 },
+      const sample: ApiConsumerHistoryResponse = {
+        consumer: {
+          id: 301,
+          role: "consumer",
+          name: "Carlos",
+          surname: "López",
+          email: "carlos@example.com",
+          profile_photo_url: null,
+          created_on: "2026-09-01T10:00:00-03:00",
+          address: null,
+          coverage_zone: null,
+        },
+        summary: { job_requests: 0, service_proposals: 0, work_orders: 0 },
+        page: { items: [], limit: 20, next_cursor: null },
       };
-      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(sample))));
+      const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(sample)));
+      vi.stubGlobal("fetch", fetcher);
 
-      const result = await apiUserRepository.getConsumerHistory("test-token", 301);
+      const result = await apiUserRepository.getConsumerHistory("test-token", 301, {
+        resourceType: "work_order",
+        status: "paid",
+        limit: 20,
+        cursor: "signed+/cursor",
+      });
+      expect(fetcher).toHaveBeenCalledWith(
+        "https://api.example.com/admin/consumers/301/history?type=work_order&status=paid&limit=20&cursor=signed%2B%2Fcursor",
+        expect.objectContaining({
+          headers: { Authorization: "Bearer test-token", Accept: "application/json" },
+        }),
+      );
       expect(result.id).toBe(301);
       expect(result.name).toBe("Carlos");
+      expect(result.pagination).toEqual({ limit: 20, hasMore: false, nextCursor: undefined });
     });
   });
 });
-

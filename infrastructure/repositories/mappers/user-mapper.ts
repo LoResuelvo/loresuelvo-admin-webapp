@@ -1,29 +1,9 @@
 import type { ProviderDiagnostic } from "@/domain/users/provider-diagnostic";
-import type { ConsumerDetail, ConsumerHistoryItem } from "@/domain/users/consumer-history";
+import type { ConsumerDetail } from "@/domain/users/consumer-history";
 import {
   apiProviderDiagnosticResponseSchema,
   apiConsumerHistoryResponseSchema,
-  type ApiConsumerHistoryResponse,
 } from "@/infrastructure/api/user-types";
-
-function mapConsumerHistoryItem(
-  item: ApiConsumerHistoryResponse["history"][number],
-): ConsumerHistoryItem {
-  return {
-    resourceId: item.resource_id,
-    operationId: item.operation_id,
-    resourceType: item.resource_type,
-    categoryName: item.category_name,
-    provider: {
-      id: item.provider.id,
-      name: item.provider.name,
-      profilePhotoUrl: item.provider.profile_photo_url ?? undefined,
-    },
-    status: item.status,
-    totalAmountCents: item.total_amount_cents,
-    createdAt: item.created_at,
-  };
-}
 
 export function mapConsumerDetail(data: unknown): ConsumerDetail {
   const parsed = apiConsumerHistoryResponseSchema.safeParse(data);
@@ -31,25 +11,44 @@ export function mapConsumerDetail(data: unknown): ConsumerDetail {
     throw new Error("Invalid consumer history data");
   }
   const dto = parsed.data;
+  const address = dto.consumer.address;
+  const addressParts = address
+    ? [
+        address.street,
+        address.street_number,
+        address.floor ? `Piso ${address.floor}` : undefined,
+        address.unit ? `Depto. ${address.unit}` : undefined,
+      ].filter(Boolean)
+    : [];
   return {
-    id: dto.id,
-    name: dto.name,
-    surname: dto.surname,
-    email: dto.email,
-    phone: dto.phone,
-    profilePhotoUrl: dto.profile_photo_url ?? undefined,
-    registeredAt: dto.registered_at,
-    currentAddress: dto.current_address,
-    coverageZone: {
-      id: dto.coverage_zone.id,
-      name: dto.coverage_zone.name,
-    },
-    history: dto.history.map(mapConsumerHistoryItem),
+    id: dto.consumer.id,
+    name: dto.consumer.name,
+    surname: dto.consumer.surname,
+    email: dto.consumer.email,
+    profilePhotoUrl: dto.consumer.profile_photo_url ?? undefined,
+    registeredAt: dto.consumer.created_on,
+    currentAddress: addressParts.join(" ") || undefined,
+    coverageZone: dto.consumer.coverage_zone
+      ? {
+          id: dto.consumer.coverage_zone.id,
+          name: dto.consumer.coverage_zone.name,
+        }
+      : undefined,
+    history: dto.page.items.map((item) => ({
+      resourceId: item.id,
+      operationId: item.operation.id,
+      resourceType: item.type,
+      provider: {
+        id: item.provider.id,
+        name: `${item.provider.name} ${item.provider.surname}`.trim(),
+      },
+      status: item.status,
+      createdAt: item.occurred_on,
+    })),
     pagination: {
-      page: dto.pagination.page,
-      limit: dto.pagination.limit,
-      total: dto.pagination.total,
-      totalPages: dto.pagination.total_pages,
+      limit: dto.page.limit,
+      nextCursor: dto.page.next_cursor ?? undefined,
+      hasMore: dto.page.next_cursor !== null,
     },
   };
 }

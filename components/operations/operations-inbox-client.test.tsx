@@ -64,7 +64,7 @@ describe("OperationsInboxClient", () => {
   it("renders operations table and filter bar when data loads successfully", async () => {
     vi.mocked(actions.getOperationsAction).mockResolvedValue({
       success: true,
-      data: mockOperations,
+      data: { operations: mockOperations, nextCursor: null },
     });
 
     render(<OperationsInboxClient />);
@@ -83,7 +83,7 @@ describe("OperationsInboxClient", () => {
     const user = userEvent.setup();
     vi.mocked(actions.getOperationsAction).mockResolvedValue({
       success: true,
-      data: mockOperations,
+      data: { operations: mockOperations, nextCursor: null },
     });
 
     render(<OperationsInboxClient />);
@@ -104,7 +104,7 @@ describe("OperationsInboxClient", () => {
     const user = userEvent.setup();
     vi.mocked(actions.getOperationsAction).mockResolvedValue({
       success: true,
-      data: mockOperations,
+      data: { operations: mockOperations, nextCursor: null },
     });
 
     render(<OperationsInboxClient />);
@@ -125,7 +125,7 @@ describe("OperationsInboxClient", () => {
     const user = userEvent.setup();
     vi.mocked(actions.getOperationsAction).mockResolvedValue({
       success: true,
-      data: mockOperations,
+      data: { operations: mockOperations, nextCursor: null },
     });
 
     render(<OperationsInboxClient />);
@@ -145,7 +145,7 @@ describe("OperationsInboxClient", () => {
   it("renders empty state when no operations match", async () => {
     vi.mocked(actions.getOperationsAction).mockResolvedValue({
       success: true,
-      data: [],
+      data: { operations: [], nextCursor: null },
     });
 
     render(<OperationsInboxClient />);
@@ -183,7 +183,7 @@ describe("OperationsInboxClient", () => {
       })
       .mockResolvedValueOnce({
         success: true,
-        data: mockOperations,
+        data: { operations: mockOperations, nextCursor: null },
       });
 
     render(<OperationsInboxClient />);
@@ -207,7 +207,7 @@ describe("OperationsInboxClient", () => {
     const user = userEvent.setup();
     vi.mocked(actions.getOperationsAction).mockResolvedValue({
       success: true,
-      data: mockOperations,
+      data: { operations: mockOperations, nextCursor: null },
     });
 
     render(<OperationsInboxClient />);
@@ -223,3 +223,14 @@ describe("OperationsInboxClient", () => {
 
 
 
+
+it("navigates cursor pages and resets pagination after a category change", async () => {
+ const user = userEvent.setup();
+ vi.mocked(actions.getOperationsAction).mockResolvedValueOnce({ success: true, data: { operations: mockOperations, nextCursor: "second" } }).mockResolvedValue({ success: true, data: { operations: mockOperations, nextCursor: null } });
+ render(<OperationsInboxClient />);
+ await user.click(await screen.findByRole("button", { name: "Siguiente página" }));
+ await waitFor(() => expect(actions.getOperationsAction).toHaveBeenLastCalledWith({ cursor: "second" }));
+ await user.selectOptions(screen.getByRole("combobox", { name: "Rubro" }), "2");
+ await waitFor(() => expect(actions.getOperationsAction).toHaveBeenLastCalledWith({ cursor: undefined, categoryId: 2 }));
+ expect(screen.getByRole("button", { name: "Página anterior" })).toBeDisabled();
+});

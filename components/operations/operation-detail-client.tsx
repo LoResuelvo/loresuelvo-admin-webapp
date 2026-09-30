@@ -115,8 +115,8 @@ function OperationDetailContent({
   const [isChatDialogOpen, setIsChatDialogOpen] = useState(false);
 
   const handleFetchConversation = useCallback(
-    async (reason: string) => {
-      const result = await getAuditedConversationAction(operation.id, reason);
+    async (reason: string, cursor?: string) => {
+      const result = await getAuditedConversationAction(operation.id, reason, cursor);
       if (!result.success) {
         const error = new Error(result.error);
         if (result.isForbidden) {
@@ -143,14 +143,18 @@ function OperationDetailContent({
         currentAddress={operation.currentAddress}
         onInspectChat={() => setIsChatDialogOpen(true)}
       />
-      <OperationRequestCard request={operation.request} />
+      {operation.request && <OperationRequestCard request={operation.request} />}
       <OperationProposalCard proposals={operation.proposals} />
       <OperationOrderCard order={operation.order} />
       <OperationCompletionCard
         completionReport={operation.order?.completionReport}
         review={operation.order?.review}
       />
-      <OperationTimeline milestones={operation.timeline} />
+      <OperationTimeline milestones={operation.timeline.map(m => ({ ...m, title: translations.operations.timeline[m.type as keyof typeof translations.operations.timeline] ?? m.title }))} />
+      {!!operation.relatedProposals?.length && <section aria-label={translations.operations.relatedProposals}>
+        <h2>{translations.operations.relatedProposals}</h2>
+        {operation.relatedProposals.map(proposal => <Link key={proposal.operationId} href={ROUTES.operationDetail(proposal.operationId)}>{proposal.description}</Link>)}
+      </section>}
       <AuditedChatDialog
         isOpen={isChatDialogOpen}
         onClose={() => setIsChatDialogOpen(false)}

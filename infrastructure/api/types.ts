@@ -77,10 +77,10 @@ export type ApiProviderListItem = z.infer<typeof apiProviderListItemSchema>;
 export type ApiProvidersList = z.infer<typeof apiProvidersListSchema>;
 
 export * from "./operations-types";
+export * from "./audited-chat-types";
 export * from "./payments-types";
 export * from "./metrics-types";
 export * from "./claims-types";
 export * from "./audit-types";
 export * from "./reviews-types";
-
 

@@ -1,4 +1,11 @@
 export const operationsTranslations = {
+  relatedProposals: "Otras propuestas de la conversación",
+  timeline: { job_request_created: "Solicitud creada", service_proposal_created: "Propuesta creada", work_order_accepted: "Orden aceptada", completion_reported: "Finalización reportada", balance_paid: "Saldo pagado", payment_intent_created: "Intento de pago creado" },
+  unsupportedProposalAge: "Propuesta demorada > 24h (sin fecha de aceptación disponible)",
+  unavailable: "Información no disponible",
+  nextPage: "Siguiente página",
+  previousPage: "Página anterior",
+  alerts: { request_pending_over_24h: "Solicitud pendiente > 24h", booking_deadline_passed: "Plazo de seña vencido", delayed: "Servicio demorado", stalled: "Estancada > 72h" },
   title: "Bandeja de Operaciones",
   subtitle: "Monitoreo transversal de contrataciones y cuellos de botella",
   detail: {
@@ -26,6 +33,7 @@ export const operationsTranslations = {
     },
   },
   status: {
+    request_pending: "Solicitud pendiente", request_accepted: "Solicitud aceptada", proposal_pending: "Propuesta pendiente", proposal_accepted: "Propuesta aceptada", proposal_rejected: "Propuesta rechazada", work_order_scheduled: "Programada", work_order_awaiting_payment: "Pago final pendiente", work_order_paid: "Pagada",
     requested: "Solicitado",
     quoted: "Cotizado",
     in_progress: "En progreso",
@@ -76,6 +84,7 @@ export const operationsTranslations = {
     bookingDeposit: "Seña pactada",
     depositPercentage: "de seña",
     estimatedDuration: "Duración estimada",
+    durationMinutes: "minutos",
     committedDates: "Fecha acordada",
     description: "Detalle del trabajo cotizado",
     status: {
@@ -130,6 +139,8 @@ export const operationsTranslations = {
     confirmAccess: "Confirmar acceso",
     cancel: "Cancelar",
     loading: "Recuperando conversación...",
+    loadMore: "Cargar más mensajes",
+    loadedMessages: "Mensajes cargados",
     empty: "No se registran mensajes en esta contratación.",
     clientRole: "Cliente",
     providerRole: "Prestador",
@@ -137,6 +148,7 @@ export const operationsTranslations = {
     forbidden: "El acceso a la conversación está restringido.",
     retry: "Reintentar",
     close: "Cerrar",
+    back: "Volver",
+    sharedConversation: "Esta conversación es compartida por varias propuestas. Los mensajes pueden corresponder a cualquiera de ellas.",
   },
 } as const;
-

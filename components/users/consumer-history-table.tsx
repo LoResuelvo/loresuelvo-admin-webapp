@@ -8,6 +8,11 @@ export interface ConsumerHistoryTableProps {
 }
 
 const STATUS_STYLES: Record<string, string> = {
+  scheduled: "bg-blue-50 text-blue-700 border-blue-200",
+  awaiting_payment: "bg-amber-50 text-amber-700 border-amber-200",
+  paid: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  accepted: "bg-blue-50 text-blue-700 border-blue-200",
+  rejected: "bg-red-50 text-red-700 border-red-200",
   in_progress: "bg-blue-50 text-blue-700 border-blue-200",
   completed: "bg-emerald-50 text-emerald-700 border-emerald-200",
   cancelled: "bg-red-50 text-red-700 border-red-200",
@@ -52,7 +57,7 @@ function ConsumerHistoryRow({ item }: { item: ConsumerHistoryItem }) {
         {formatDate(item.createdAt)}
       </td>
       <td className="px-6 py-4 font-medium text-[#1A2B48]">
-        {item.categoryName}
+        {item.categoryName ?? copy.notAvailable}
       </td>
       <td className="px-6 py-4">
         <div className="flex items-center gap-2">
@@ -81,7 +86,9 @@ function ConsumerHistoryRow({ item }: { item: ConsumerHistoryItem }) {
         </span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap font-medium text-[#1A2B48]">
-        {formatAmount(item.totalAmountCents)}
+        {item.totalAmountCents === undefined
+          ? copy.notAvailable
+          : formatAmount(item.totalAmountCents)}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-right">
         <Link

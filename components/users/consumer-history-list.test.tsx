@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { ConsumerHistoryItem } from "@/domain/users/consumer-history";
 import { ConsumerHistoryList } from "./consumer-history-list";
 
@@ -15,7 +15,7 @@ describe("ConsumerHistoryList", () => {
         name: "Juan Gómez",
         profilePhotoUrl: "https://example.com/avatar.jpg",
       },
-      status: "completed",
+      status: "paid",
       totalAmountCents: 2000000,
       createdAt: "2026-09-20T10:00:00-03:00",
     },
@@ -78,31 +78,69 @@ describe("ConsumerHistoryList", () => {
     expect(screen.getByLabelText("Juan Gómez")).toHaveTextContent("J");
   });
 
-  it("filters history reactively by interaction type and status", () => {
-    render(<ConsumerHistoryList history={sampleHistory} />);
+  it("sends filter changes to the server and renders the returned page", () => {
+    const onTypeChange = vi.fn();
+    const onStatusChange = vi.fn();
+    const { rerender } = render(
+      <ConsumerHistoryList
+        history={sampleHistory}
+        selectedType="all"
+        selectedStatus="all"
+        onTypeChange={onTypeChange}
+        onStatusChange={onStatusChange}
+      />,
+    );
 
+    fireEvent.change(screen.getByRole("combobox", { name: "Tipo de interacción" }), {
+      target: { value: "work_order" },
+    });
+    expect(onTypeChange).toHaveBeenCalledWith("work_order");
+
+    rerender(
+      <ConsumerHistoryList
+        history={[sampleHistory[0]]}
+        selectedType="work_order"
+        selectedStatus="all"
+        onTypeChange={onTypeChange}
+        onStatusChange={onStatusChange}
+      />,
+    );
     const table = screen.getByRole("table");
     expect(within(table).getByText("Plomería")).toBeInTheDocument();
-    expect(within(table).getByText("Gas")).toBeInTheDocument();
-
-    const typeSelect = screen.getByRole("combobox", { name: "Tipo de interacción" });
-    const statusSelect = screen.getByRole("combobox", { name: "Estado" });
-
-    fireEvent.change(typeSelect, { target: { value: "work_order" } });
-    fireEvent.change(statusSelect, { target: { value: "completed" } });
-
-    expect(within(table).getByText("Plomería")).toBeInTheDocument();
     expect(within(table).queryByText("Gas")).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Estado" }), {
+      target: { value: "paid" },
+    });
+    expect(onStatusChange).toHaveBeenCalledWith("paid");
   });
 
-  it("renders empty filtered message when no interactions match selected filters", () => {
-    render(<ConsumerHistoryList history={sampleHistory} />);
-
-    const typeSelect = screen.getByRole("combobox", { name: "Tipo de interacción" });
-    fireEvent.change(typeSelect, { target: { value: "service_proposal" } });
+  it("keeps filters visible when a server-filtered page is empty", () => {
+    render(
+      <ConsumerHistoryList
+        history={[]}
+        selectedType="service_proposal"
+        selectedStatus="all"
+        onTypeChange={vi.fn()}
+        onStatusChange={vi.fn()}
+      />,
+    );
 
     expect(
       screen.getByText("No se encontraron interacciones con los filtros seleccionados"),
     ).toBeInTheDocument();
+    expect(screen.getByTestId("consumer-history-filters")).toBeInTheDocument();
+  });
+
+  it("shows unavailable category and amount when the API does not provide them", () => {
+    const itemWithoutCategoryOrAmount = {
+      ...sampleHistory[0],
+      categoryName: undefined,
+      totalAmountCents: undefined,
+    };
+    render(<ConsumerHistoryList history={[itemWithoutCategoryOrAmount]} />);
+
+    const table = screen.getByRole("table");
+    expect(within(table).getAllByText("No disponible")).toHaveLength(2);
   });
 });

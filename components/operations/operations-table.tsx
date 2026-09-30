@@ -5,6 +5,7 @@ import type {
   OperationStatus,
   OperationSummary,
 } from "@/domain/operations/operation-summary";
+import { translations } from "@/infrastructure/i18n/translations";
 import { BottleneckBadge } from "./bottleneck-badge";
 import { ResponsibleBadge } from "./responsible-badge";
 
@@ -21,15 +22,7 @@ export interface OperationsTableProps {
   onSelectOperation?: (operation: OperationSummary) => void;
 }
 
-const statusLabels: Record<OperationStatus, string> = {
-  requested: "Solicitado",
-  quoted: "Cotizado",
-  in_progress: "En progreso",
-  completed: "Completado",
-  cancelled: "Cancelado",
-};
-
-const statusStyles: Record<OperationStatus, string> = {
+const statusStyles: Partial<Record<OperationStatus, string>> = {
   requested: "bg-blue-50 text-blue-700 border-blue-200",
   quoted: "bg-amber-50 text-amber-700 border-amber-200",
   in_progress: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -38,7 +31,7 @@ const statusStyles: Record<OperationStatus, string> = {
 };
 
 function StatusBadge({ status }: { status: OperationStatus }) {
-  const label = statusLabels[status] ?? status;
+  const label = translations.operations.status[status];
   const style = statusStyles[status] ?? "bg-slate-50 text-slate-600 border-slate-200";
 
   return (
@@ -90,13 +83,13 @@ export function OperationsTable({ operations, onSelectOperation }: OperationsTab
                 <div className="text-xs text-[#536176]">{op.provider.email}</div>
               </td>
               <td className="px-6 py-4 font-medium text-[#1A2B48] whitespace-nowrap">
-                {op.category.name}
+                {op.category?.name ?? translations.operations.unavailable}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <StatusBadge status={op.status} />
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <BottleneckBadge bottleneck={op.bottleneck} />
+                {op.alerts ? (op.alerts.length ? op.alerts.map(alert => <span key={alert}>{translations.operations.alerts[alert]} </span>) : translations.operations.bottleneck.none) : <BottleneckBadge bottleneck={op.bottleneck ?? "none"} />}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <ResponsibleBadge responsible={op.nextActionBy} />

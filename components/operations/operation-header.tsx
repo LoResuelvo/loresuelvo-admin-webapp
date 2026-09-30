@@ -5,32 +5,24 @@ export interface OperationPartyHeaderInfo {
   readonly id: number;
   readonly name: string;
   readonly surname: string;
-  readonly email: string;
+  readonly email?: string | null;
   readonly profilePhotoUrl?: string | null;
 }
 
 export interface OperationHeaderProps {
   readonly id: string;
-  readonly status: OperationStatus;
+  readonly status: OperationStatus | null;
   readonly category: {
     readonly id: number;
     readonly name: string;
-  };
+  } | null;
   readonly consumer: OperationPartyHeaderInfo;
   readonly provider: OperationPartyHeaderInfo;
-  readonly currentAddress: string;
+  readonly currentAddress: string | null;
   readonly onInspectChat?: () => void;
 }
 
-const statusLabels: Record<OperationStatus, string> = {
-  requested: "Solicitado",
-  quoted: "Cotizado",
-  in_progress: "En progreso",
-  completed: "Completado",
-  cancelled: "Cancelado",
-};
-
-const statusStyles: Record<OperationStatus, string> = {
+const statusStyles: Partial<Record<OperationStatus, string>> = {
   requested: "bg-blue-50 text-blue-700 border-blue-200",
   quoted: "bg-amber-50 text-amber-700 border-amber-200",
   in_progress: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -67,7 +59,7 @@ function PartyCard({
           {roleLabel}
         </span>
         <p className="truncate text-base font-semibold text-[#1A2B48]">{fullName}</p>
-        <p className="truncate text-sm text-[#536176]">{party.email}</p>
+        <p className="truncate text-sm text-[#536176]">{party.email ?? translations.operations.unavailable}</p>
       </div>
     </div>
   );
@@ -81,11 +73,11 @@ function HeaderTopBar({
 }: {
   id: string;
   categoryName: string;
-  status: OperationStatus;
+  status: OperationStatus | null;
   onInspectChat?: () => void;
 }) {
-  const statusLabel = statusLabels[status] ?? status;
-  const statusStyle = statusStyles[status] ?? "bg-slate-50 text-slate-600 border-slate-200";
+  const statusLabel = status ? translations.operations.status[status] : translations.operations.unavailable;
+  const statusStyle = (status ? statusStyles[status] : undefined) ?? "bg-slate-50 text-slate-600 border-slate-200";
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1A2B48]/10 pb-4">
@@ -177,7 +169,7 @@ export function OperationHeader({
     >
       <HeaderTopBar
         id={id}
-        categoryName={category.name}
+        categoryName={category?.name ?? translations.operations.unavailable}
         status={status}
         onInspectChat={onInspectChat}
       />
@@ -185,7 +177,7 @@ export function OperationHeader({
         <PartyCard roleLabel="Cliente" party={consumer} />
         <PartyCard roleLabel="Prestador" party={provider} />
       </div>
-      <AddressCard address={currentAddress} />
+      <AddressCard address={currentAddress ?? translations.operations.unavailable} />
     </section>
   );
 }

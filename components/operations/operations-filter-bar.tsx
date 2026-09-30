@@ -132,7 +132,7 @@ function BottleneckFilterSelect({
       >
         <option value="">{filters.bottleneck.all}</option>
         {BOTTLENECK_OPTIONS.map((key) => (
-          <option key={key} value={key}>
+          <option key={key} value={key} disabled={key === "pending_proposal_24h"}>
             {bottleneckTrans[key]}
           </option>
         ))}

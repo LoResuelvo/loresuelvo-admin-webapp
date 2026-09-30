@@ -14,7 +14,7 @@ describe("ConsumerHistoryView", () => {
     currentAddress: "Av. Rivadavia 4500",
     coverageZone: { id: 6, name: "Comuna 6" },
     history: [],
-    pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
+    pagination: { page: 1, limit: 20, total: 0, totalPages: 0, hasMore: false },
   };
 
   it("renders the consumer history view container with profile header and history list", () => {

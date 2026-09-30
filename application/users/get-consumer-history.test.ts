@@ -34,6 +34,7 @@ describe("GetConsumerHistoryUseCase", () => {
       limit: 20,
       total: 1,
       totalPages: 1,
+      hasMore: false,
     },
   };
 

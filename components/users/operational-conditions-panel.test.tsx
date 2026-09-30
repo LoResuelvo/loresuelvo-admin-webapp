@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { OperationalConditionsPanel } from "./operational-conditions-panel";
 
@@ -55,6 +55,39 @@ describe("OperationalConditionsPanel", () => {
     expect(screen.getByText("Desconectado")).toBeInTheDocument();
     const alerts = screen.getAllByText("No puede recibir señas ni pagos");
     expect(alerts.length).toBeGreaterThan(0);
+  });
+
+  it("shows payment connection and receiving eligibility independently", () => {
+    const { rerender } = render(
+      <OperationalConditionsPanel
+        {...defaultProps}
+        paymentConnection={{
+          isConnected: true,
+          accountId: "mp-acc-8812",
+          canReceivePayments: false,
+        }}
+      />,
+    );
+
+    let paymentCard = screen.getByTestId("payments-condition-card");
+    expect(within(paymentCard).getByText("Conectado")).toBeInTheDocument();
+    expect(within(paymentCard).getByText("No puede recibir señas ni pagos")).toBeInTheDocument();
+    expect(within(paymentCard).getByText("mp-acc-8812")).toBeInTheDocument();
+    expect(within(paymentCard).queryByText("Habilitado para recibir cobros")).not.toBeInTheDocument();
+
+    rerender(
+      <OperationalConditionsPanel
+        {...defaultProps}
+        paymentConnection={{
+          isConnected: false,
+          canReceivePayments: true,
+        }}
+      />,
+    );
+
+    paymentCard = screen.getByTestId("payments-condition-card");
+    expect(within(paymentCard).getByText("Desconectado")).toBeInTheDocument();
+    expect(within(paymentCard).getByText("Habilitado para recibir cobros")).toBeInTheDocument();
   });
 
   it("displays active coverage zones count, zone items and enablement badges", () => {

@@ -38,4 +38,17 @@ describe("ConsumerProfileHeader", () => {
 
     expect(screen.getByLabelText("Carlos López")).toHaveTextContent("CL");
   });
+
+  it("identifies profile fields omitted by the history API", () => {
+    render(
+      <ConsumerProfileHeader
+        {...defaultProps}
+        phone={undefined}
+        currentAddress={undefined}
+        coverageZone={undefined}
+      />,
+    );
+
+    expect(screen.getAllByText("No disponible")).toHaveLength(3);
+  });
 });

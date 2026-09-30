@@ -9,9 +9,21 @@ import {
   expectedSteps,
   mockCategories,
 } from "./operational_funnel_fixtures";
+import { computeDateRange, type PeriodOption } from "../../domain/metrics/funnel-date-range";
+
+function funnelEndpoint(from: string, to: string, categoryId?: number): string {
+  const params = new URLSearchParams({ from, to });
+  if (categoryId) params.set("category_id", String(categoryId));
+  return `/admin/metrics/funnel?${params.toString()}`;
+}
+
+function defaultFunnelEndpoint(preset: PeriodOption = "7d", categoryId?: number): string {
+  const { from, to } = computeDateRange(preset);
+  return funnelEndpoint(from, to, categoryId);
+}
 
 Given("que existen datos de operaciones registradas en el marketplace", async function (this: CustomWorld) {
-  await this.stubGet("/admin/metrics/funnel", mockFunnelData);
+  await this.stubGet(defaultFunnelEndpoint(), mockFunnelData);
 });
 
 When("accedo a la sección de métricas en {string}", async function (this: CustomWorld, path: string) {
@@ -38,7 +50,7 @@ Then(
 );
 
 Given("que el embudo de contratación muestra las transiciones entre etapas", async function (this: CustomWorld) {
-  await this.stubGet("/admin/metrics/funnel", mockFunnelData);
+  await this.stubGet(defaultFunnelEndpoint(), mockFunnelData);
   await this.page.goto(new URL("/metricas", this.appUrl).href);
   const funnelSection = this.page.getByRole("region", { name: "Detalle de etapas del embudo" });
   await funnelSection.waitFor({ state: "visible", timeout: 10000 });
@@ -69,9 +81,8 @@ Then(
 );
 
 Given("que me encuentro en la consola de métricas", async function (this: CustomWorld) {
-  await this.stubGet("/admin/metrics/funnel", mockFunnelData);
-  await this.stubGet("/admin/metrics/funnel?from=2026-08-25&to=2026-09-24", mockFunnel30Days);
-  await this.stubGet("/admin/metrics/funnel?range=30d", mockFunnel30Days);
+  await this.stubGet(defaultFunnelEndpoint(), mockFunnelData);
+  await this.stubGet(defaultFunnelEndpoint("30d"), mockFunnel30Days);
   await this.page.goto(new URL("/metricas", this.appUrl).href);
   const heading = this.page.getByRole("heading", { name: "Métricas de Conversión Operativa" });
   await heading.waitFor({ state: "visible", timeout: 10000 });
@@ -111,9 +122,8 @@ Then(
 Given("que el marketplace abarca diversos oficios", async function (this: CustomWorld) {
   await this.stubGet("/categories", mockCategories);
   await this.stubGet("/admin/categories", mockCategories);
-  await this.stubGet("/admin/metrics/funnel", mockFunnelData);
-  await this.stubGet("/admin/metrics/funnel?category_id=1", mockFunnelPlomeria);
-  await this.stubGet("/admin/metrics/funnel?from=2026-08-25&to=2026-09-24&category_id=1", mockFunnelPlomeria);
+  await this.stubGet(defaultFunnelEndpoint(), mockFunnelData);
+  await this.stubGet(defaultFunnelEndpoint("7d", 47), mockFunnelPlomeria);
   await this.page.goto(new URL("/metricas", this.appUrl).href);
   const heading = this.page.getByRole("heading", { name: "Métricas de Conversión Operativa" });
   await heading.waitFor({ state: "visible", timeout: 10000 });
@@ -151,8 +161,8 @@ Then(
 );
 
 Given("que selecciono un rango de fechas sin actividad registrada", async function (this: CustomWorld) {
-  await this.stubGet("/admin/metrics/funnel", mockFunnelData);
-  await this.stubGet("/admin/metrics/funnel?from=2020-01-01&to=2020-01-31", mockEmptyFunnel);
+  await this.stubGet(defaultFunnelEndpoint(), mockFunnelData);
+  await this.stubGet(funnelEndpoint("2020-01-01", "2020-01-31"), mockEmptyFunnel);
   await this.page.goto(new URL("/metricas", this.appUrl).href);
   const heading = this.page.getByRole("heading", { name: "Métricas de Conversión Operativa" });
   await heading.waitFor({ state: "visible", timeout: 10000 });
@@ -188,7 +198,7 @@ Then(
 Given("que el cálculo analítico de las métricas toma unos momentos", async function (this: CustomWorld) {
   await this.addApiStub({
     method: "GET",
-    endpoint: "/admin/metrics/funnel",
+    endpoint: defaultFunnelEndpoint(),
     status: 200,
     body: mockFunnelData,
     delayMs: 3000,
@@ -217,7 +227,7 @@ Then(
 
 Given("que mi cuenta de usuario no posee permisos de analítica", async function (this: CustomWorld) {
   await this.stubGet(
-    "/admin/metrics/funnel",
+    defaultFunnelEndpoint(),
     { error: "Forbidden", message: "User lacks read:admin_metrics permission" },
     403,
   );
@@ -229,7 +239,7 @@ When("intento ingresar a la sección de métricas", async function (this: Custom
 
 Given("que el servidor de métricas no se encuentra disponible", async function (this: CustomWorld) {
   await this.stubGet(
-    "/admin/metrics/funnel",
+    defaultFunnelEndpoint(),
     { error: "Internal Server Error", message: "Database connection failed" },
     500,
   );
@@ -238,5 +248,4 @@ Given("que el servidor de métricas no se encuentra disponible", async function 
 When("intento consultar la consola de métricas", async function (this: CustomWorld) {
   await this.page.goto(new URL("/metricas", this.appUrl).href);
 });
-
 

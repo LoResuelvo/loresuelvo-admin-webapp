@@ -53,8 +53,7 @@ export const expectedSteps = [
 ];
 
 export const mockCategories = [
-  { id: 1, name: "Plomería" },
-  { id: 2, name: "Electricidad" },
-  { id: 3, name: "Gas" },
+  { id: 47, name: "Plomería" },
+  { id: 83, name: "Climatización" },
+  { id: 12, name: "Gas" },
 ];
-

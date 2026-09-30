@@ -113,39 +113,52 @@ describe("mapProviderDiagnostic", () => {
 
 describe("mapConsumerDetail", () => {
   const validConsumerDto = {
-    id: 301,
-    name: "Carlos",
-    surname: "López",
-    email: "carlos@example.com",
-    phone: "+54 11 4444-2222",
-    profile_photo_url: "https://storage.loresuelvo.internal/profiles/301.jpg",
-    registered_at: "2026-09-01T10:00:00-03:00",
-    current_address: "Av. Rivadavia 4500",
-    coverage_zone: {
-      id: 6,
-      name: "Comuna 6",
-    },
-    history: [
-      {
-        resource_id: 105,
-        operation_id: 105,
-        resource_type: "work_order",
-        category_name: "Plomería",
-        provider: {
-          id: 201,
-          name: "Juan Gómez",
-          profile_photo_url: "https://storage.loresuelvo.internal/profiles/201.jpg",
-        },
-        status: "completed",
-        total_amount_cents: 2000000,
-        created_at: "2026-09-20T10:00:00-03:00",
+    consumer: {
+      id: 301,
+      role: "consumer",
+      name: "Carlos",
+      surname: "López",
+      email: "carlos@example.com",
+      profile_photo_url: "https://storage.loresuelvo.internal/profiles/301.jpg",
+      created_on: "2026-09-01T10:00:00-03:00",
+      address: {
+        street: "Av. Rivadavia",
+        street_number: "4500",
+        floor: null,
+        unit: null,
+        source: "current_consumer_profile",
       },
-    ],
-    pagination: {
-      page: 1,
+      coverage_zone: {
+        id: 6,
+        name: "Comuna 6",
+        enabled: true,
+        source: "current_consumer_profile",
+      },
+    },
+    summary: { job_requests: 3, service_proposals: 2, work_orders: 4 },
+    page: {
+      items: [
+        {
+          type: "work_order",
+          id: 105,
+          status: "paid",
+          provider: { id: 201, name: "Juan", surname: "Gómez" },
+          occurred_on: "2026-09-20T10:00:00-03:00",
+          operation: {
+            id: "jr-105",
+            url: "/admin/operations/jr-105",
+            required_permission: "read:admin_operations",
+            chat_required_permission: "read:admin_chat_audit",
+          },
+          job_request_id: 5,
+          service_proposal_id: 17,
+          accepted_on: "2026-09-19T10:00:00-03:00",
+          completion_reported_on: "2026-09-20T10:00:00-03:00",
+          balance_paid_on: "2026-09-20T10:01:00-03:00",
+        },
+      ],
       limit: 20,
-      total: 1,
-      total_pages: 1,
+      next_cursor: "signed-next-page",
     },
   };
 
@@ -156,7 +169,7 @@ describe("mapConsumerDetail", () => {
     expect(result.name).toBe("Carlos");
     expect(result.surname).toBe("López");
     expect(result.email).toBe("carlos@example.com");
-    expect(result.phone).toBe("+54 11 4444-2222");
+    expect(result.phone).toBeUndefined();
     expect(result.profilePhotoUrl).toBe(
       "https://storage.loresuelvo.internal/profiles/301.jpg",
     );
@@ -166,45 +179,41 @@ describe("mapConsumerDetail", () => {
     expect(result.history).toHaveLength(1);
     expect(result.history[0]).toEqual({
       resourceId: 105,
-      operationId: 105,
+      operationId: "jr-105",
       resourceType: "work_order",
-      categoryName: "Plomería",
       provider: {
         id: 201,
         name: "Juan Gómez",
-        profilePhotoUrl: "https://storage.loresuelvo.internal/profiles/201.jpg",
       },
-      status: "completed",
-      totalAmountCents: 2000000,
+      status: "paid",
       createdAt: "2026-09-20T10:00:00-03:00",
     });
     expect(result.pagination).toEqual({
-      page: 1,
       limit: 20,
-      total: 1,
-      totalPages: 1,
+      hasMore: true,
+      nextCursor: "signed-next-page",
     });
   });
 
-  it("handles nullish profilePhotoUrl safely", () => {
-    const dtoWithoutPhoto = {
+  it("handles missing optional profile data and exhausted pages", () => {
+    const dtoWithoutOptionalData = {
       ...validConsumerDto,
-      profile_photo_url: null,
-      history: [
-        {
-          ...validConsumerDto.history[0],
-          provider: {
-            id: 201,
-            name: "Juan Gómez",
-            profile_photo_url: null,
-          },
-        },
-      ],
+      consumer: {
+        ...validConsumerDto.consumer,
+        profile_photo_url: null,
+        address: null,
+        coverage_zone: null,
+      },
+      page: { ...validConsumerDto.page, next_cursor: null },
     };
 
-    const result = mapConsumerDetail(dtoWithoutPhoto);
+    const result = mapConsumerDetail(dtoWithoutOptionalData);
     expect(result.profilePhotoUrl).toBeUndefined();
-    expect(result.history[0].provider.profilePhotoUrl).toBeUndefined();
+    expect(result.phone).toBeUndefined();
+    expect(result.currentAddress).toBeUndefined();
+    expect(result.coverageZone).toBeUndefined();
+    expect(result.pagination.hasMore).toBe(false);
+    expect(result.pagination.nextCursor).toBeUndefined();
   });
 
   it("throws an error for invalid data", () => {
@@ -212,4 +221,3 @@ describe("mapConsumerDetail", () => {
     expect(() => mapConsumerDetail(null)).toThrow("Invalid consumer history data");
   });
 });
-

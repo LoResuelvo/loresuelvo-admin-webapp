@@ -28,6 +28,8 @@ export interface MetricsViewProps {
   selectedCategoryId?: number | "";
   onCategoryChange?: (categoryId: number | "") => void;
   categoryOptions?: readonly CategoryOption[];
+  initialFromDate?: string;
+  initialToDate?: string;
 }
 
 function MetricsHeader({

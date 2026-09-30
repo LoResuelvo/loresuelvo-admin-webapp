@@ -32,30 +32,44 @@ describe("FunnelFiltersBar", () => {
     expect(handlePeriodChange).toHaveBeenCalledWith("30d");
   });
 
-  it("renders category selector with default options", () => {
+  it("renders no hardcoded category options without a catalog", () => {
     render(<FunnelFiltersBar />);
 
     const select = screen.getByRole("combobox", { name: "Rubro" });
     expect(select).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Todos los rubros" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Plomería" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Electricidad" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Gas" })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Plomería" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Electricidad" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Gas" })).not.toBeInTheDocument();
+  });
+
+  it("renders category options from the provided catalog", () => {
+    render(
+      <FunnelFiltersBar
+        categoryOptions={[{ id: 47, name: "Climatización" }]}
+      />,
+    );
+
+    const category = screen.getByRole("combobox", { name: "Rubro" });
+    expect(screen.getByRole("option", { name: "Climatización" })).toHaveValue("47");
+    expect(screen.queryByRole("option", { name: "Plomería" })).not.toBeInTheDocument();
+    expect(category).toHaveValue("");
   });
 
   it("calls onCategoryChange when category is selected", () => {
     const handleCategoryChange = vi.fn();
     render(
       <FunnelFiltersBar
+        categoryOptions={[{ id: 47, name: "Climatización" }]}
         selectedCategoryId=""
         onCategoryChange={handleCategoryChange}
       />,
     );
 
     const select = screen.getByRole("combobox", { name: "Rubro" });
-    fireEvent.change(select, { target: { value: "1" } });
+    fireEvent.change(select, { target: { value: "47" } });
 
-    expect(handleCategoryChange).toHaveBeenCalledWith(1);
+    expect(handleCategoryChange).toHaveBeenCalledWith(47);
   });
 
   it("renders date inputs and calls change handlers", () => {
@@ -94,20 +108,40 @@ describe("FunnelFiltersBar", () => {
   });
 
   describe("computeDateRange", () => {
+    it("uses the current Buenos Aires date instead of a fixed reference date", () => {
+      vi.useFakeTimers();
+
+      try {
+        vi.setSystemTime(new Date("2026-09-29T23:30:00-03:00"));
+        expect(computeDateRange("30d")).toEqual({
+          from: "2026-08-30",
+          to: "2026-09-29",
+        });
+
+        vi.setSystemTime(new Date("2026-10-02T02:30:00Z"));
+        expect(computeDateRange("30d")).toEqual({
+          from: "2026-09-01",
+          to: "2026-10-01",
+        });
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
     it("computes dates for 30d preset", () => {
-      const { from, to } = computeDateRange("30d", new Date("2026-09-24T00:00:00Z"));
+      const { from, to } = computeDateRange("30d", new Date("2026-09-24T15:00:00Z"));
       expect(to).toBe("2026-09-24");
       expect(from).toBe("2026-08-25");
     });
 
     it("computes dates for 7d preset", () => {
-      const { from, to } = computeDateRange("7d", new Date("2026-09-24T00:00:00Z"));
+      const { from, to } = computeDateRange("7d", new Date("2026-09-24T15:00:00Z"));
       expect(to).toBe("2026-09-24");
       expect(from).toBe("2026-09-17");
     });
 
     it("computes dates for 90d preset", () => {
-      const { from, to } = computeDateRange("90d", new Date("2026-09-24T00:00:00Z"));
+      const { from, to } = computeDateRange("90d", new Date("2026-09-24T15:00:00Z"));
       expect(to).toBe("2026-09-24");
       expect(from).toBe("2026-06-26");
     });

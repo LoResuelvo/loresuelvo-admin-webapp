@@ -1,6 +1,6 @@
 "use server";
 
-import type { OperationSummary } from "@/domain/operations/operation-summary";
+import type { OperationPage } from "@/domain/operations/operation-summary";
 import type { UnifiedOperationDetail } from "@/domain/operations/unified-operation-detail";
 import type { AuditedConversationResult } from "@/domain/operations/audited-message";
 import type { OperationFilters } from "@/ports/operations/operation-repository";
@@ -13,7 +13,7 @@ import { authSession } from "@/infrastructure/auth/auth-session";
 import { translations } from "@/infrastructure/i18n/translations";
 
 export type GetOperationsResult =
-  | { success: true; data: OperationSummary[] }
+  | { success: true; data: OperationPage }
   | { success: false; error: string; isForbidden?: boolean };
 
 export type GetOperationDetailResult =
@@ -56,7 +56,7 @@ export async function getOperationsAction(
         error: translations.operations.error,
       };
     }
-    const message = error instanceof Error ? error.message : translations.operations.error;
+    const message = translations.operations.error;
     return { success: false, error: message };
   }
 }
@@ -93,7 +93,7 @@ export async function getOperationDetailAction(
     if (error instanceof OperationError) {
       return mapOperationErrorToDetailResult(error);
     }
-    const message = error instanceof Error ? error.message : translations.operations.detail.error;
+    const message = translations.operations.detail.error;
     return { success: false, error: message };
   }
 }
@@ -101,6 +101,7 @@ export async function getOperationDetailAction(
 export async function getAuditedConversationAction(
   operationId: string,
   reason: string,
+  cursor?: string,
 ): Promise<GetAuditedConversationActionResult> {
   const trimmed = reason.trim();
   if (trimmed.length < 10) {
@@ -117,6 +118,7 @@ export async function getAuditedConversationAction(
       token,
       operationId,
       trimmed,
+      cursor,
     );
     return { success: true, data: result };
   } catch (error: unknown) {
@@ -133,7 +135,7 @@ export async function getAuditedConversationAction(
         error: translations.operations.chat.error,
       };
     }
-    const message = error instanceof Error ? error.message : translations.operations.chat.error;
+    const message = translations.operations.chat.error;
     return { success: false, error: message };
   }
 }

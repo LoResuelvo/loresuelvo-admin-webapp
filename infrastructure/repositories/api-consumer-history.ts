@@ -7,20 +7,18 @@ import { mapConsumerDetail } from "./mappers/user-mapper";
 
 async function getE2EConsumerHistoryStub(
   id: number | string,
+  filters?: ConsumerHistoryFilters,
 ): Promise<ApiStub | null> {
   if (process.env.APP_ENV === "production") return null;
   try {
     const { cookies } = await import("next/headers");
     const cookieStore = await cookies();
     const stubs = parseE2EStubsFromCookies(cookieStore.getAll());
-    return (
-      stubs.find(
-        (s) =>
-          s.method === "GET" &&
-          (s.endpoint === `/admin/consumers/${id}/history` ||
-            s.endpoint.startsWith(`/admin/consumers/${id}/history?`)),
-      ) ?? null
+    const endpoint = buildConsumerHistoryEndpoint(id, filters);
+    const exactMatch = stubs.find(
+      (stub) => stub.method === "GET" && stub.endpoint === endpoint,
     );
+    return exactMatch ?? null;
   } catch {
     return null;
   }
@@ -47,18 +45,33 @@ async function resolveConsumerHistoryFromStub(
   return mapConsumerDetail(stub.body);
 }
 
+function buildConsumerHistoryEndpoint(
+  id: number | string,
+  filters?: ConsumerHistoryFilters,
+): string {
+  const query = new URLSearchParams();
+  if (filters?.resourceType) query.set("type", filters.resourceType);
+  if (filters?.status) query.set("status", filters.status);
+  if (filters?.from) query.set("from", filters.from);
+  if (filters?.to) query.set("to", filters.to);
+  if (filters?.limit !== undefined) query.set("limit", String(filters.limit));
+  if (filters?.cursor) query.set("cursor", filters.cursor);
+  const queryString = query.toString();
+  return `/admin/consumers/${id}/history${queryString ? `?${queryString}` : ""}`;
+}
+
 function buildConsumerHistoryUrl(
   baseUrl: string,
   id: number | string,
   filters?: ConsumerHistoryFilters,
 ): URL {
   const url = new URL(`${baseUrl.replace(/\/$/, "")}/admin/consumers/${id}/history`);
-  if (filters?.resourceType) url.searchParams.set("resource_type", filters.resourceType);
+  if (filters?.resourceType) url.searchParams.set("type", filters.resourceType);
   if (filters?.status) url.searchParams.set("status", filters.status);
   if (filters?.from) url.searchParams.set("from", filters.from);
   if (filters?.to) url.searchParams.set("to", filters.to);
-  if (filters?.page !== undefined) url.searchParams.set("page", String(filters.page));
   if (filters?.limit !== undefined) url.searchParams.set("limit", String(filters.limit));
+  if (filters?.cursor) url.searchParams.set("cursor", filters.cursor);
   return url;
 }
 
@@ -110,7 +123,7 @@ export async function fetchConsumerHistory(
   id: number | string,
   filters?: ConsumerHistoryFilters,
 ): Promise<ConsumerDetail> {
-  const stub = await getE2EConsumerHistoryStub(id);
+  const stub = await getE2EConsumerHistoryStub(id, filters);
   if (stub) {
     return resolveConsumerHistoryFromStub(stub);
   }

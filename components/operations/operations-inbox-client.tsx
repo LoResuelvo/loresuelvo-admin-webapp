@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { OperationSummary, BottleneckType } from "@/domain/operations/operation-summary";
 import type { OperationFilters } from "@/ports/operations/operation-repository";
@@ -20,19 +20,24 @@ export interface OperationsInboxClientProps {
 }
 
 function useOperations(filters?: OperationFilters) {
+  const generation = useRef(0);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [operations, setOperations] = useState<OperationSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isForbidden, setIsForbidden] = useState(false);
 
   const loadOperations = useCallback(async () => {
+    const request = ++generation.current;
     setIsLoading(true);
     setError(null);
     setIsForbidden(false);
     try {
       const result = await getOperationsAction(filters);
+      if (request !== generation.current) return;
       if (result.success) {
-        setOperations(result.data);
+        setOperations(result.data.operations);
+        setNextCursor(result.data.nextCursor);
       } else {
         if (result.isForbidden) {
           setIsForbidden(true);
@@ -40,17 +45,18 @@ function useOperations(filters?: OperationFilters) {
         setError(result.error);
       }
     } catch {
-      setError(translations.operations.error);
+      if (request === generation.current) setError(translations.operations.error);
     } finally {
-      setIsLoading(false);
+      if (request === generation.current) setIsLoading(false);
     }
   }, [filters]);
 
   useEffect(() => {
     loadOperations();
+    return () => { generation.current++; };
   }, [loadOperations]);
 
-  return { operations, isLoading, error, isForbidden, retry: loadOperations };
+  return { operations, nextCursor, isLoading, error, isForbidden, retry: loadOperations };
 }
 
 function useCategories(initialCategories?: readonly CategoryOption[]) {
@@ -106,6 +112,7 @@ function useOperationFilters(initialFilters?: OperationFilters) {
   const handleSearchChange = (query: string) => {
     setFilters((prev) => ({
       ...prev,
+      cursor: undefined,
       q: query || undefined,
     }));
   };
@@ -113,6 +120,7 @@ function useOperationFilters(initialFilters?: OperationFilters) {
   const handleCategoryChange = (categoryId: number | "") => {
     setFilters((prev) => ({
       ...prev,
+      cursor: undefined,
       categoryId: categoryId ? Number(categoryId) : undefined,
     }));
   };
@@ -120,6 +128,7 @@ function useOperationFilters(initialFilters?: OperationFilters) {
   const handleBottleneckChange = (bottleneck: BottleneckType | "") => {
     setFilters((prev) => ({
       ...prev,
+      cursor: undefined,
       bottleneck: bottleneck || undefined,
     }));
   };
@@ -129,6 +138,7 @@ function useOperationFilters(initialFilters?: OperationFilters) {
     handleSearchChange,
     handleCategoryChange,
     handleBottleneckChange,
+    setFilters,
   };
 }
 
@@ -137,10 +147,12 @@ export function OperationsInboxClient({
   initialCategories,
 }: OperationsInboxClientProps) {
   const router = useRouter();
-  const { filters, handleSearchChange, handleCategoryChange, handleBottleneckChange } =
+  const [cursorHistory, setCursorHistory] = useState<(string | undefined)[]>([]);
+  const { filters, handleSearchChange, handleCategoryChange, handleBottleneckChange, setFilters } =
     useOperationFilters(initialFilters);
-  const { operations, isLoading, error, isForbidden, retry } = useOperations(filters);
+  const { operations, nextCursor, isLoading, error, isForbidden, retry } = useOperations(filters);
   const categories = useCategories(initialCategories);
+  useEffect(() => { setCursorHistory([]); }, [filters.q, filters.categoryId, filters.bottleneck]);
 
   if (isLoading && operations.length === 0) return <OperationsSkeleton />;
   if (isForbidden) return <OperationsForbidden message={error ?? translations.operations.forbidden} />;
@@ -168,6 +180,17 @@ export function OperationsInboxClient({
           onSelectOperation={(op) => router.push(ROUTES.operationDetail(op.id))}
         />
       )}
+      <nav aria-label={translations.operations.table.caption} className="flex gap-3">
+        <button type="button" disabled={isLoading || cursorHistory.length === 0} onClick={() => {
+          const previous = cursorHistory.at(-1);
+          setCursorHistory(history => history.slice(0, -1));
+          setFilters(current => ({ ...current, cursor: previous }));
+        }}>{translations.operations.previousPage}</button>
+        <button type="button" disabled={isLoading || !nextCursor} onClick={() => {
+          setCursorHistory(history => [...history, filters.cursor]);
+          setFilters(current => ({ ...current, cursor: nextCursor ?? undefined }));
+        }}>{translations.operations.nextPage}</button>
+      </nav>
     </div>
   );
 }

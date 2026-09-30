@@ -11,20 +11,22 @@ export interface ConsumerHistoryProvider {
 
 export interface ConsumerHistoryItem {
   resourceId: number;
-  operationId: number;
+  operationId: number | string;
   resourceType: string;
-  categoryName: string;
+  categoryName?: string;
   provider: ConsumerHistoryProvider;
   status: string;
-  totalAmountCents: number;
+  totalAmountCents?: number;
   createdAt: string;
 }
 
 export interface ConsumerHistoryPagination {
-  page: number;
   limit: number;
-  total: number;
-  totalPages: number;
+  hasMore: boolean;
+  nextCursor?: string;
+  page?: number;
+  total?: number;
+  totalPages?: number;
 }
 
 export interface ConsumerHistoryFilters {
@@ -32,7 +34,7 @@ export interface ConsumerHistoryFilters {
   status?: string;
   from?: string;
   to?: string;
-  page?: number;
+  cursor?: string;
   limit?: number;
 }
 
@@ -41,11 +43,11 @@ export interface ConsumerDetail {
   name: string;
   surname: string;
   email: string;
-  phone: string;
+  phone?: string;
   profilePhotoUrl?: string;
   registeredAt: string;
-  currentAddress: string;
-  coverageZone: ConsumerCoverageZone;
+  currentAddress?: string;
+  coverageZone?: ConsumerCoverageZone;
   history: ConsumerHistoryItem[];
   pagination: ConsumerHistoryPagination;
 }

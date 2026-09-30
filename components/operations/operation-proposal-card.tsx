@@ -82,7 +82,7 @@ function ProposalCommercialGrid({ proposal }: { proposal: ProposalDetail }) {
           {copy.estimatedDuration}
         </span>
         <p className="mt-1 text-base font-semibold text-[#1A2B48]">
-          {proposal.estimatedDuration || "—"}
+          {proposal.estimatedDurationMinutes !== undefined ? `${proposal.estimatedDurationMinutes} ${copy.durationMinutes}` : proposal.estimatedDuration || "—"}
         </p>
       </div>
 
@@ -91,7 +91,7 @@ function ProposalCommercialGrid({ proposal }: { proposal: ProposalDetail }) {
           {copy.committedDates}
         </span>
         <p className="mt-1 text-base font-semibold text-[#1A2B48]">
-          {formatDate(proposal.createdAt) || "—"}
+          {formatDate(proposal.scheduledFor ?? proposal.createdAt) || "—"}
         </p>
       </div>
     </div>

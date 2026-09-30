@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type { ConsumerHistoryItem } from "@/domain/users/consumer-history";
+import type {
+  ConsumerHistoryItem,
+  ConsumerHistoryPagination,
+} from "@/domain/users/consumer-history";
 import { translations } from "@/infrastructure/i18n/translations";
 import { ConsumerHistoryFilters } from "./consumer-history-filters";
 import { ConsumerHistoryTable } from "./consumer-history-table";
@@ -10,8 +12,15 @@ export interface ConsumerHistoryListProps {
   history: ConsumerHistoryItem[];
   selectedType?: string;
   selectedStatus?: string;
+  pagination?: ConsumerHistoryPagination;
+  isLoading?: boolean;
+  isLoadingMore?: boolean;
+  preserveHistoryOnError?: boolean;
+  error?: string | null;
   onTypeChange?: (type: string) => void;
   onStatusChange?: (status: string) => void;
+  onLoadMore?: () => void;
+  onRetry?: () => void;
 }
 
 function ConsumerHistoryEmpty() {
@@ -40,67 +49,24 @@ function ConsumerHistoryFilteredEmpty() {
   );
 }
 
-function filterHistory(
-  items: ConsumerHistoryItem[],
-  type?: string,
-  status?: string,
-): ConsumerHistoryItem[] {
-  return items.filter((item) => {
-    if (type && type !== "all" && item.resourceType !== type) {
-      return false;
-    }
-    if (status && status !== "all" && item.status !== status) {
-      return false;
-    }
-    return true;
-  });
-}
-
-function useHistoryFilters(
-  externalType?: string,
-  externalStatus?: string,
-  onExternalTypeChange?: (type: string) => void,
-  onExternalStatusChange?: (status: string) => void,
-) {
-  const [internalType, setInternalType] = useState<string>("all");
-  const [internalStatus, setInternalStatus] = useState<string>("all");
-
-  const selectedType = externalType ?? internalType;
-  const selectedStatus = externalStatus ?? internalStatus;
-
-  const handleTypeChange = (type: string) => {
-    setInternalType(type);
-    onExternalTypeChange?.(type);
-  };
-
-  const handleStatusChange = (status: string) => {
-    setInternalStatus(status);
-    onExternalStatusChange?.(status);
-  };
-
-  return { selectedType, selectedStatus, handleTypeChange, handleStatusChange };
-}
-
 export function ConsumerHistoryList({
   history,
-  selectedType: externalType,
-  selectedStatus: externalStatus,
+  selectedType = "all",
+  selectedStatus = "all",
+  pagination,
+  isLoading = false,
+  isLoadingMore = false,
+  preserveHistoryOnError = false,
+  error,
   onTypeChange: onExternalTypeChange,
   onStatusChange: onExternalStatusChange,
+  onLoadMore,
+  onRetry,
 }: ConsumerHistoryListProps) {
   const copy = translations.users.consumerDetail.history;
-  const { selectedType, selectedStatus, handleTypeChange, handleStatusChange } =
-    useHistoryFilters(
-      externalType,
-      externalStatus,
-      onExternalTypeChange,
-      onExternalStatusChange,
-    );
-
-  const filteredHistory = useMemo(
-    () => filterHistory(history, selectedType, selectedStatus),
-    [history, selectedType, selectedStatus],
-  );
+  const hasActiveFilters = selectedType !== "all" || selectedStatus !== "all";
+  const showFilters = Boolean(onExternalTypeChange || onExternalStatusChange) ||
+    history.length > 0 || hasActiveFilters;
 
   return (
     <section
@@ -115,22 +81,57 @@ export function ConsumerHistoryList({
           </h2>
           <p className="mt-1 text-sm text-[#536176]">{copy.subtitle}</p>
         </div>
-        {history.length > 0 && (
+        {showFilters && (
           <ConsumerHistoryFilters
             selectedType={selectedType}
             selectedStatus={selectedStatus}
-            onTypeChange={handleTypeChange}
-            onStatusChange={handleStatusChange}
+            onTypeChange={onExternalTypeChange}
+            onStatusChange={onExternalStatusChange}
           />
         )}
       </header>
 
-      {history.length === 0 ? (
-        <ConsumerHistoryEmpty />
-      ) : filteredHistory.length === 0 ? (
-        <ConsumerHistoryFilteredEmpty />
+      {error && (
+        <div role="alert" className="p-6 text-center text-red-700">
+          <p>{error}</p>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="mt-3 rounded-lg bg-[#147560] px-4 py-2 text-sm font-medium text-white"
+            >
+              {copy.retry}
+            </button>
+          )}
+        </div>
+      )}
+
+      {error && !preserveHistoryOnError ? null : isLoading && !isLoadingMore ? (
+        <p role="status" aria-busy="true" className="p-6 text-center text-[#536176]">
+          {copy.loading}
+        </p>
+      ) : history.length === 0 ? (
+        hasActiveFilters ? <ConsumerHistoryFilteredEmpty /> : <ConsumerHistoryEmpty />
       ) : (
-        <ConsumerHistoryTable history={filteredHistory} />
+        <ConsumerHistoryTable history={history} />
+      )}
+
+      {pagination?.hasMore && !error && (
+        <div className="border-t border-[#1A2B48]/10 p-4 text-center">
+          {isLoadingMore && (
+            <p role="status" aria-busy="true" className="mb-3 text-sm text-[#536176]">
+              {copy.loadingMore}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={onLoadMore}
+            disabled={!onLoadMore || isLoadingMore || isLoading}
+            className="rounded-lg border border-[#147560]/30 px-4 py-2 text-sm font-medium text-[#147560] disabled:cursor-wait disabled:opacity-60"
+          >
+            {copy.loadMore}
+          </button>
+        </div>
       )}
     </section>
   );

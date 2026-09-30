@@ -3,98 +3,19 @@ import { Given, When, Then } from "@cucumber/cucumber";
 import { ROUTES } from "@/lib/routes";
 import { CustomWorld } from "../support/world";
 import { anAdminProfile, stubAdminAccess } from "../support/admin-access";
+import { sampleOperations, sampleOperationDetail, sampleOperationWithProposalAndOrder, sampleOperationWithCompletionAndReview, operationPage } from "./operations_fixtures";
 
 Given("que he iniciado sesión en el panel de administración", async function (this: CustomWorld) {
   await this.context.clearCookies();
   await stubAdminAccess(this, anAdminProfile());
 });
 
-const sampleOperations = [
-  {
-    id: "op-1",
-    job_request_id: 101,
-    service_proposal_id: 201,
-    work_order_id: 301,
-    consumer: {
-      id: 1,
-      name: "Juan",
-      surname: "Pérez",
-      email: "juan.perez@example.com",
-    },
-    provider: {
-      id: 2,
-      name: "Carlos",
-      surname: "López",
-      email: "carlos.lopez@example.com",
-    },
-    category: {
-      id: 1,
-      name: "Plomería",
-    },
-    status: "in_progress",
-    bottleneck: "stalled",
-    next_action_by: "provider",
-    created_at: "2026-09-18T10:00:00Z",
-    updated_at: "2026-09-20T14:30:00Z",
-  },
-  {
-    id: "op-2",
-    job_request_id: 102,
-    service_proposal_id: 202,
-    consumer: {
-      id: 3,
-      name: "María",
-      surname: "Gómez",
-      email: "maria.gomez@example.com",
-    },
-    provider: {
-      id: 4,
-      name: "Roberto",
-      surname: "Díaz",
-      email: "roberto.diaz@example.com",
-    },
-    category: {
-      id: 2,
-      name: "Electricidad",
-    },
-    status: "quoted",
-    bottleneck: "pending_proposal_24h",
-    next_action_by: "consumer",
-    created_at: "2026-09-21T09:00:00Z",
-    updated_at: "2026-09-22T11:00:00Z",
-  },
-  {
-    id: "op-3",
-    job_request_id: 103,
-    consumer: {
-      id: 5,
-      name: "Lucía",
-      surname: "Fernández",
-      email: "lucia.fernandez@example.com",
-    },
-    provider: {
-      id: 6,
-      name: "Martín",
-      surname: "Silva",
-      email: "martin.silva@example.com",
-    },
-    category: {
-      id: 3,
-      name: "Gas",
-    },
-    status: "requested",
-    bottleneck: "none",
-    next_action_by: "none",
-    created_at: "2026-09-23T08:00:00Z",
-    updated_at: "2026-09-23T08:00:00Z",
-  },
-];
 
 Given(
   "que existen contrataciones en curso con diferentes estados en el marketplace",
   async function (this: CustomWorld) {
-    await this.stubGet("/admin/operations", sampleOperations);
-    await this.stubGet("/operations", sampleOperations);
+    await this.stubGet("/admin/operations", operationPage(sampleOperations));
+    await this.stubGet("/operations", operationPage(sampleOperations));
   },
 );
 
@@ -116,7 +37,7 @@ Then(
     assert.ok(row0Text.includes("Juan") && row0Text.includes("Pérez"));
     assert.ok(row0Text.includes("Carlos") && row0Text.includes("López"));
     assert.ok(row0Text.includes("Plomería"));
-    assert.ok(row0Text.includes("En progreso") || row0Text.includes("En curso"));
+    assert.ok(row0Text.includes("Solicitud pendiente"));
     assert.ok(row0Text.includes("Estancada") || row0Text.includes("Sin avance"));
     assert.ok(row0Text.includes("Prestador"));
 
@@ -124,8 +45,8 @@ Then(
     assert.ok(row1Text.includes("María") && row1Text.includes("Gómez"));
     assert.ok(row1Text.includes("Roberto") && row1Text.includes("Díaz"));
     assert.ok(row1Text.includes("Electricidad"));
-    assert.ok(row1Text.includes("Cotizado") || row1Text.includes("Cotizada"));
-    assert.ok(row1Text.includes("Propuesta") || row1Text.includes("24h"));
+    assert.ok(row1Text.includes("Propuesta pendiente"));
+    assert.ok(row1Text.includes("Plazo de seña vencido"));
     assert.ok(row1Text.includes("Cliente"));
   },
 );
@@ -135,14 +56,14 @@ Given("que la carga de las operaciones toma unos momentos", async function (this
     method: "GET",
     endpoint: "/admin/operations",
     status: 200,
-    body: [],
+    body: operationPage([]),
     delayMs: 3000,
   });
   await this.addApiStub({
     method: "GET",
     endpoint: "/operations",
     status: 200,
-    body: [],
+    body: operationPage([]),
     delayMs: 3000,
   });
 });
@@ -176,8 +97,8 @@ Then(
 Given(
   "que no existen contrataciones que coincidan con el criterio seleccionado",
   async function (this: CustomWorld) {
-    await this.stubGet("/admin/operations", []);
-    await this.stubGet("/operations", []);
+    await this.stubGet("/admin/operations", operationPage([]));
+    await this.stubGet("/operations", operationPage([]));
   },
 );
 
@@ -200,8 +121,8 @@ Then(
 Given(
   "que existen contrataciones con solicitudes demoradas por más de 24 horas y otras al día",
   async function (this: CustomWorld) {
-    await this.stubGet("/admin/operations", sampleOperations);
-    await this.stubGet("/operations", sampleOperations);
+    await this.stubGet("/admin/operations", operationPage(sampleOperations));
+    await this.stubGet("/operations", operationPage(sampleOperations));
   },
 );
 
@@ -238,31 +159,7 @@ Given(
   async function (this: CustomWorld) {
     const diverseOperations = [
       ...sampleOperations,
-      {
-        id: "op-4",
-        job_request_id: 104,
-        consumer: {
-          id: 7,
-          name: "Gonzalo",
-          surname: "Pérez",
-          email: "gonzalo.perez@example.com",
-        },
-        provider: {
-          id: 8,
-          name: "Esteban",
-          surname: "Quito",
-          email: "esteban.quito@example.com",
-        },
-        category: {
-          id: 2,
-          name: "Electricidad",
-        },
-        status: "requested",
-        bottleneck: "none",
-        next_action_by: "none",
-        created_at: "2026-09-23T08:00:00Z",
-        updated_at: "2026-09-23T08:00:00Z",
-      },
+      { ...sampleOperations[2], id: "jr-104", consumer: { id: 7, name: "Gonzalo", surname: "Pérez" }, category: { id: 2, name: "Electricidad" } },
     ];
 
     await this.stubGet("/categories", [
@@ -270,8 +167,9 @@ Given(
       { id: 2, name: "Electricidad" },
       { id: 3, name: "Gas" },
     ]);
-    await this.stubGet("/admin/operations", diverseOperations);
-    await this.stubGet("/operations", diverseOperations);
+    await this.stubGet("/admin/operations", operationPage(diverseOperations));
+    await this.stubGet("/admin/operations?category_id=1", operationPage(diverseOperations.filter((item) => item.category?.id === 1)));
+    await this.stubGet("/operations", operationPage(diverseOperations));
   },
 );
 
@@ -368,13 +266,13 @@ Given(
     });
     await this.addApiStub({
       method: "GET",
-      endpoint: "/admin/operations/op-101",
+      endpoint: "/admin/operations/jr-101",
       status: 500,
       body: { error: "Internal Server Error" },
     });
     await this.addApiStub({
       method: "GET",
-      endpoint: "/operations/op-101",
+      endpoint: "/operations/jr-101",
       status: 500,
       body: { error: "Internal Server Error" },
     });
@@ -405,9 +303,10 @@ Then(
 Given(
   "que visualizo una contratación en la bandeja de operaciones",
   async function (this: CustomWorld) {
-    await this.stubGet("/admin/operations", sampleOperations);
-    await this.stubGet("/operations", sampleOperations);
+    await this.stubGet("/admin/operations", operationPage(sampleOperations));
+    await this.stubGet("/operations", operationPage(sampleOperations));
     const operationsRoute = (ROUTES as { operations?: string }).operations || "/operaciones";
+    await this.stubGet("/admin/operations/jr-101", sampleOperationDetail);
     await this.page.goto(new URL(operationsRoute, this.appUrl).href);
     const table = this.page.getByRole("table");
     await table.waitFor({ state: "visible" });
@@ -436,67 +335,17 @@ Then(
   },
 );
 
-const sampleOperationDetail = {
-  id: "op-101",
-  status: "in_progress",
-  created_at: "2026-09-18T10:00:00Z",
-  category: {
-    id: 1,
-    name: "Plomería",
-  },
-  consumer: {
-    id: 10,
-    name: "Ana",
-    surname: "Martínez",
-    email: "ana.martinez@example.com",
-    profile_photo_url: null,
-  },
-  provider: {
-    id: 20,
-    name: "Carlos",
-    surname: "López",
-    email: "carlos.lopez@example.com",
-    profile_photo_url: null,
-  },
-  current_address: "Av. Corrientes 1234, CABA",
-  request: {
-    id: 501,
-    title: "Reparación de cañería en cocina",
-    description: "Pérdida continua de agua bajo la bacha de la cocina.",
-    status: "in_progress",
-    source_assessment_id: "asm-77",
-    diagnostic_summary: "Posible fisura en sifón de desagüe con goteo constante.",
-    photos: ["https://example.com/photos/leak-1.jpg", "https://example.com/photos/leak-2.jpg"],
-  },
-  timeline: [
-    {
-      type: "job_requested",
-      title: "Solicitud creada",
-      timestamp: "2026-09-18T10:00:00Z",
-    },
-    {
-      type: "proposal_sent",
-      title: "Presupuesto enviado",
-      timestamp: "2026-09-19T11:30:00Z",
-    },
-    {
-      type: "order_created",
-      title: "Orden de trabajo confirmada",
-      timestamp: "2026-09-20T14:00:00Z",
-    },
-  ],
-};
 
 Given(
   "que existe una contratación registrada entre un cliente y un prestador",
   async function (this: CustomWorld) {
-    await this.stubGet("/admin/operations/op-101", sampleOperationDetail);
-    await this.stubGet("/operations/op-101", sampleOperationDetail);
+    await this.stubGet("/admin/operations/jr-101", sampleOperationDetail);
+    await this.stubGet("/operations/jr-101", sampleOperationDetail);
   },
 );
 
 When("consulto la ficha de la contratación", async function (this: CustomWorld) {
-  const detailRoute = ROUTES.operationDetail("op-101");
+  const detailRoute = ROUTES.operationDetail("jr-101");
   await this.page.goto(new URL(detailRoute, this.appUrl).href);
 });
 
@@ -507,19 +356,20 @@ Then(
     await header.waitFor({ state: "visible", timeout: 5000 });
     const headerText = await header.innerText();
     assert.ok(headerText.includes("Ana") && headerText.includes("Martínez"));
-    assert.ok(headerText.includes("ana.martinez@example.com"));
+    assert.ok(!headerText.includes("ana.martinez@example.com"));
+    assert.ok(headerText.includes("Información no disponible"));
     assert.ok(headerText.includes("Carlos") && headerText.includes("López"));
-    assert.ok(headerText.includes("carlos.lopez@example.com"));
+    assert.ok(!headerText.includes("carlos.lopez@example.com"));
     assert.ok(headerText.includes("Plomería"));
-    assert.ok(headerText.includes("Av. Corrientes 1234, CABA"));
+    assert.ok(headerText.includes("Av. Corrientes 1234"));
   },
 );
 
 Given(
   "que la contratación ha transitado desde la solicitud inicial hasta la orden de trabajo",
   async function (this: CustomWorld) {
-    await this.stubGet("/admin/operations/op-101", sampleOperationDetail);
-    await this.stubGet("/operations/op-101", sampleOperationDetail);
+    await this.stubGet("/admin/operations/jr-101", sampleOperationDetail);
+    await this.stubGet("/operations/jr-101", sampleOperationDetail);
   },
 );
 
@@ -536,10 +386,10 @@ Then(
     assert.ok(firstMilestone.includes("Solicitud creada"));
 
     const secondMilestone = await milestones.nth(1).innerText();
-    assert.ok(secondMilestone.includes("Presupuesto enviado"));
+    assert.ok(secondMilestone.includes("Propuesta creada"));
 
     const thirdMilestone = await milestones.nth(2).innerText();
-    assert.ok(thirdMilestone.includes("Orden de trabajo confirmada"));
+    assert.ok(thirdMilestone.includes("Orden aceptada"));
 
     assert.ok(firstMilestone.includes("18") || firstMilestone.includes("2026"));
     assert.ok(secondMilestone.includes("19") || secondMilestone.includes("2026"));
@@ -553,15 +403,15 @@ Then(
 Given(
   "que la solicitud del cliente fue generada mediante el asistente de diagnóstico virtual",
   async function (this: CustomWorld) {
-    await this.stubGet("/admin/operations/op-101", sampleOperationDetail);
-    await this.stubGet("/operations/op-101", sampleOperationDetail);
+    await this.stubGet("/admin/operations/jr-101", sampleOperationDetail);
+    await this.stubGet("/operations/jr-101", sampleOperationDetail);
   },
 );
 
 When(
   "reviso la sección de solicitud en la ficha",
   async function (this: CustomWorld) {
-    const detailRoute = ROUTES.operationDetail("op-101");
+    const detailRoute = ROUTES.operationDetail("jr-101");
     if (!this.page.url().includes(detailRoute)) {
       await this.page.goto(new URL(detailRoute, this.appUrl).href);
     }
@@ -591,42 +441,19 @@ Then(
   },
 );
 
-const sampleOperationWithProposalAndOrder = {
-  ...sampleOperationDetail,
-  id: "op-101",
-  status: "in_progress",
-  proposals: [
-    {
-      id: 201,
-      amount_cents: 4500000,
-      booking_deposit_cents: 900000,
-      estimated_duration: "3 días",
-      description: "Desmonte de bacha, recambio de cañería averiada y sellado siliconado.",
-      status: "accepted",
-      created_at: "2026-09-19T11:30:00Z",
-    },
-  ],
-  order: {
-    id: 301,
-    status: "scheduled",
-    scheduled_for: "2026-09-25T09:00:00Z",
-    completion_report: null,
-    review: null,
-  },
-};
 
 Given(
   "que la contratación posee un presupuesto acordado y una orden programada",
   async function (this: CustomWorld) {
-    await this.stubGet("/admin/operations/op-101", sampleOperationWithProposalAndOrder);
-    await this.stubGet("/operations/op-101", sampleOperationWithProposalAndOrder);
+    await this.stubGet("/admin/operations/jr-101", sampleOperationWithProposalAndOrder);
+    await this.stubGet("/operations/jr-101", sampleOperationWithProposalAndOrder);
   },
 );
 
 When(
   "reviso la sección de presupuesto y orden en la ficha",
   async function (this: CustomWorld) {
-    const detailRoute = ROUTES.operationDetail("op-101");
+    const detailRoute = ROUTES.operationDetail("jr-101");
     if (!this.page.url().includes(detailRoute)) {
       await this.page.goto(new URL(detailRoute, this.appUrl).href);
     }
@@ -649,11 +476,8 @@ Then(
         proposalText.includes("Seña") ||
         proposalText.includes("seña"),
     );
-    assert.ok(
-      proposalText.includes("3 días") ||
-        proposalText.includes("19") ||
-        proposalText.includes("2026"),
-    );
+    assert.ok(proposalText.includes("180 minutos"));
+    assert.ok(proposalText.includes("25") && proposalText.includes("2026"));
 
     const orderSection = this.page.getByTestId("operation-order-card");
     await orderSection.waitFor({ state: "visible", timeout: 5000 });
@@ -672,55 +496,19 @@ Then(
   },
 );
 
-const sampleOperationWithCompletionAndReview = {
-  ...sampleOperationDetail,
-  id: "op-101",
-  status: "completed",
-  proposals: [
-    {
-      id: 201,
-      amount_cents: 4500000,
-      booking_deposit_cents: 900000,
-      estimated_duration: "3 días",
-      description: "Desmonte y sellado siliconado.",
-      status: "accepted",
-      created_at: "2026-09-19T11:30:00Z",
-    },
-  ],
-  order: {
-    id: 301,
-    status: "completed",
-    scheduled_for: "2026-09-25T09:00:00Z",
-    completion_report: {
-      completed_at: "2026-09-25T15:30:00Z",
-      notes:
-        "Se reparó con éxito la pérdida del sifón y se colocó caño corrugado nuevo con junta de estanqueidad.",
-      photos: [
-        "https://example.com/photos/evidence-1.jpg",
-        "https://example.com/photos/evidence-2.jpg",
-      ],
-    },
-    review: {
-      rating: 5,
-      comment:
-        "Excelente trabajo de Carlos, muy prolijo y puntual. Resolvió todo en el tiempo pactado.",
-      created_at: "2026-09-25T17:00:00Z",
-    },
-  },
-};
 
 Given(
   "que el prestador concluyó el trabajo y el cliente dejó su valoración",
   async function (this: CustomWorld) {
-    await this.stubGet("/admin/operations/op-101", sampleOperationWithCompletionAndReview);
-    await this.stubGet("/operations/op-101", sampleOperationWithCompletionAndReview);
+    await this.stubGet("/admin/operations/jr-101", sampleOperationWithCompletionAndReview);
+    await this.stubGet("/operations/jr-101", sampleOperationWithCompletionAndReview);
   },
 );
 
 When(
   "reviso la sección de finalización en la ficha",
   async function (this: CustomWorld) {
-    const detailRoute = ROUTES.operationDetail("op-101");
+    const detailRoute = ROUTES.operationDetail("jr-101");
     if (!this.page.url().includes(detailRoute)) {
       await this.page.goto(new URL(detailRoute, this.appUrl).href);
     }
@@ -772,14 +560,14 @@ Given(
   async function (this: CustomWorld) {
     await this.addApiStub({
       method: "GET",
-      endpoint: "/admin/operations/op-101",
+      endpoint: "/admin/operations/jr-101",
       status: 200,
       body: sampleOperationDetail,
       delayMs: 3000,
     });
     await this.addApiStub({
       method: "GET",
-      endpoint: "/operations/op-101",
+      endpoint: "/operations/jr-101",
       status: 200,
       body: sampleOperationDetail,
       delayMs: 3000,
@@ -788,7 +576,7 @@ Given(
 );
 
 When("accedo a la ficha de la contratación", async function (this: CustomWorld) {
-  const detailRoute = ROUTES.operationDetail("op-101");
+  const detailRoute = ROUTES.operationDetail("jr-101");
   await this.page.goto(new URL(detailRoute, this.appUrl).href);
 });
 
@@ -797,13 +585,13 @@ Given(
   async function (this: CustomWorld) {
     await this.addApiStub({
       method: "GET",
-      endpoint: "/admin/operations/op-999",
+      endpoint: "/admin/operations/jr-999",
       status: 404,
       body: { message: "Not found" },
     });
     await this.addApiStub({
       method: "GET",
-      endpoint: "/operations/op-999",
+      endpoint: "/operations/jr-999",
       status: 404,
       body: { message: "Not found" },
     });
@@ -811,7 +599,7 @@ Given(
 );
 
 When("accedo al enlace de la contratación", async function (this: CustomWorld) {
-  const notFoundRoute = ROUTES.operationDetail("op-999");
+  const notFoundRoute = ROUTES.operationDetail("jr-999");
   await this.page.goto(new URL(notFoundRoute, this.appUrl).href);
 });
 
@@ -835,13 +623,13 @@ Given(
   async function (this: CustomWorld) {
     await this.addApiStub({
       method: "GET",
-      endpoint: "/admin/operations/op-101",
+      endpoint: "/admin/operations/jr-101",
       status: 403,
       body: { message: "Forbidden" },
     });
     await this.addApiStub({
       method: "GET",
-      endpoint: "/operations/op-101",
+      endpoint: "/operations/jr-101",
       status: 403,
       body: { message: "Forbidden" },
     });
@@ -849,45 +637,43 @@ Given(
 );
 
 When("intento ingresar a la ficha de una contratación", async function (this: CustomWorld) {
-  const detailRoute = ROUTES.operationDetail("op-101");
+  const detailRoute = ROUTES.operationDetail("jr-101");
   await this.page.goto(new URL(detailRoute, this.appUrl).href);
 });
 
 When("intento cargar la ficha de la contratación", async function (this: CustomWorld) {
-  const detailRoute = ROUTES.operationDetail("op-101");
+  const detailRoute = ROUTES.operationDetail("jr-101");
   await this.page.goto(new URL(detailRoute, this.appUrl).href);
 });
 
 const sampleAuditedConversation = {
-  items: [
+  operation_id: "jr-101",
+  conversation_id: 9,
+  job_request_id: 101,
+  service_proposal_id: 201,
+  related_service_proposal_ids: [201],
+  shared_conversation: false,
+  messages: [
     {
       id: 1,
-      sender_id: 10,
       sender_role: "consumer",
       content: "Hola, necesito coordinar la visita para revisar la pérdida.",
-      sent_at: "2026-09-18T10:15:00Z",
-      attachments: [],
+      created_on: "2026-09-18T10:15:00Z",
     },
     {
       id: 2,
-      sender_id: 20,
       sender_role: "provider",
       content: "Buenas tardes, puedo pasar mañana por la mañana a primera hora.",
-      sent_at: "2026-09-18T10:20:00Z",
-      attachments: [],
+      created_on: "2026-09-18T10:20:00Z",
     },
   ],
-  pagination: {
-    page: 1,
-    limit: 50,
-    total: 2,
-  },
+  next_cursor: null,
 };
 
 Given("me encuentro en la ficha de una contratación", async function (this: CustomWorld) {
-  await this.stubGet("/admin/operations/op-101", sampleOperationDetail);
-  await this.stubGet("/operations/op-101", sampleOperationDetail);
-  const detailRoute = ROUTES.operationDetail("op-101");
+  await this.stubGet("/admin/operations/jr-101", sampleOperationDetail);
+  await this.stubGet("/operations/jr-101", sampleOperationDetail);
+  const detailRoute = ROUTES.operationDetail("jr-101");
   await this.page.goto(new URL(detailRoute, this.appUrl).href);
   const header = this.page.getByTestId("operation-header");
   await header.waitFor({ state: "visible", timeout: 5000 });
@@ -897,11 +683,11 @@ Given(
   "que selecciono la opción para inspeccionar los mensajes",
   async function (this: CustomWorld) {
     await this.stubGet(
-      "/admin/operations/op-101/conversation",
+      "/admin/operations/jr-101/conversation",
       sampleAuditedConversation,
     );
     await this.stubGet(
-      "/operations/op-101/conversation",
+      "/operations/jr-101/conversation",
       sampleAuditedConversation,
     );
 
@@ -1011,14 +797,14 @@ Given(
   async function (this: CustomWorld) {
     await this.addApiStub({
       method: "GET",
-      endpoint: "/admin/operations/op-101/conversation",
+      endpoint: "/admin/operations/jr-101/conversation",
       status: 200,
       body: sampleAuditedConversation,
       delayMs: 3000,
     });
     await this.addApiStub({
       method: "GET",
-      endpoint: "/operations/op-101/conversation",
+      endpoint: "/operations/jr-101/conversation",
       status: 200,
       body: sampleAuditedConversation,
       delayMs: 3000,
@@ -1084,23 +870,19 @@ Then(
 );
 
 const emptyAuditedConversation = {
-  items: [],
-  pagination: {
-    page: 1,
-    limit: 50,
-    total: 0,
-  },
+  ...sampleAuditedConversation,
+  messages: [],
 };
 
 Given(
   "que la contratación no registra mensajes intercambiados entre las partes",
   async function (this: CustomWorld) {
     await this.stubGet(
-      "/admin/operations/op-101/conversation",
+      "/admin/operations/jr-101/conversation",
       emptyAuditedConversation,
     );
     await this.stubGet(
-      "/operations/op-101/conversation",
+      "/operations/jr-101/conversation",
       emptyAuditedConversation,
     );
   },
@@ -1157,13 +939,13 @@ Given(
   async function (this: CustomWorld) {
     await this.addApiStub({
       method: "GET",
-      endpoint: "/admin/operations/op-101/conversation",
+      endpoint: "/admin/operations/jr-101/conversation",
       status: 403,
       body: { error: "Forbidden", message: "User lacks read:admin_chat_audit permission" },
     });
     await this.addApiStub({
       method: "GET",
-      endpoint: "/operations/op-101/conversation",
+      endpoint: "/operations/jr-101/conversation",
       status: 403,
       body: { error: "Forbidden", message: "User lacks read:admin_chat_audit permission" },
     });
@@ -1208,19 +990,19 @@ Given(
   async function (this: CustomWorld) {
     await this.addApiStub({
       method: "GET",
-      endpoint: "/admin/operations/op-101/conversation",
+      endpoint: "/admin/operations/jr-101/conversation",
       status: 500,
       body: { error: "Internal Server Error" },
     });
     await this.addApiStub({
       method: "GET",
-      endpoint: "/operations/op-101/conversation",
+      endpoint: "/operations/jr-101/conversation",
       status: 500,
       body: { error: "Internal Server Error" },
     });
     await this.stubGet("/admin/payments", { error: "Internal Server Error" }, 500);
     await this.stubGet("/admin/providers/201/diagnostic", { error: "Internal Server Error" }, 500);
-    await this.stubGet("/admin/consumers/301/history", { error: "Internal Server Error" }, 500);
+    await this.stubGet("/admin/consumers/301/history?limit=20", { error: "Internal Server Error" }, 500);
   },
 );
 

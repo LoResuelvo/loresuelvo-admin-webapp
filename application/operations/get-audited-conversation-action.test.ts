@@ -26,7 +26,7 @@ describe("getAuditedConversationAction", () => {
   });
 
   it("returns validation error if reason is shorter than 10 characters", async () => {
-    const result = await getAuditedConversationAction("op-101", "corta");
+    const result = await getAuditedConversationAction("jr-101", "corta");
 
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -52,7 +52,7 @@ describe("getAuditedConversationAction", () => {
     vi.mocked(apiOperationRepository.getAuditedConversation).mockResolvedValue(mockResult);
 
     const result = await getAuditedConversationAction(
-      "op-101",
+      "jr-101",
       "Reclamo de cliente",
     );
 
@@ -62,13 +62,36 @@ describe("getAuditedConversationAction", () => {
     }
   });
 
+  it("forwards the cursor while retaining the selected audit reason", async () => {
+    vi.mocked(apiOperationRepository.getAuditedConversation).mockResolvedValue({
+      items: [], total: 0, nextCursor: null,
+    });
+
+    await getAuditedConversationAction("jr-101", "Reclamo de cliente", "signed-cursor");
+
+    expect(apiOperationRepository.getAuditedConversation).toHaveBeenCalledWith(
+      "mock-token", "jr-101", "Reclamo de cliente", "signed-cursor",
+    );
+  });
+
+  it("translates unexpected repository errors into a visible Spanish message", async () => {
+    vi.mocked(apiOperationRepository.getAuditedConversation).mockRejectedValue(
+      new Error("Invalid internal conversation response"),
+    );
+
+    expect(await getAuditedConversationAction("jr-101", "Reclamo de cliente")).toEqual({
+      success: false,
+      error: translations.operations.chat.error,
+    });
+  });
+
   it("handles forbidden error gracefully", async () => {
     vi.mocked(apiOperationRepository.getAuditedConversation).mockRejectedValue(
       new OperationError("forbidden", "Forbidden"),
     );
 
     const result = await getAuditedConversationAction(
-      "op-101",
+      "jr-101",
       "Reclamo de cliente",
     );
 

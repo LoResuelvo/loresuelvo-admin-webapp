@@ -4,7 +4,7 @@ export interface OperationPartyDetail {
   readonly id: number;
   readonly name: string;
   readonly surname: string;
-  readonly email: string;
+  readonly email?: string | null;
   readonly profilePhotoUrl?: string | null;
 }
 
@@ -29,6 +29,8 @@ export interface ProposalDetail {
   readonly amountCents: number;
   readonly bookingDepositCents: number;
   readonly estimatedDuration: string;
+  readonly estimatedDurationMinutes?: number;
+  readonly scheduledFor?: string;
   readonly description: string;
   readonly status: string;
   readonly createdAt: string;
@@ -43,7 +45,7 @@ export interface CompletionReport {
 export interface ServiceReview {
   readonly rating: number;
   readonly comment: string;
-  readonly createdAt: string;
+  readonly createdAt: string | null;
 }
 
 export interface OrderDetail {
@@ -56,14 +58,15 @@ export interface OrderDetail {
 
 export interface UnifiedOperationDetail {
   readonly id: string;
-  readonly status: OperationStatus;
+  readonly status: OperationStatus | null;
   readonly createdAt: string;
-  readonly category: { readonly id: number; readonly name: string };
+  readonly category: { readonly id: number; readonly name: string } | null;
   readonly consumer: OperationPartyDetail;
   readonly provider: OperationPartyDetail;
-  readonly currentAddress: string;
-  readonly request: RequestDetail;
+  readonly currentAddress: string | null;
+  readonly request: RequestDetail | null;
   readonly proposals: readonly ProposalDetail[];
+  readonly relatedProposals?: readonly (ProposalDetail & { readonly operationId: string })[];
   readonly order?: OrderDetail | null;
   readonly paymentMilestones?: unknown;
   readonly timeline: readonly TimelineMilestone[];

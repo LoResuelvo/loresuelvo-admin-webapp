@@ -20,7 +20,7 @@ describe("getOperations use case", () => {
     ];
 
     const mockRepo: OperationRepository = {
-      getOperations: vi.fn().mockResolvedValue(mockOperations),
+      getOperations: vi.fn().mockResolvedValue({ operations: mockOperations, nextCursor: null }),
       getOperationById: vi.fn(),
       getAuditedConversation: vi.fn(),
     };
@@ -29,7 +29,7 @@ describe("getOperations use case", () => {
     const result = await getOperations(mockRepo, "test-token", filters);
 
     expect(mockRepo.getOperations).toHaveBeenCalledWith("test-token", filters);
-    expect(result).toEqual(mockOperations);
+    expect(result).toEqual({ operations: mockOperations, nextCursor: null });
   });
 
   it("propagates repository errors", async () => {

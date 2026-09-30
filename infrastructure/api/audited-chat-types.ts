@@ -1,58 +1,42 @@
 import { z } from "zod";
 
-export const apiAuditedMessageAttachmentSchema = z.object({
-  id: z.union([z.string(), z.number()]).transform(Number),
-  file_name: z.string().optional(),
-  fileName: z.string().optional(),
-  url: z.string(),
+const privateMediaSchema = z.object({
+  id: z.string().uuid(),
+  url: z.string().url().refine((url) => /^https?:\/\//.test(url)),
+  original_name: z.string(),
 });
 
-export type ApiAuditedMessageAttachment = z.infer<
-  typeof apiAuditedMessageAttachmentSchema
->;
-
 export const apiAuditedMessageItemSchema = z.object({
-  id: z.union([z.string(), z.number()]).transform(Number),
-  sender_id: z.union([z.string(), z.number()]).transform(Number).optional(),
-  senderId: z.union([z.string(), z.number()]).transform(Number).optional(),
-  sender_role: z.enum(["consumer", "provider"]).optional(),
-  senderRole: z.enum(["consumer", "provider"]).optional(),
-  content: z.string().default(""),
-  sent_at: z.string().optional(),
-  sentAt: z.string().optional(),
-  attachments: z.array(apiAuditedMessageAttachmentSchema).default([]),
+  id: z.number().int().positive(),
+  sender_role: z.enum(["consumer", "provider"]),
+  content: z.string(),
+  created_on: z.string().datetime({ offset: true }),
+  images: z.array(privateMediaSchema).optional(),
+  audio: privateMediaSchema.extend({
+    mime_type: z.string(),
+    codec: z.string(),
+    duration_seconds: z.number().int().positive(),
+  }).optional(),
+  video: privateMediaSchema.extend({
+    mime_type: z.string(),
+    video_codec: z.string(),
+    audio_codec: z.string().optional(),
+    duration_seconds: z.number().int().positive(),
+    width: z.number().int().positive(),
+    height: z.number().int().positive(),
+  }).optional(),
+});
+
+export const apiAuditedConversationResponseSchema = z.object({
+  operation_id: z.string().regex(/^(jr|sp)-[1-9][0-9]*$/),
+  conversation_id: z.number().int().positive(),
+  job_request_id: z.number().int().positive().nullable(),
+  service_proposal_id: z.number().int().positive().nullable(),
+  related_service_proposal_ids: z.array(z.number().int().positive()),
+  shared_conversation: z.boolean(),
+  messages: z.array(apiAuditedMessageItemSchema),
+  next_cursor: z.string().nullable(),
 });
 
 export type ApiAuditedMessageItem = z.infer<typeof apiAuditedMessageItemSchema>;
-
-export const apiAuditedConversationResponseSchema = z.union([
-  z.object({
-    items: z.array(apiAuditedMessageItemSchema),
-    pagination: z
-      .object({
-        page: z.number().optional(),
-        limit: z.number().optional(),
-        total: z.number().optional(),
-      })
-      .optional(),
-    total: z.number().optional(),
-  }),
-  z.object({
-    data: z.object({
-      items: z.array(apiAuditedMessageItemSchema),
-      pagination: z
-        .object({
-          page: z.number().optional(),
-          limit: z.number().optional(),
-          total: z.number().optional(),
-        })
-        .optional(),
-      total: z.number().optional(),
-    }),
-  }),
-  z.array(apiAuditedMessageItemSchema),
-]);
-
-export type ApiAuditedConversationResponse = z.infer<
-  typeof apiAuditedConversationResponseSchema
->;
+export type ApiAuditedConversationResponse = z.infer<typeof apiAuditedConversationResponseSchema>;

@@ -9,13 +9,17 @@ export type BottleneckType =
 
 export type ActionResponsible = "consumer" | "provider" | "platform" | "none";
 
-export type OperationStatus = "requested" | "quoted" | "in_progress" | "completed" | "cancelled";
+export type OperationStage = "request_pending" | "request_accepted" | "proposal_pending" | "proposal_accepted" | "proposal_rejected" | "work_order_scheduled" | "work_order_awaiting_payment" | "work_order_paid";
+export type OperationAlert = "request_pending_over_24h" | "booking_deadline_passed" | "delayed" | "stalled";
+export interface OperationPage { readonly operations: OperationSummary[]; readonly nextCursor: string | null; }
+
+export type OperationStatus = OperationStage | "requested" | "quoted" | "in_progress" | "completed" | "cancelled";
 
 export interface OperationParty {
   readonly id: number;
   readonly name: string;
   readonly surname: string;
-  readonly email: string;
+  readonly email?: string | null;
 }
 
 export interface OperationSummary {
@@ -25,10 +29,11 @@ export interface OperationSummary {
   readonly workOrderId?: number;
   readonly consumer: OperationParty;
   readonly provider: OperationParty;
-  readonly category: { readonly id: number; readonly name: string };
+  readonly category: { readonly id: number; readonly name: string } | null;
   readonly status: OperationStatus;
-  readonly bottleneck: BottleneckType;
-  readonly nextActionBy: ActionResponsible;
+  readonly bottleneck?: BottleneckType;
+  readonly nextActionBy: ActionResponsible | null;
   readonly createdAt: string;
-  readonly updatedAt: string;
+  readonly updatedAt: string | null;
+  readonly alerts?: readonly OperationAlert[];
 }

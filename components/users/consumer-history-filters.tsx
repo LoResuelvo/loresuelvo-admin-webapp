@@ -1,5 +1,11 @@
 import { translations } from "@/infrastructure/i18n/translations";
 
+const STATUS_FILTERS: Record<string, string[]> = {
+  job_request: ["pending", "accepted"],
+  service_proposal: ["pending", "accepted", "rejected"],
+  work_order: ["scheduled", "awaiting_payment", "paid"],
+};
+
 export interface ConsumerHistoryFiltersProps {
   selectedType?: string;
   selectedStatus?: string;
@@ -14,6 +20,7 @@ export function ConsumerHistoryFilters({
   onStatusChange,
 }: ConsumerHistoryFiltersProps) {
   const { filters, statuses } = translations.users.consumerDetail.history;
+  const statusOptions = STATUS_FILTERS[selectedType] ?? [];
 
   return (
     <div
@@ -47,13 +54,15 @@ export function ConsumerHistoryFilters({
           aria-label={filters.statusLabel}
           value={selectedStatus}
           onChange={(e) => onStatusChange?.(e.target.value)}
+          disabled={statusOptions.length === 0}
           className="rounded-xl border border-[#1A2B48]/15 bg-white px-3 py-2 text-sm text-[#1A2B48] transition-colors focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
         >
           <option value="all">{filters.allStatuses}</option>
-          <option value="completed">{statuses.completed}</option>
-          <option value="in_progress">{statuses.in_progress}</option>
-          <option value="cancelled">{statuses.cancelled}</option>
-          <option value="pending">{statuses.pending}</option>
+          {statusOptions.map((status) => (
+            <option key={status} value={status}>
+              {statuses[status as keyof typeof statuses]}
+            </option>
+          ))}
         </select>
       </div>
     </div>

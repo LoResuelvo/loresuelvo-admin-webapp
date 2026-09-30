@@ -1,7 +1,20 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MetricsView } from "./metrics-view";
 import type { ConversionFunnel } from "@/domain/metrics/funnel";
+import { getFunnelAction } from "@/app/(dashboard)/metricas/actions";
+
+vi.mock("@/app/(dashboard)/metricas/actions", () => ({
+  getFunnelAction: vi.fn().mockResolvedValue({
+    success: true,
+    data: {
+      from: "2026-08-25",
+      to: "2026-09-24",
+      globalConversionRate: 0.32,
+      steps: [],
+    },
+  }),
+}));
 
 const mockFunnel: ConversionFunnel = {
   from: "2026-08-25",
@@ -48,6 +61,10 @@ const zeroCountsFunnel: ConversionFunnel = {
 };
 
 describe("MetricsView", () => {
+  beforeEach(() => {
+    vi.mocked(getFunnelAction).mockClear();
+  });
+
   it("renders funnel overview, chart, and step cards", () => {
     render(<MetricsView data={mockFunnel} />);
 
@@ -114,6 +131,7 @@ describe("MetricsView", () => {
     render(
       <MetricsView
         data={mockFunnel}
+        categoryOptions={[{ id: 47, name: "Climatización" }]}
         selectedCategoryId=""
         onCategoryChange={handleCategoryChange}
       />,
@@ -121,8 +139,31 @@ describe("MetricsView", () => {
 
     const select = screen.getByRole("combobox", { name: "Rubro" });
     expect(select).toBeInTheDocument();
-    fireEvent.change(select, { target: { value: "1" } });
-    expect(handleCategoryChange).toHaveBeenCalledWith(1);
+    fireEvent.change(select, { target: { value: "47" } });
+    expect(handleCategoryChange).toHaveBeenCalledWith(47);
+  });
+
+  it("uses the provided catalog id and initial date range in the funnel request", async () => {
+    render(
+      <MetricsView
+        data={mockFunnel}
+        categoryOptions={[{ id: 47, name: "Climatización" }]}
+        initialFromDate="2026-09-02"
+        initialToDate="2026-10-02"
+      />,
+    );
+
+    const category = screen.getByRole("combobox", { name: "Rubro" });
+    expect(screen.getByRole("option", { name: "Climatización" })).toBeInTheDocument();
+    fireEvent.change(category, { target: { value: "47" } });
+
+    await waitFor(() => {
+      expect(getFunnelAction).toHaveBeenCalledWith({
+        from: "2026-09-02",
+        to: "2026-10-02",
+        categoryId: 47,
+      });
+    });
   });
 
   it("renders empty state when steps list is empty", () => {
