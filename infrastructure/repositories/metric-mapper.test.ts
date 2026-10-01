@@ -100,8 +100,144 @@ describe("metric-mapper", () => {
     expect(step.avgDurationMinutes).toBe(120);
   });
 
+  it("maps official OpenAPI AdminFunnelMetrics payload to domain model", () => {
+    const mockOpenApiPopulatedPayload = {
+      period: {
+        from: "2026-09-10T00:00:00Z",
+        to: "2026-09-11T00:00:00Z",
+      },
+      timezone: "America/Argentina/Buenos_Aires",
+      observed_at: "2026-09-30T15:00:00Z",
+      category_id: null,
+      rounding: "half_up",
+      decimal_places: 2,
+      cohorts: {
+        ai: {
+          category_source: "assessment.problem_category_id",
+          stages: [
+            { stage: "professional_assessment", count: 3, conversion_percentage: null },
+            { stage: "request", count: 2, conversion_percentage: 66.67 },
+            { stage: "proposal", count: 2, conversion_percentage: 100.0 },
+            { stage: "confirmed_hiring", count: 2, conversion_percentage: 100.0 },
+            { stage: "reported_completion", count: 2, conversion_percentage: 100.0 },
+            { stage: "full_payment", count: 1, conversion_percentage: 50.0 },
+            { stage: "review", count: 1, conversion_percentage: 100.0 },
+          ],
+          global_completion_conversion_percentage: 66.67,
+          delays: {
+            request_to_first_proposal: { observations: 2, mean_seconds: 33.34 },
+            proposal_to_confirmed_hiring: { observations: 3, mean_seconds: 14.17 },
+            confirmed_hiring_to_reported_completion: { observations: 2, mean_seconds: 172820.0 },
+            reported_completion_to_full_payment: { observations: 1, mean_seconds: 40.0 },
+          },
+        },
+      },
+    };
+
+    const result = mapConversionFunnel(mockOpenApiPopulatedPayload);
+
+    expect(result.from).toBe("2026-09-10T00:00:00Z");
+    expect(result.to).toBe("2026-09-11T00:00:00Z");
+    expect(result.globalConversionRate).toBe(0.6667);
+    expect(result.steps).toHaveLength(6);
+
+    expect(result.steps[0]).toEqual({
+      stepName: "ai_diagnostics",
+      label: "Diagnósticos IA",
+      count: 3,
+      relativeConversion: 1.0,
+      avgDurationMinutes: null,
+    });
+
+    expect(result.steps[1]).toEqual({
+      stepName: "requests_created",
+      label: "Solicitudes publicadas",
+      count: 2,
+      relativeConversion: 0.6667,
+      avgDurationMinutes: null,
+    });
+
+    expect(result.steps[2]).toEqual({
+      stepName: "proposals_sent",
+      label: "Propuestas comerciales",
+      count: 2,
+      relativeConversion: 1.0,
+      avgDurationMinutes: 1, // 33.34s / 60 rounded
+    });
+
+    expect(result.steps[3]).toEqual({
+      stepName: "deposits_paid",
+      label: "Señas pagadas",
+      count: 2,
+      relativeConversion: 1.0,
+      avgDurationMinutes: 0, // 14.17s / 60 rounded
+    });
+
+    expect(result.steps[4]).toEqual({
+      stepName: "orders_completed",
+      label: "Órdenes concluidas",
+      count: 2,
+      relativeConversion: 1.0,
+      avgDurationMinutes: 2880, // 172820.00s / 60 rounded
+    });
+
+    expect(result.steps[5]).toEqual({
+      stepName: "reviews_submitted",
+      label: "Reseñas enviadas",
+      count: 1,
+      relativeConversion: 1.0,
+      avgDurationMinutes: null,
+    });
+  });
+
+  it("maps empty OpenAPI AdminFunnelMetrics payload without errors", () => {
+    const mockOpenApiEmptyPayload = {
+      period: {
+        from: "2026-08-31T15:00:00Z",
+        to: "2026-09-30T15:00:00Z",
+      },
+      timezone: "America/Argentina/Buenos_Aires",
+      observed_at: "2026-09-30T15:00:00Z",
+      category_id: 2147483000,
+      rounding: "half_up",
+      decimal_places: 2,
+      cohorts: {
+        ai: {
+          category_source: "assessment.problem_category_id",
+          stages: [
+            { stage: "professional_assessment", count: 0, conversion_percentage: null },
+            { stage: "request", count: 0, conversion_percentage: null },
+            { stage: "proposal", count: 0, conversion_percentage: null },
+            { stage: "confirmed_hiring", count: 0, conversion_percentage: null },
+            { stage: "reported_completion", count: 0, conversion_percentage: null },
+            { stage: "full_payment", count: 0, conversion_percentage: null },
+            { stage: "review", count: 0, conversion_percentage: null },
+          ],
+          global_completion_conversion_percentage: null,
+          delays: {
+            request_to_first_proposal: { observations: 0, mean_seconds: null },
+            proposal_to_confirmed_hiring: { observations: 0, mean_seconds: null },
+            confirmed_hiring_to_reported_completion: { observations: 0, mean_seconds: null },
+            reported_completion_to_full_payment: { observations: 0, mean_seconds: null },
+          },
+        },
+      },
+    };
+
+    const result = mapConversionFunnel(mockOpenApiEmptyPayload);
+
+    expect(result.from).toBe("2026-08-31T15:00:00Z");
+    expect(result.to).toBe("2026-09-30T15:00:00Z");
+    expect(result.globalConversionRate).toBe(0);
+    expect(result.steps).toHaveLength(6);
+    expect(result.steps.every((s) => s.count === 0)).toBe(true);
+    expect(result.steps.every((s) => s.relativeConversion === 0)).toBe(true);
+    expect(result.steps.every((s) => s.avgDurationMinutes === null)).toBe(true);
+  });
+
   it("throws validation error on invalid payload", () => {
     expect(() => mapConversionFunnel({})).toThrow();
     expect(() => mapConversionFunnel({ global_conversion_rate: 2.0 })).toThrow();
   });
 });
+

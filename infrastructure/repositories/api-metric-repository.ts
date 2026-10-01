@@ -7,24 +7,28 @@ import { parseE2EStubsFromCookies } from "@/infrastructure/api/e2e-stubs-utils";
 import { mapConversionFunnel } from "./metric-mapper";
 
 function matchesFunnelFilters(endpoint: string, filters?: FunnelFilters): boolean {
-  const expected = new URLSearchParams();
-  if (filters?.from) expected.set("from", filters.from);
-  if (filters?.to) expected.set("to", filters.to);
-  if (filters?.categoryId) {
-    expected.set("category_id", String(filters.categoryId));
-  }
-
   const actual = new URL(endpoint, "http://metrics-stub.local").searchParams;
-  const sortedActual = Array.from(actual.entries()).sort(
-    ([leftKey, leftValue], [rightKey, rightValue]) =>
-      leftKey.localeCompare(rightKey) || leftValue.localeCompare(rightValue),
-  );
-  const sortedExpected = Array.from(expected.entries()).sort(
-    ([leftKey, leftValue], [rightKey, rightValue]) =>
-      leftKey.localeCompare(rightKey) || leftValue.localeCompare(rightValue),
-  );
+  const actualFrom = actual.get("from");
+  const actualTo = actual.get("to");
+  const actualCat = actual.get("category_id");
 
-  return JSON.stringify(sortedActual) === JSON.stringify(sortedExpected);
+  const expectedFrom = filters?.from ?? null;
+  const expectedTo = filters?.to ?? null;
+  const expectedCat = filters?.categoryId ? String(filters.categoryId) : null;
+
+  const matchesFrom =
+    (!expectedFrom && !actualFrom) ||
+    (!!expectedFrom &&
+      !!actualFrom &&
+      (actualFrom === expectedFrom || actualFrom.startsWith(expectedFrom)));
+  const matchesTo =
+    (!expectedTo && !actualTo) ||
+    (!!expectedTo &&
+      !!actualTo &&
+      (actualTo === expectedTo || actualTo.startsWith(expectedTo)));
+  const matchesCat = (!expectedCat && !actualCat) || actualCat === expectedCat;
+
+  return matchesFrom && matchesTo && matchesCat;
 }
 
 function isFunnelEndpoint(endpoint: string): boolean {
@@ -70,11 +74,34 @@ async function resolveFunnelFromStub(stub: ApiStub): Promise<ConversionFunnel> {
   return mapConversionFunnel(stub.body);
 }
 
-function buildApiUrl(baseUrl: string, filters?: FunnelFilters): URL {
+export function formatToRfc3339(dateStr: string, isEnd = false): string {
+  if (dateStr.includes("T")) {
+    return dateStr;
+  }
+  if (isEnd) {
+    const now = new Date();
+    const todayPrefix = now.toISOString().slice(0, 10);
+    if (dateStr >= todayPrefix) {
+      return now.toISOString();
+    }
+    return `${dateStr}T23:59:59Z`;
+  }
+  return `${dateStr}T00:00:00Z`;
+}
+
+export function buildApiUrl(baseUrl: string, filters?: FunnelFilters): URL {
   const url = new URL(`${baseUrl.replace(/\/$/, "")}/admin/metrics/funnel`);
-  if (filters?.from) url.searchParams.set("from", filters.from);
-  if (filters?.to) url.searchParams.set("to", filters.to);
-  if (filters?.categoryId) {
+  if (filters?.from && filters?.to) {
+    url.searchParams.set("from", formatToRfc3339(filters.from, false));
+    url.searchParams.set("to", formatToRfc3339(filters.to, true));
+  }
+  if (
+    filters?.categoryId !== undefined &&
+    filters?.categoryId !== null &&
+    Number.isInteger(filters.categoryId) &&
+    filters.categoryId > 0 &&
+    filters.categoryId <= 2147483647
+  ) {
     url.searchParams.set("category_id", String(filters.categoryId));
   }
   return url;
