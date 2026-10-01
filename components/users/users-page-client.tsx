@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Consumer } from "@/domain/users/consumer";
 import type { Provider, VerificationStatus } from "@/domain/users/provider";
 import type { ProviderFilters } from "@/ports/users/user-repository";
@@ -27,25 +27,30 @@ const initialTabState = {
 };
 
 function ConsumersTabContent() {
+  const requestGeneration = useRef(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [state, setState] = useState<TabState<Consumer>>(initialTabState);
 
   const load = useCallback(async (query?: string) => {
+    const generation = ++requestGeneration.current;
     setState((prev) => ({ ...prev, isLoading: true, error: null, isForbidden: false }));
     try {
       const result = await getConsumersAction(query);
+      if (generation !== requestGeneration.current) return;
       if (result.success) {
         setState({ data: result.data, isLoading: false, error: null, isForbidden: false });
       } else {
         setState({ data: [], isLoading: false, error: result.error, isForbidden: result.isForbidden ?? false });
       }
     } catch {
+      if (generation !== requestGeneration.current) return;
       setState({ data: [], isLoading: false, error: "Error al cargar consumidores", isForbidden: false });
     }
   }, []);
 
   useEffect(() => {
-    load(searchQuery);
+    void load(searchQuery);
+    return () => { requestGeneration.current += 1; };
   }, [load, searchQuery]);
 
   return (
@@ -74,6 +79,7 @@ function buildProviderFilters(
 }
 
 function ProvidersTabContent() {
+  const requestGeneration = useRef(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<VerificationStatus | "">("");
@@ -82,10 +88,12 @@ function ProvidersTabContent() {
 
   const load = useCallback(
     async (q?: string, cat?: string, status?: VerificationStatus | "") => {
+      const generation = ++requestGeneration.current;
       setState((prev) => ({ ...prev, isLoading: true, error: null, isForbidden: false }));
       try {
         const filters = buildProviderFilters(q, cat, status);
         const result = await getProvidersAction(filters);
+        if (generation !== requestGeneration.current) return;
         if (result.success) {
           setState({ data: result.data, isLoading: false, error: null, isForbidden: false });
           if (result.data.length > 0) {
@@ -101,6 +109,7 @@ function ProvidersTabContent() {
           setState({ data: [], isLoading: false, error: result.error, isForbidden: result.isForbidden ?? false });
         }
       } catch {
+        if (generation !== requestGeneration.current) return;
         setState({ data: [], isLoading: false, error: "Error al cargar prestadores", isForbidden: false });
       }
     },
@@ -108,7 +117,8 @@ function ProvidersTabContent() {
   );
 
   useEffect(() => {
-    load(searchQuery, selectedCategory, selectedStatus);
+    void load(searchQuery, selectedCategory, selectedStatus);
+    return () => { requestGeneration.current += 1; };
   }, [load, searchQuery, selectedCategory, selectedStatus]);
 
   return (

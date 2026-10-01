@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AuditAction, AuditFilters, AuditLogEntry } from "@/domain/audit/audit-log";
 import { translations } from "@/infrastructure/i18n/translations";
 import { getAuditLogsAction } from "@/app/(dashboard)/auditoria/actions";
@@ -57,6 +57,7 @@ export interface AuditConsolePageProps {
 
 export function AuditConsolePage({ initialFilters }: AuditConsolePageProps) {
   const copy = translations.audit;
+  const requestGeneration = useRef(0);
   const [entries, setEntries] = useState<AuditLogEntry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<AuditLogEntry | null>(null);
   const [filters, setFilters] = useState<AuditFiltersState>({
@@ -68,9 +69,11 @@ export function AuditConsolePage({ initialFilters }: AuditConsolePageProps) {
   const [status, setStatus] = useState<AsyncStatus>({ loading: true, error: null, forbidden: false });
 
   const loadAuditLogs = useCallback(async (activeFilters: AuditFiltersState) => {
+    const generation = ++requestGeneration.current;
     setStatus({ loading: true, error: null, forbidden: false });
     try {
       const res = await getAuditLogsAction(buildApiFilters(activeFilters));
+      if (generation !== requestGeneration.current) return;
       if (res.success) {
         setEntries(res.data);
         setStatus({ loading: false, error: null, forbidden: false });
@@ -78,12 +81,14 @@ export function AuditConsolePage({ initialFilters }: AuditConsolePageProps) {
         setStatus({ loading: false, error: res.error, forbidden: Boolean(res.isForbidden) });
       }
     } catch {
+      if (generation !== requestGeneration.current) return;
       setStatus({ loading: false, error: copy.error, forbidden: false });
     }
   }, [copy.error]);
 
   useEffect(() => {
     void loadAuditLogs(filters);
+    return () => { requestGeneration.current += 1; };
   }, [filters, loadAuditLogs]);
 
   const hasActiveFilters = Boolean(

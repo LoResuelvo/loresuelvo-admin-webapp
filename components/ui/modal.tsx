@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useId, type ReactNode } from "react";
+import { type ReactNode } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { DialogSurface } from "./dialog-surface";
 
 export interface ModalProps {
   isOpen: boolean;
@@ -26,27 +28,6 @@ function CloseIcon() {
   );
 }
 
-function useModalKeyboardAndScroll(isOpen: boolean, onClose: () => void) {
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isOpen, onClose]);
-}
-
 export function Modal({
   isOpen,
   onClose,
@@ -55,34 +36,17 @@ export function Modal({
   className = "",
   closeAriaLabel = "Cerrar modal",
 }: ModalProps) {
-  const titleId = useId();
-
-  useModalKeyboardAndScroll(isOpen, onClose);
-
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
-      role="presentation"
-    >
-      <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
-        onClick={onClose}
-        aria-hidden="true"
-        data-testid="modal-backdrop"
-      />
-
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        className={`relative z-10 w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl border border-[#1A2B48]/10 text-[#1A2B48] focus:outline-none ${className}`.trim()}
+    <Dialog.Root open={isOpen} onOpenChange={(open) => {
+      if (!open) onClose();
+    }}>
+      <DialogSurface
+        className={`fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-xl border border-[#1A2B48]/10 text-[#1A2B48] focus:outline-none max-h-[calc(100dvh-2rem)] overflow-y-auto ${className}`.trim()}
       >
         <div className="flex items-center justify-between pb-4 border-b border-[#1A2B48]/10">
-          <h2 id={titleId} className="text-lg font-semibold tracking-tight text-[#1A2B48]">
+          <Dialog.Title className="text-lg font-semibold tracking-tight text-[#1A2B48]">
             {title}
-          </h2>
+          </Dialog.Title>
           <button
             type="button"
             onClick={onClose}
@@ -94,7 +58,7 @@ export function Modal({
         </div>
 
         <div className="mt-4">{children}</div>
-      </div>
-    </div>
+      </DialogSurface>
+    </Dialog.Root>
   );
 }

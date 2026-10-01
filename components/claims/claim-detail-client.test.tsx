@@ -148,4 +148,19 @@ describe("ClaimDetailClient", () => {
       expect(screen.getByTestId("claim-status-badge")).toHaveTextContent("Resuelto");
     });
   });
+  it("keeps a confirmed dismissed status after reopening the detail", async () => {
+    const resolution = { resolutionType: "dismissed", reason: "No corresponde el reclamo" };
+    vi.mocked(getClaimDetailsAction).mockResolvedValueOnce({ success: true, data: mockClaim });
+    vi.mocked(resolveClaimAction).mockResolvedValueOnce({ success: true, data: resolution });
+    const view = render(<ClaimDetailClient id="clm-101" />);
+    await userEvent.click(await screen.findByRole("button", { name: "Dictaminar resolución" }));
+    await userEvent.type(screen.getByLabelText("Motivo justificado"), resolution.reason);
+    await userEvent.click(screen.getByRole("button", { name: "Confirmar dictamen" }));
+    await waitFor(() => expect(screen.getByTestId("claim-status-badge")).toHaveTextContent("Desestimado"));
+    view.unmount();
+    vi.mocked(getClaimDetailsAction).mockResolvedValueOnce({ success: true, data: { ...mockClaim, status: "dismissed", resolution } });
+    render(<ClaimDetailClient id="clm-101" />);
+    await waitFor(() => expect(screen.getByTestId("claim-status-badge")).toHaveTextContent("Desestimado"));
+  });
+
 });

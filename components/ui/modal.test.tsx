@@ -4,6 +4,37 @@ import { describe, expect, it, vi } from "vitest";
 import { Modal } from "./modal";
 
 describe("Modal", () => {
+  it("focuses, traps keyboard navigation, hides outside content, and restores focus", async () => {
+    const user = userEvent.setup();
+    const trigger = document.createElement("button");
+    document.body.appendChild(trigger);
+    trigger.focus();
+    const view = render(<Modal isOpen onClose={vi.fn()} title="Focus"><button>Last action</button></Modal>);
+    const close = screen.getByRole("button", { name: "Cerrar modal" });
+    expect(close).toHaveFocus();
+    expect(trigger).toHaveAttribute("aria-hidden", "true");
+    await user.tab({ shift: true });
+    expect(screen.getByRole("button", { name: "Last action" })).toHaveFocus();
+    await user.tab();
+    expect(close).toHaveFocus();
+    view.rerender(<Modal isOpen={false} onClose={vi.fn()} title="Focus"><button>Last action</button></Modal>);
+    await vi.waitFor(() => expect(trigger).toHaveFocus());
+    expect(trigger).not.toHaveAttribute("aria-hidden");
+    trigger.remove();
+  });
+
+  it("keeps focus and isolation when a controlled caller refuses dismissal", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    render(<Modal isOpen onClose={onClose} title="Pending"><button>Last action</button></Modal>);
+    await user.keyboard("{Escape}");
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("dialog", { name: "Pending" })).toBeVisible();
+    await user.tab({ shift: true });
+    expect(screen.getByRole("button", { name: "Last action" })).toHaveFocus();
+    expect(document.body).toHaveAttribute("data-scroll-locked", "1");
+  });
+
   it("renders nothing when isOpen is false", () => {
     render(
       <Modal isOpen={false} onClose={vi.fn()} title="Test Modal">
@@ -65,7 +96,7 @@ describe("Modal", () => {
       </Modal>
     );
 
-    fireEvent.keyDown(window, { key: "Escape" });
+    fireEvent.keyDown(document, { key: "Escape" });
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -77,7 +108,7 @@ describe("Modal", () => {
       </Modal>
     );
 
-    expect(document.body.style.overflow).toBe("hidden");
+    expect(document.body).toHaveAttribute("data-scroll-locked", "1");
 
     unmount();
 

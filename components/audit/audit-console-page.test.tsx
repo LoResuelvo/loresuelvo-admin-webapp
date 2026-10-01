@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { AuditConsolePage } from "./audit-console-page";
 import type { AuditLogEntry } from "@/domain/audit/audit-log";
@@ -27,6 +27,48 @@ const mockEntries: AuditLogEntry[] = [
 ];
 
 describe("AuditConsolePage", () => {
+  it.each(["success", "forbidden", "rejection"] as const)("ignores stale %s while the latest search is loading and after it resolves", async (outcome) => {
+    let resolveOld!: (value: Awaited<ReturnType<typeof getAuditLogsAction>>) => void;
+    let rejectOld!: (error: Error) => void;
+    let resolveLatest!: (value: Awaited<ReturnType<typeof getAuditLogsAction>>) => void;
+    const old = new Promise<Awaited<ReturnType<typeof getAuditLogsAction>>>((resolve, reject) => { resolveOld = resolve; rejectOld = reject; });
+    const latest = new Promise<Awaited<ReturnType<typeof getAuditLogsAction>>>((resolve) => { resolveLatest = resolve; });
+    vi.mocked(getAuditLogsAction).mockReturnValueOnce(old).mockReturnValueOnce(latest);
+    render(<AuditConsolePage />);
+    fireEvent.change(screen.getByLabelText("Buscar por operador"), { target: { value: "new" } });
+    await act(async () => {
+      if (outcome === "rejection") rejectOld(new Error("stale failure"));
+      else resolveOld(outcome === "forbidden" ? { success: false, error: "stale forbidden", isForbidden: true } : { success: true, data: [] });
+    });
+    expect(screen.getByLabelText("Cargando bitácora de auditoría...")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    await act(async () => { resolveLatest({ success: true, data: [] }); });
+    expect(screen.queryByLabelText("Cargando bitácora de auditoría...")).not.toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("keeps the latest result when the previous search resolves last", async () => {
+    let resolveOld!: (value: Awaited<ReturnType<typeof getAuditLogsAction>>) => void;
+    let resolveLatest!: (value: Awaited<ReturnType<typeof getAuditLogsAction>>) => void;
+    vi.mocked(getAuditLogsAction)
+      .mockReturnValueOnce(new Promise((resolve) => { resolveOld = resolve; }))
+      .mockReturnValueOnce(new Promise((resolve) => { resolveLatest = resolve; }));
+    render(<AuditConsolePage />);
+    fireEvent.change(screen.getByLabelText("Buscar por operador"), { target: { value: "new" } });
+    await act(async () => { resolveLatest({ success: false, error: "latest error" }); });
+    await act(async () => { resolveOld({ success: true, data: [] }); });
+    expect(screen.getByRole("alert")).toHaveTextContent("latest error");
+  });
+
+  it("ignores rejection from an unmounted request", async () => {
+    let rejectRequest!: (error: Error) => void;
+    vi.mocked(getAuditLogsAction).mockReturnValueOnce(new Promise((_, reject) => { rejectRequest = reject; }));
+    const { unmount } = render(<AuditConsolePage />);
+    unmount();
+    await act(async () => { rejectRequest(new Error("late rejection")); });
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });

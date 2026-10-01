@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import type { ClaimDetails } from "@/domain/claims/claim";
+import { applyClaimResolution, type ClaimDetails } from "@/domain/claims/claim";
 import { getClaimDetailsAction, resolveClaimAction } from "@/app/(dashboard)/reclamos/actions";
 import { translations } from "@/infrastructure/i18n/translations";
 import { ROUTES } from "@/lib/routes";
@@ -124,7 +124,7 @@ function useClaimResolution(
       const result = await resolveClaimAction(id, data);
       if (result.success) {
         setClaim((prev) =>
-          prev ? { ...prev, status: "resolved", resolution: result.data } : prev,
+          prev ? applyClaimResolution(prev, result.data) : prev,
         );
         setSuccessMessage(copy.resolution.successMessage);
         setIsOpen(false);

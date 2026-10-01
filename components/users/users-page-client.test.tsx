@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as actions from "@/app/(dashboard)/usuarios/actions";
@@ -11,6 +11,71 @@ vi.mock("@/app/(dashboard)/usuarios/actions", () => ({
 
 
 describe("UsersPageClient", () => {
+  it.each(["success", "forbidden", "rejection"] as const)("ignores stale %s while the latest search is loading and after it resolves", async (outcome) => {
+    let resolveOld!: (value: Awaited<ReturnType<typeof actions.getConsumersAction>>) => void;
+    let rejectOld!: (error: Error) => void;
+    let resolveLatest!: (value: Awaited<ReturnType<typeof actions.getConsumersAction>>) => void;
+    const old = new Promise<Awaited<ReturnType<typeof actions.getConsumersAction>>>((resolve, reject) => { resolveOld = resolve; rejectOld = reject; });
+    const latest = new Promise<Awaited<ReturnType<typeof actions.getConsumersAction>>>((resolve) => { resolveLatest = resolve; });
+    vi.mocked(actions.getConsumersAction).mockReturnValueOnce(old).mockReturnValueOnce(latest);
+    render(<UsersPageClient />);
+    fireEvent.change(screen.getByLabelText("Buscar consumidores"), { target: { value: "new" } });
+    await act(async () => {
+      if (outcome === "rejection") rejectOld(new Error("stale failure"));
+      else resolveOld(outcome === "forbidden" ? { success: false, error: "stale forbidden", isForbidden: true } : { success: true, data: [] });
+    });
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    await act(async () => { resolveLatest({ success: true, data: [] }); });
+    expect(screen.queryByText("Cargando consumidores...")).not.toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("keeps the latest result when the previous search resolves last", async () => {
+    let resolveOld!: (value: Awaited<ReturnType<typeof actions.getConsumersAction>>) => void;
+    let resolveLatest!: (value: Awaited<ReturnType<typeof actions.getConsumersAction>>) => void;
+    vi.mocked(actions.getConsumersAction)
+      .mockReturnValueOnce(new Promise((resolve) => { resolveOld = resolve; }))
+      .mockReturnValueOnce(new Promise((resolve) => { resolveLatest = resolve; }));
+    render(<UsersPageClient />);
+    fireEvent.change(screen.getByLabelText("Buscar consumidores"), { target: { value: "new" } });
+    await act(async () => { resolveLatest({ success: false, error: "latest error" }); });
+    await act(async () => { resolveOld({ success: true, data: [] }); });
+    expect(screen.getByRole("alert")).toHaveTextContent("latest error");
+  });
+
+  it.each(["success", "forbidden", "rejection"] as const)("keeps latest providers after stale %s and a role switch", async (outcome) => {
+    type Result = Awaited<ReturnType<typeof actions.getProvidersAction>>;
+    let resolveOld!: (value: Result) => void;
+    let rejectOld!: (error: Error) => void;
+    let resolveLatest!: (value: Result) => void;
+    vi.mocked(actions.getConsumersAction).mockResolvedValue({ success: true, data: [] });
+    vi.mocked(actions.getProvidersAction)
+      .mockReturnValueOnce(new Promise((resolve, reject) => { resolveOld = resolve; rejectOld = reject; }))
+      .mockReturnValueOnce(new Promise((resolve) => { resolveLatest = resolve; }));
+    render(<UsersPageClient />);
+    fireEvent.click(screen.getByRole("tab", { name: "Prestadores" }));
+    fireEvent.change(screen.getByLabelText("Buscar prestadores"), { target: { value: "new" } });
+    await act(async () => { resolveLatest({ success: true, data: [{ id: 2, category: { id: 1, name: "Plomería" }, name: "Latest", surname: "Provider", email: "latest@example.com", createdOn: "2026-09-10", identityVerificationStatus: "approved", coverageZones: [] }] }); });
+    await act(async () => {
+      if (outcome === "rejection") rejectOld(new Error("stale failure"));
+      else resolveOld(outcome === "forbidden" ? { success: false, error: "stale forbidden", isForbidden: true } : { success: true, data: [] });
+    });
+    expect(screen.getByText("Latest")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Consumidores" }));
+    await waitFor(() => { expect(screen.queryByText("Latest")).not.toBeInTheDocument(); });
+  });
+
+  it("ignores rejection from an unmounted request", async () => {
+    let rejectRequest!: (error: Error) => void;
+    vi.mocked(actions.getConsumersAction).mockReturnValueOnce(new Promise((_, reject) => { rejectRequest = reject; }));
+    const { unmount } = render(<UsersPageClient />);
+    unmount();
+    await act(async () => { rejectRequest(new Error("late rejection")); });
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });

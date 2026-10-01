@@ -45,3 +45,7 @@ export interface ClaimDetails extends Claim {
   evidencePhotoUrls: readonly string[];
   resolution?: ClaimResolution | null;
 }
+
+export function applyClaimResolution(claim: ClaimDetails, resolution: ClaimResolution): ClaimDetails {
+  return { ...claim, status: resolution.resolutionType === "dismissed" ? "dismissed" : "resolved", resolution };
+}

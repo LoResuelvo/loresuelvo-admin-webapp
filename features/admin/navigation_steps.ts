@@ -3,6 +3,7 @@ import { Given, When, Then } from "@cucumber/cucumber";
 import { ROUTES } from "@/lib/routes";
 import { CustomWorld } from "../support/world";
 import { anAdminProfile, stubAdminAccess } from "../support/admin-access";
+import { translations } from "@/infrastructure/i18n/translations";
 
 Given(
   "que estoy autenticado como administrador con nombre {string}, apellido {string} y correo {string}",
@@ -101,8 +102,23 @@ When("abro el menú de navegación", async function (this: CustomWorld) {
 Then(
   "veo los enlaces de navegación y la opción {string}",
   async function (this: CustomWorld, logoutLabel: string) {
-    await this.page.getByRole("link", { name: "Directorio de Usuarios", exact: true }).waitFor();
-    await this.page.getByRole("link", { name: "Catálogo de Rubros", exact: true }).waitFor();
+    const drawer = this.page.getByRole("dialog");
+    const copy = translations.navigation;
+    const destinations = [
+      [copy.users, ROUTES.users],
+      [copy.categories, ROUTES.categories],
+      [copy.operations, ROUTES.operations],
+      [copy.payments, ROUTES.payments],
+      [copy.metrics, ROUTES.metrics],
+      [copy.claims, ROUTES.claims],
+      [copy.audit, ROUTES.audit],
+      [copy.moderation, ROUTES.moderation],
+    ];
+    for (const [name, href] of destinations) {
+      const link = drawer.getByRole("link", { name, exact: true });
+      await link.waitFor();
+      assert.equal(await link.getAttribute("href"), href);
+    }
     const logoutOption = this.page.getByRole("button", { name: logoutLabel, exact: true }).or(
       this.page.getByRole("link", { name: logoutLabel, exact: true }),
     );
@@ -116,6 +132,21 @@ Then("puedo cerrar el menú colapsable", async function (this: CustomWorld) {
   const menuButton = this.page.getByRole("button", { name: /abrir menú/i });
   await menuButton.waitFor();
   assert.equal(await menuButton.getAttribute("aria-expanded"), "false");
+  await menuButton.click();
+  const drawer = this.page.getByRole("dialog");
+  await drawer.waitFor();
+  await this.page.waitForFunction(() =>
+    document.querySelector('[role="dialog"]')?.contains(document.activeElement),
+  );
+  for (const key of ["Tab", "Shift+Tab"]) {
+    for (let index = 0; index < 12; index += 1) {
+      await this.page.keyboard.press(key);
+      assert.equal(await drawer.evaluate((element) => element.contains(document.activeElement)), true);
+    }
+  }
+  await this.page.keyboard.press("Escape");
+  await drawer.waitFor({ state: "hidden" });
+  assert.equal(await menuButton.getAttribute("aria-expanded"), "false");
+  assert.equal(await menuButton.evaluate((element) => element === document.activeElement), true);
 });
-
 
