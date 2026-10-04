@@ -25,7 +25,7 @@ Infra deploys staging first, then production through its GitHub Environment.
 
 Production Compose, public environment configuration, Ansible playbooks and
 replica deployment are maintained in `infra-devops`. Admin runtime secrets come
-from `/admin-webapp` in Infisical for each environment. See the
+from `/webapp-admin` in Infisical for each environment. See the
 [infrastructure deployment guide](https://github.com/LoResuelvo/infra-devops/blob/main/docs/user-guide.md#despliegue-de-admin-web-app)
 for setup and prerequisites.
 
