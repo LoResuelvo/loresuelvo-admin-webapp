@@ -20,7 +20,7 @@ Leer esta referencia al crear o modificar step definitions.
 
 - La sesión y los stubs se inyectan por escenario mediante cookies `__e2e_session` y `__e2e_api_stubs_*`.
 - Usar los helpers del proyecto que crean esas cookies; no introducir flags `NEXT_PUBLIC_*` para activar mocks en build time.
-- `APP_ENV=production`, configurado en `compose.prod.yml`, debe desactivar cualquier bypass de mocks para usuarios reales.
+- `APP_ENV=production`, configurado por `infra-devops` durante el despliegue, debe desactivar cualquier bypass de mocks para usuarios reales.
 - Mantener el aislamiento por petición y escenario; no usar mocks globales compartidos.
 
 ## Hidratación de controles interactivos

@@ -16,11 +16,18 @@ docker compose -f compose.dev.yml up --build
 
 App at `http://localhost:3000`.
 
-## Production build
+## Release and deployment
 
-```bash
-docker compose -f compose.prod.yml --env-file .env.production up -d --build
-```
+Push a `vX.Y.Z` tag to run tests, publish `ghcr.io/loresuelvo/gestion` and
+pass its immutable digest and release tag to
+[`infra-devops/deploy-admin-webapp.yml`](https://github.com/LoResuelvo/infra-devops/blob/main/.github/workflows/deploy-admin-webapp.yml).
+Infra deploys staging first, then production through its GitHub Environment.
+
+Production Compose, public environment configuration, Ansible playbooks and
+replica deployment are maintained in `infra-devops`. Admin runtime secrets come
+from `/admin-webapp` in Infisical for each environment. See the
+[infrastructure deployment guide](https://github.com/LoResuelvo/infra-devops/blob/main/docs/user-guide.md#despliegue-de-admin-web-app)
+for setup and prerequisites.
 
 ## Administrator login
 
