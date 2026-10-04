@@ -2,11 +2,13 @@ name: Release & Deploy
 
 on:
   push:
-    tags: [ "v*.*.*" ]
+    tags: ["v*.*.*"]
 
 permissions:
   contents: read
   packages: write
+  id-token: write
+  deployments: write
 
 jobs:
   run-test:
@@ -16,65 +18,9 @@ jobs:
     needs: run-test
     uses: ./.github/workflows/packaging.yml
 
-  deploy-staging:
+  deploy:
     needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy via SSH a Staging
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DROPLET_STAGING_IP }}
-          username: ${{ secrets.DROPLET_USER }}
-          key: ${{ secrets.DROPLET_STAGING_SSH_KEY }}
-          script: |
-            set -e
-            cd ~/loresuelvo-admin-webapp
-            git fetch --tags --force
-            git checkout ${{ github.ref_name }}
-
-            printf '%s\n' \
-              'NODE_ENV=production' \
-              'APP_ENV=staging' \
-              'APP_URL=https://gestion-test.loresuelvo.com.ar' \
-              'API_URL=https://api-test.loresuelvo.com.ar' > .env
-
-            export IMAGE_TAG=${{ github.ref_name }}
-            export GITHUB_REPOSITORY_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
-
-            docker compose -f compose.prod.yml pull
-            docker compose -f compose.prod.yml up -d
-            docker image prune -f
-
-  deploy-prod:
-    needs: deploy-staging
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - name: Deploy via SSH a Producción
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DROPLET_PROD_IP }}
-          username: ${{ secrets.DROPLET_USER }}
-          key: ${{ secrets.DROPLET_PROD_SSH_KEY }}
-          script: |
-            set -e
-            cd ~/loresuelvo-admin-webapp
-            git fetch --tags --force
-            git checkout ${{ github.ref_name }}
-
-            printf '%s\n' \
-              'NODE_ENV=production' \
-              'APP_ENV=production' \
-              'APP_URL=https://gestion.loresuelvo.com.ar' \
-              'API_URL=https://api.loresuelvo.com.ar' > .env
-
-            export IMAGE_TAG=${{ github.ref_name }}
-            export GITHUB_REPOSITORY_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
-
-            docker compose -f compose.prod.yml pull
-            docker compose -f compose.prod.yml up -d
-            docker image prune -f
+    uses: LoResuelvo/infra-devops/.github/workflows/deploy-admin-webapp.yml@main
+    with:
+      image-ref: ${{ needs.build-and-push.outputs.image-ref }}
+      release-tag: ${{ github.ref_name }}
