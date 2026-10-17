@@ -128,7 +128,7 @@ function MetricsFunnelContent({
           <FunnelOverviewCard
             globalConversionRate={data.globalConversionRate}
             initialCount={data.steps[0]?.count}
-            finalCount={data.steps[data.steps.length - 1]?.count}
+            finalCount={data.steps.find(step => step.stepName === "orders_completed")?.count}
           />
           <FunnelChart steps={data.steps} />
           <MetricsStepsGrid steps={data.steps} maxCount={maxCount} />

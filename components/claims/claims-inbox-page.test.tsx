@@ -9,19 +9,20 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
-const mockClaims = [
-  {
-    id: "clm-101",
+const mockClaims = {
+  items: [{
+    id: "101",
     createdAt: "2026-09-24T10:00:00Z",
-    operationId: 42,
+    operationId: "sp-42",
     claimantType: "consumer" as const,
-    claimantName: "Ana Gómez",
-    respondentName: "Carlos López",
+    claimantName: "ana@example.com",
     categoryName: "Plomería",
     status: "in_review" as const,
-    urgency: "high" as const,
-  },
-];
+  }],
+  page: 1,
+  limit: 20,
+  total: 1,
+};
 
 vi.mock("@/app/(dashboard)/reclamos/actions", () => ({
   getClaimsAction: vi.fn(),
@@ -46,7 +47,7 @@ describe("ClaimsInboxPage", () => {
     expect(screen.getByLabelText("Cargando reclamos")).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText("Ana Gómez")).toBeInTheDocument();
+      expect(screen.getByText("ana@example.com")).toBeInTheDocument();
     });
 
     expect(screen.queryByLabelText("Cargando reclamos")).not.toBeInTheDocument();
@@ -74,7 +75,7 @@ describe("ClaimsInboxPage", () => {
     await user.click(retryButton);
 
     await waitFor(() => {
-      expect(screen.getByText("Ana Gómez")).toBeInTheDocument();
+      expect(screen.getByText("ana@example.com")).toBeInTheDocument();
     });
   });
 
@@ -104,14 +105,37 @@ describe("ClaimsInboxPage", () => {
     render(<ClaimsInboxPage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Ana Gómez")).toBeInTheDocument();
+      expect(screen.getByText("ana@example.com")).toBeInTheDocument();
     });
 
     const statusSelect = screen.getByRole("combobox", { name: "Filtrar por estado" });
     await user.selectOptions(statusSelect, "open");
 
     await waitFor(() => {
-      expect(getClaimsAction).toHaveBeenCalledWith({ status: "open", q: "" });
+      expect(getClaimsAction).toHaveBeenCalledWith({ status: "open", q: "", page: 1 });
+    });
+  });
+
+  it("requests the next API page and reports pagination metadata", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getClaimsAction)
+      .mockResolvedValueOnce({
+        success: true,
+        data: { ...mockClaims, total: 25 },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        data: { ...mockClaims, page: 2, total: 25, items: [{ ...mockClaims.items[0], id: "102" }] },
+      });
+
+    render(<ClaimsInboxPage />);
+
+    expect(await screen.findByText("Página 1 / 2")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Página siguiente" }));
+
+    await waitFor(() => {
+      expect(getClaimsAction).toHaveBeenLastCalledWith({ status: "", q: "", page: 2 });
+      expect(screen.getByText("Página 2 / 2")).toBeInTheDocument();
     });
   });
 });

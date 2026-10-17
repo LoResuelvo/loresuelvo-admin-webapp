@@ -8,16 +8,14 @@ vi.mock("@/infrastructure/auth/auth-session", () => ({
 }));
 
 const mockClaimDetails = {
-  id: "clm-101",
+  id: "101",
   createdAt: "2026-09-24T10:00:00Z",
-  operationId: 42,
+  operationId: "sp-42",
   claimantType: "consumer" as const,
-  claimantName: "Ana Gómez",
-  respondentName: "Carlos López",
+  claimantName: "ana@example.com",
   categoryName: "Plomería",
   status: "in_review" as const,
-  urgency: "high" as const,
-  claimReason: "Incumplimiento de horario y cobro indebido",
+  claimReason: "non_compliance",
   description: "El prestador se presentó tarde.",
   evidencePhotoUrls: ["https://example.com/p1.jpg"],
   resolution: null,
@@ -41,7 +39,7 @@ describe("getClaimDetailsAction", () => {
   it("returns claim details on successful repository call", async () => {
     vi.mocked(apiClaimRepository.getClaimById).mockResolvedValue(mockClaimDetails);
 
-    const result = await getClaimDetailsAction("clm-101");
+    const result = await getClaimDetailsAction("101");
 
     expect(result).toEqual({
       success: true,
@@ -49,7 +47,7 @@ describe("getClaimDetailsAction", () => {
     });
     expect(apiClaimRepository.getClaimById).toHaveBeenCalledWith(
       "mock-jwt-token",
-      "clm-101",
+      "101",
     );
   });
 
@@ -58,7 +56,7 @@ describe("getClaimDetailsAction", () => {
       new ClaimError("forbidden", "Forbidden"),
     );
 
-    const result = await getClaimDetailsAction("clm-101");
+    const result = await getClaimDetailsAction("101");
 
     expect(result).toEqual({
       success: false,
@@ -72,7 +70,7 @@ describe("getClaimDetailsAction", () => {
       new ClaimError("notFound", "Not found"),
     );
 
-    const result = await getClaimDetailsAction("clm-999");
+    const result = await getClaimDetailsAction("999");
 
     expect(result).toEqual({
       success: false,
@@ -86,11 +84,11 @@ describe("getClaimDetailsAction", () => {
       new Error("Unexpected failure"),
     );
 
-    const result = await getClaimDetailsAction("clm-101");
+    const result = await getClaimDetailsAction("101");
 
     expect(result).toEqual({
       success: false,
-      error: "Unexpected failure",
+      error: "Ocurrió un error al cargar el expediente del reclamo.",
     });
   });
 });

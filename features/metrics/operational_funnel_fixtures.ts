@@ -1,47 +1,35 @@
-export const mockFunnelData = {
-  time_range: { from: "2026-08-25", to: "2026-09-24" },
-  global_conversion_rate: 0.32,
-  steps: [
-    { step_name: "ai_diagnostics", count: 250, relative_conversion: 1.0, avg_duration_minutes: null },
-    { step_name: "requests_created", count: 180, relative_conversion: 0.72, avg_duration_minutes: 15 },
-    { step_name: "proposals_sent", count: 140, relative_conversion: 0.77, avg_duration_minutes: 240 },
-    { step_name: "deposits_paid", count: 105, relative_conversion: 0.75, avg_duration_minutes: 360 },
-    { step_name: "orders_completed", count: 88, relative_conversion: 0.83, avg_duration_minutes: 2880 },
-    { step_name: "reviews_submitted", count: 80, relative_conversion: 0.90, avg_duration_minutes: 1440 },
-  ],
-};
+import type { ApiAdminFunnelMetricsResponse } from "../../infrastructure/api/metrics-types";
 
-export const mockFunnel30Days = {
-  time_range: { from: "2026-08-25", to: "2026-09-24" },
-  global_conversion_rate: 0.45,
-  steps: [
-    { step_name: "ai_diagnostics", count: 320, relative_conversion: 1.0, avg_duration_minutes: null },
-    { step_name: "requests_created", count: 240, relative_conversion: 0.75, avg_duration_minutes: 12 },
-    { step_name: "proposals_sent", count: 190, relative_conversion: 0.79, avg_duration_minutes: 200 },
-    { step_name: "deposits_paid", count: 160, relative_conversion: 0.84, avg_duration_minutes: 300 },
-    { step_name: "orders_completed", count: 150, relative_conversion: 0.94, avg_duration_minutes: 2400 },
-    { step_name: "reviews_submitted", count: 144, relative_conversion: 0.96, avg_duration_minutes: 1200 },
-  ],
-};
+const stageNames = ["professional_assessment", "request", "proposal", "confirmed_hiring", "reported_completion", "full_payment", "review"];
 
-export const mockFunnelPlomeria = {
-  time_range: { from: "2026-08-25", to: "2026-09-24" },
-  global_conversion_rate: 0.28,
-  steps: [
-    { step_name: "ai_diagnostics", count: 95, relative_conversion: 1.0, avg_duration_minutes: null },
-    { step_name: "requests_created", count: 70, relative_conversion: 0.74, avg_duration_minutes: 10 },
-    { step_name: "proposals_sent", count: 52, relative_conversion: 0.74, avg_duration_minutes: 180 },
-    { step_name: "deposits_paid", count: 38, relative_conversion: 0.73, avg_duration_minutes: 250 },
-    { step_name: "orders_completed", count: 30, relative_conversion: 0.79, avg_duration_minutes: 2100 },
-    { step_name: "reviews_submitted", count: 27, relative_conversion: 0.90, avg_duration_minutes: 900 },
-  ],
-};
+function funnelFixture(counts: number[], percentages: number[], globalPercentage: number, delayMinutes: number[]): ApiAdminFunnelMetricsResponse {
+  const delay = (index: number) => ({ observations: counts[index + 2], mean_seconds: delayMinutes[index] * 60 });
+  const cohort = {
+    category_source: "assessment.problem_category_id",
+    stages: stageNames.map((stage, index) => ({ stage, count: counts[index], conversion_percentage: index ? percentages[index] : null })),
+    global_completion_conversion_percentage: globalPercentage,
+    delays: {
+      request_to_first_proposal: delay(0),
+      proposal_to_confirmed_hiring: delay(1),
+      confirmed_hiring_to_reported_completion: delay(2),
+      reported_completion_to_full_payment: delay(3),
+    },
+  };
+  return {
+    period: { from: "2026-08-25T03:00:00Z", to: "2026-09-25T03:00:00Z" },
+    timezone: "America/Argentina/Buenos_Aires",
+    observed_at: "2026-10-01T12:00:00Z",
+    category_id: null,
+    rounding: "half_up",
+    decimal_places: 2,
+    cohorts: { ai: cohort, manual: { ...cohort, category_source: "provider.current_category_id" } },
+  };
+}
 
-export const mockEmptyFunnel = {
-  time_range: { from: "2020-01-01", to: "2020-01-31" },
-  global_conversion_rate: 0,
-  steps: [],
-};
+export const mockFunnelData = funnelFixture([250, 180, 140, 105, 88, 84, 80], [100, 72, 77, 75, 83, 95.45, 95.24], 35.2, [240, 360, 2880, 60]);
+export const mockFunnel30Days = funnelFixture([320, 240, 190, 160, 150, 147, 144], [100, 75, 79, 84, 94, 98, 97.96], 46.88, [200, 300, 2400, 60]);
+export const mockFunnelPlomeria = funnelFixture([95, 70, 52, 38, 30, 28, 27], [100, 74, 74, 73, 79, 93.33, 96.43], 31.58, [180, 250, 2100, 60]);
+export const mockEmptyFunnel = funnelFixture([0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], 0, [0, 0, 0, 0]);
 
 export const expectedSteps = [
   { testId: "funnel-step-ai_diagnostics", label: "Diagnósticos IA", count: "250" },
@@ -49,11 +37,12 @@ export const expectedSteps = [
   { testId: "funnel-step-proposals_sent", label: "Propuestas comerciales", count: "140" },
   { testId: "funnel-step-deposits_paid", label: "Señas pagadas", count: "105" },
   { testId: "funnel-step-orders_completed", label: "Órdenes concluidas", count: "88" },
+  { testId: "funnel-step-full_payments", label: "Pagos completos", count: "84" },
   { testId: "funnel-step-reviews_submitted", label: "Reseñas enviadas", count: "80" },
 ];
 
 export const mockCategories = [
-  { id: 47, name: "Plomería" },
-  { id: 83, name: "Climatización" },
-  { id: 12, name: "Gas" },
+  { id: 47, name: "Plomería", enabled: true, version: 1 },
+  { id: 83, name: "Climatización", enabled: true, version: 1 },
+  { id: 12, name: "Gas", enabled: true, version: 1 },
 ];

@@ -1,24 +1,23 @@
 import { describe, expect, it, vi } from "vitest";
-import type { Claim } from "@/domain/claims/claim";
+import type { Claim, ClaimPage } from "@/domain/claims/claim";
 import type { ClaimRepository } from "@/ports/claims/claim-repository";
 import { getClaims } from "./get-claims";
 
 describe("getClaims use case", () => {
   const mockClaim: Claim = {
-    id: "clm-101",
+    id: "101",
     createdAt: "2026-09-24T10:00:00Z",
-    operationId: 42,
+    operationId: "sp-42",
     claimantType: "consumer",
-    claimantName: "Ana Gómez",
-    respondentName: "Carlos López",
+    claimantName: "ana@example.com",
     categoryName: "Plomería",
     status: "in_review",
-    urgency: "high",
   };
+  const mockPage: ClaimPage = { items: [mockClaim], page: 2, limit: 20, total: 41 };
 
   it("delegates to ClaimRepository with token and filters", async () => {
     const repository: ClaimRepository = {
-      getClaims: vi.fn().mockResolvedValue([mockClaim]),
+      getClaims: vi.fn().mockResolvedValue(mockPage),
       getClaimById: vi.fn(),
       resolveClaim: vi.fn(),
     };
@@ -26,7 +25,7 @@ describe("getClaims use case", () => {
     const result = await getClaims(repository, "test-token", { status: "in_review" });
 
     expect(repository.getClaims).toHaveBeenCalledWith("test-token", { status: "in_review" });
-    expect(result).toEqual([mockClaim]);
+    expect(result).toEqual(mockPage);
   });
 
   it("propagates repository errors", async () => {

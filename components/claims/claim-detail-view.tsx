@@ -49,7 +49,7 @@ function ClaimHeaderActions({
 }) {
   const copy = translations.claims;
   const statusLabel = copy.status[claim.status] ?? claim.status;
-  const urgencyLabel = copy.urgency[claim.urgency] ?? claim.urgency;
+  const urgencyLabel = claim.urgency ? copy.urgency[claim.urgency] : copy.notAvailable;
   const canResolve = (claim.status === "open" || claim.status === "in_review") && Boolean(onOpenResolutionModal);
 
   return (
@@ -74,7 +74,7 @@ function ClaimHeaderActions({
       </span>
       <span
         className={`inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-semibold ${
-          urgencyStyles[claim.urgency] ?? "bg-slate-50 text-slate-600 border-slate-200"
+          urgencyStyles[claim.urgency ?? "low"] ?? "bg-slate-50 text-slate-600 border-slate-200"
         }`}
       >
         {copy.table.urgency}: {urgencyLabel}
@@ -145,11 +145,11 @@ function ClaimPartiesCard({ claim }: { claim: ClaimDetailViewModel }) {
         </div>
         <div className="rounded-xl border border-[#1A2B48]/10 bg-[#F4F1EE]/20 p-3.5">
           <span className="text-xs font-medium text-[#536176]">{copy.detail.respondent}</span>
-          <p className="mt-1 text-sm font-semibold text-[#1A2B48]">{claim.respondentName}</p>
+          <p className="mt-1 text-sm font-semibold text-[#1A2B48]">{claim.respondentName ?? copy.notAvailable}</p>
         </div>
         <div className="rounded-xl border border-[#1A2B48]/10 bg-[#F4F1EE]/20 p-3.5">
           <span className="text-xs font-medium text-[#536176]">{copy.detail.category}</span>
-          <p className="mt-1 text-sm font-semibold text-[#1A2B48]">{claim.categoryName}</p>
+          <p className="mt-1 text-sm font-semibold text-[#1A2B48]">{claim.categoryName ?? copy.notAvailable}</p>
         </div>
         <div className="rounded-xl border border-[#1A2B48]/10 bg-[#F4F1EE]/20 p-3.5">
           <span className="text-xs font-medium text-[#536176]">{copy.detail.createdAt}</span>
@@ -171,7 +171,7 @@ function ClaimConflictSection({ claim }: { claim: ClaimDetailViewModel }) {
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <span className="inline-flex size-2 rounded-full bg-rose-500" />
-          <h2 className="text-base font-semibold text-[#1A2B48]">{claim.claimReason}</h2>
+          <h2 className="text-base font-semibold text-[#1A2B48]">{(translations.claims.reasons as Record<string, string>)[claim.claimReason] ?? claim.claimReason}</h2>
         </div>
         <div
           data-testid="claim-description"

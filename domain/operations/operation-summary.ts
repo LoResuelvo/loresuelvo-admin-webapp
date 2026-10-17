@@ -1,8 +1,8 @@
 export type BottleneckType =
-  | "pending_proposal_24h"
-  | "pending_booking_deposit"
+  | "request_pending_over_24h"
+  | "booking_deadline_passed"
   | "scheduled_today"
-  | "delayed_service"
+  | "delayed"
   | "pending_final_payment"
   | "stalled"
   | "none";

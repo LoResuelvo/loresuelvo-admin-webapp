@@ -8,6 +8,10 @@ Admin panel built with Next.js.
 cp .env.example .env.local
 ```
 
+For a local API exposed on host port 8080, run Next on the host with
+`npm install` and `npm run dev`; the example `API_URL=http://localhost:8080`
+then reaches that API. `API_URL` is used by the Next server, not by the browser.
+
 ## Run with Docker (dev, hot reload)
 
 ```bash
@@ -16,12 +20,21 @@ docker compose -f compose.dev.yml up --build
 
 App at `http://localhost:3000`.
 
+Before starting Docker, set `API_URL` in `.env.local` to an API address reachable
+from the admin container. Inside that container, `localhost:8080` refers to the
+admin container itself. The API lives in a separate Compose project, so its
+service name is reachable only if both projects share a network. Use a reachable
+host address or configure a shared network for local development; keep the host
+example when running Next directly on the host.
+
 ## Release and deployment
 
 Push a `vX.Y.Z` tag to run tests, publish `ghcr.io/loresuelvo/gestion` and
 pass its immutable digest and release tag to
 [`infra-devops/deploy-admin-webapp.yml`](https://github.com/LoResuelvo/infra-devops/blob/main/.github/workflows/deploy-admin-webapp.yml).
 Infra deploys staging first, then production through its GitHub Environment.
+Set `APP_ENV=production` for every deployment used by real operators, including
+staging: the admin disables its E2E cookie fixtures only with that value.
 
 Production Compose, public environment configuration, Ansible playbooks and
 replica deployment are maintained in `infra-devops`. Admin runtime secrets come

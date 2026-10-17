@@ -3,7 +3,7 @@ import { translations } from "@/infrastructure/i18n/translations";
 
 export interface AuditFiltersState {
   action?: AuditAction | "";
-  operator?: string;
+  operatorId?: string;
   from?: string;
   to?: string;
 }
@@ -14,16 +14,7 @@ export interface AuditFiltersBarProps {
   className?: string;
 }
 
-const ACTION_OPTIONS: Array<{ value: AuditAction; labelKey: keyof typeof translations.audit.actions }> = [
-  { value: "chat_access", labelKey: "chat_access" },
-  { value: "payment_reconcile", labelKey: "payment_reconcile" },
-  { value: "category_create", labelKey: "category_create" },
-  { value: "category_update", labelKey: "category_update" },
-  { value: "category_deactivate", labelKey: "category_deactivate" },
-  { value: "provider_status_change", labelKey: "provider_status_change" },
-  { value: "claim_resolution", labelKey: "claim_resolution" },
-  { value: "review_moderation", labelKey: "review_moderation" },
-];
+const ACTION_OPTIONS: AuditAction[] = ["create", "access", "execute"];
 
 function SearchIcon() {
   return (
@@ -65,9 +56,9 @@ function ActionFilterSelect({
         className="h-10 rounded-xl border border-[#1A2B48]/10 bg-white px-3.5 text-sm text-[#1A2B48] focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
       >
         <option value="">{copy.filters.actionAll}</option>
-        {ACTION_OPTIONS.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {copy.actions[opt.labelKey]}
+        {ACTION_OPTIONS.map((action) => (
+          <option key={action} value={action}>
+            {copy.actions[action]}
           </option>
         ))}
       </select>
@@ -93,7 +84,10 @@ function OperatorSearchInput({
       </div>
       <input
         id="audit-operator-search"
-        type="search"
+        type="number"
+        min="1"
+        step="1"
+        inputMode="numeric"
         aria-label={copy.filters.operatorLabel}
         placeholder={copy.filters.operatorPlaceholder}
         value={value}
@@ -156,9 +150,9 @@ export function AuditFiltersBar({
 }: AuditFiltersBarProps) {
   const copy = translations.audit;
   const update = (patch: Partial<AuditFiltersState>) => onChange({ ...filters, ...patch });
-  const handleClear = () => onChange({ action: "", operator: "", from: "", to: "" });
+  const handleClear = () => onChange({ action: "", operatorId: "", from: "", to: "" });
   const hasActiveFilters = Boolean(
-    filters.action || filters.operator || filters.from || filters.to,
+    filters.action || filters.operatorId || filters.from || filters.to,
   );
 
   return (
@@ -173,8 +167,8 @@ export function AuditFiltersBar({
           onChange={(action) => update({ action })}
         />
         <OperatorSearchInput
-          value={filters.operator ?? ""}
-          onChange={(operator) => update({ operator })}
+          value={filters.operatorId ?? ""}
+          onChange={(operatorId) => update({ operatorId })}
         />
         <DateRangeFilterInputs
           from={filters.from ?? ""}

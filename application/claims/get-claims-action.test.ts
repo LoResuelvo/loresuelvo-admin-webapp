@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { ClaimError } from "@/domain/claims/claim-error";
+import type { ClaimPage } from "@/domain/claims/claim";
 
 vi.mock("@/infrastructure/auth/auth-session", () => ({
   authSession: {
@@ -7,19 +8,20 @@ vi.mock("@/infrastructure/auth/auth-session", () => ({
   },
 }));
 
-const mockClaimsList = [
-  {
-    id: "clm-101",
+const mockClaimsList: ClaimPage = {
+  items: [{
+    id: "101",
     createdAt: "2026-09-24T10:00:00Z",
-    operationId: 42,
-    claimantType: "consumer" as const,
-    claimantName: "Ana Gómez",
-    respondentName: "Carlos López",
+    operationId: "sp-42",
+    claimantType: "consumer",
+    claimantName: "ana@example.com",
     categoryName: "Plomería",
-    status: "in_review" as const,
-    urgency: "high" as const,
-  },
-];
+    status: "in_review",
+  }],
+  page: 1,
+  limit: 20,
+  total: 1,
+};
 
 vi.mock("@/infrastructure/repositories/api-claim-repository", () => ({
   apiClaimRepository: {
@@ -39,14 +41,15 @@ describe("getClaimsAction", () => {
   it("returns claims on successful repository call", async () => {
     vi.mocked(apiClaimRepository.getClaims).mockResolvedValue(mockClaimsList);
 
-    const result = await getClaimsAction({ status: "in_review" });
+    const filters = { status: "in_review" as const, q: "ana", page: 1, limit: 20 };
+    const result = await getClaimsAction(filters);
 
     expect(result).toEqual({
       success: true,
       data: mockClaimsList,
     });
     expect(apiClaimRepository.getClaims).toHaveBeenCalledWith("mock-jwt-token", {
-      status: "in_review",
+      ...filters,
     });
   });
 

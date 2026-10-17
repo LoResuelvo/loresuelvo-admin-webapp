@@ -2,7 +2,7 @@ import { translations } from "@/infrastructure/i18n/translations";
 
 export interface OperationalConditionsPanelProps {
   identityVerification: { status: string; verifiedAt?: string };
-  paymentConnection: { isConnected: boolean; accountId?: string; canReceivePayments: boolean };
+  paymentConnection: { isConnected: boolean; accountId?: string; canReceivePayments: boolean | null };
   coverageZones: Array<{ id: number; name: string; isActive: boolean }>;
   calendarConnection: { status: "connected" | "disconnected" | string };
 }
@@ -95,10 +95,10 @@ function PaymentConditionCard({
 
         <p
           className={`mt-3 text-sm font-semibold ${
-            canReceivePayments ? "text-[#1A2B48]" : "text-red-700"
+            canReceivePayments !== false ? "text-[#1A2B48]" : "text-red-700"
           }`}
         >
-          {canReceivePayments ? copy.canReceivePayments : copy.cannotReceivePayments}
+          {canReceivePayments === null ? copy.capacityUnknown : canReceivePayments ? copy.canReceivePayments : copy.cannotReceivePayments}
         </p>
       </div>
 
@@ -194,16 +194,16 @@ function CalendarConditionCard({
                 : "bg-gray-100 text-gray-700 border border-gray-200"
             }`}
           >
-            {isConnected ? copy.connected : copy.disconnected}
+            {isConnected ? copy.connected : status === "action_required" ? copy.actionRequired : copy.disconnected}
           </span>
         </div>
         <p className="mt-3 text-sm font-semibold text-[#1A2B48]">
-          {isConnected ? "Sincronización activa" : "Sin sincronizar"}
+          {isConnected ? copy.linked : copy.unlinked}
         </p>
       </div>
 
       <span className="mt-4 text-xs text-[#536176]">
-        {isConnected ? "Google Calendar" : "No vinculado"}
+        {status === "action_required" ? copy.actionRequired : isConnected ? copy.connected : copy.disconnected}
       </span>
     </div>
   );

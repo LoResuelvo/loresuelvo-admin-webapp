@@ -8,7 +8,6 @@ describe("resolveClaim use case", () => {
     resolutionType: "favor_consumer",
     reason: "Incumplimiento de visita pactada sin aviso previo",
     compensationAmountCents: null,
-    resolvedBy: "Operador LoResuelvo",
     resolvedAt: "2026-09-28T23:00:00Z",
   };
 
@@ -25,9 +24,9 @@ describe("resolveClaim use case", () => {
       resolveClaim: vi.fn().mockResolvedValue(mockResolution),
     };
 
-    const result = await resolveClaim(repository, "test-token", "clm-101", mockInput);
+    const result = await resolveClaim(repository, "test-token", "101", mockInput);
 
-    expect(repository.resolveClaim).toHaveBeenCalledWith("test-token", "clm-101", mockInput);
+    expect(repository.resolveClaim).toHaveBeenCalledWith("test-token", "101", mockInput);
     expect(result).toEqual(mockResolution);
   });
 
@@ -38,7 +37,7 @@ describe("resolveClaim use case", () => {
       resolveClaim: vi.fn().mockRejectedValue(new Error("Resolution failed")),
     };
 
-    await expect(resolveClaim(repository, "token", "clm-101", mockInput)).rejects.toThrow(
+    await expect(resolveClaim(repository, "token", "101", mockInput)).rejects.toThrow(
       "Resolution failed",
     );
   });

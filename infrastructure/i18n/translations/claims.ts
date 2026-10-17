@@ -1,4 +1,10 @@
 export const claimsTranslations = {
+  reasons: { non_compliance: "Incumplimiento del servicio", improper_charge: "Cobro indebido", damage: "Daños", poor_quality: "Calidad deficiente" },
+  notAvailable: "No informado",
+  previousPage: "Página anterior",
+  nextPage: "Página siguiente",
+  page: "Página",
+  paginationLabel: "Páginas de reclamos",
   title: "Expediente de Reclamos",
   subtitle: "Gestión de controversias operativas, evidencias y dictámenes de mediación",
   table: {
@@ -73,13 +79,14 @@ export const claimsTranslations = {
     },
     reasonLabel: "Motivo justificado",
     reasonPlaceholder: "Describí detalladamente la fundamentación del dictamen...",
-    compensationLabel: "Monto de compensación (centavos, opcional)",
+    compensationLabel: "Compensación sugerida (ARS, opcional)",
     submitButton: "Confirmar dictamen",
     submittingButton: "Registrando...",
     cancelButton: "Cancelar",
     closeAriaLabel: "Cerrar modal de resolución",
     successMessage: "El dictamen de resolución ha sido registrado exitosamente.",
     errors: {
+      compensationInvalid: "La compensación sugerida debe ser un importe positivo válido",
       reasonRequired: "El motivo de resolución es obligatorio",
     },
   },

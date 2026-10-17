@@ -23,7 +23,7 @@ When("accedo a la sección de pagos", async function (this: CustomWorld) {
 });
 
 Then(
-  "visualizo el listado de transacciones con el propósito, cliente, prestador, total del servicio, neto del prestador, comisión de plataforma y estado",
+  "visualizo el propósito, IDs de cliente y prestador, total del pago, neto del prestador, comisión de plataforma y estado de intención",
   async function (this: CustomWorld) {
     const table = this.page.getByRole("table");
     await table.waitFor();
@@ -33,23 +33,23 @@ Then(
 
     const row0 = rows.nth(0);
     const text0 = await row0.innerText();
-    assert.ok(text0.includes("Seña") || text0.includes("deposit"));
-    assert.ok(text0.includes("María Gómez"));
-    assert.ok(text0.includes("Carlos Plomero"));
+    assert.ok(text0.includes("Seña"));
+    assert.ok(text0.includes("#1"));
+    assert.ok(text0.includes("#2"));
     assert.ok(text0.includes("20.000") || text0.includes("20000"));
     assert.ok(text0.includes("17.000") || text0.includes("17000"));
     assert.ok(text0.includes("3.000") || text0.includes("3000"));
-    assert.ok(text0.includes("Aprobado"));
+    assert.ok(text0.includes("Pagado"));
 
     const row1 = rows.nth(1);
     const text1 = await row1.innerText();
-    assert.ok(text1.includes("Saldo") || text1.includes("balance"));
-    assert.ok(text1.includes("Juan Pérez"));
-    assert.ok(text1.includes("Ana Electricista"));
+    assert.ok(text1.includes("Saldo del servicio"));
+    assert.ok(text1.includes("#3"));
+    assert.ok(text1.includes("#4"));
     assert.ok(text1.includes("50.000") || text1.includes("50000"));
     assert.ok(text1.includes("42.500") || text1.includes("42500"));
     assert.ok(text1.includes("7.500") || text1.includes("7500"));
-    assert.ok(text1.includes("Aprobado"));
+    assert.ok(text1.includes("Pagado"));
   },
 );
 
@@ -76,10 +76,9 @@ Then(
 
     const row = rows.nth(0);
     const rowText = await row.innerText();
-    assert.ok(rowText.toLowerCase().includes("pendiente"));
+    assert.ok(rowText.toLowerCase().includes("en proceso"));
     assert.ok(
-      rowText.toLowerCase().includes("no computado como cobro acreditado") ||
-      rowText.toLowerCase().includes("sin computar"),
+      rowText.toLowerCase().includes("sin cobro acreditado"),
     );
   },
 );
@@ -107,29 +106,29 @@ Given(
 );
 
 When(
-  "realizo una búsqueda por la referencia {string}",
-  async function (this: CustomWorld, reference: string) {
+  "realizo una búsqueda por el ID de intención {string}",
+  async function (this: CustomWorld, paymentId: string) {
     const searchInput = this.page
-      .getByRole("searchbox", { name: /buscar por referencia o participante/i })
-      .or(this.page.getByPlaceholder(/buscar por referencia o participante/i))
+      .getByRole("searchbox", { name: /buscar pagos/i })
       .or(this.page.locator("#payments-search"));
     await searchInput.waitFor({ state: "visible" });
-    await searchInput.fill(reference);
+    await searchInput.fill(paymentId);
+    await this.page.getByRole("button", { name: "Buscar" }).click();
   },
 );
 
 Then(
-  "el listado contiene únicamente la transacción vinculada a esa referencia",
+  "el listado contiene únicamente la intención de pago con ese ID",
   async function (this: CustomWorld) {
     const table = this.page.getByRole("table");
     await table.waitFor();
+    await this.page.waitForFunction(() => document.querySelectorAll("tbody tr").length === 1);
     const rows = this.page.locator("tbody tr");
-    await rows.first().waitFor();
     assert.equal(await rows.count(), 1);
     const text = await rows.first().innerText();
-    assert.ok(text.includes("MP-REF-45892"));
-    assert.ok(text.includes("Juan Pérez"));
-    assert.ok(!text.includes("MP-REF-45891"));
+    assert.ok(text.includes("d9428888-122b-11e1-b85c-61cd3cbb3210"));
+    assert.ok(text.includes("#3"));
+    assert.ok(!text.includes("0f8fad5b-d9cb-469f-a165-70867728950e"));
   },
 );
 
@@ -143,31 +142,31 @@ Given(
 );
 
 When(
-  "aplico los filtros para ver pagos de seña con estado aprobado",
+  "aplico los filtros para ver señas con estado pagado",
   async function (this: CustomWorld) {
     const purposeSelect = this.page.getByRole("combobox", { name: /propósito/i });
     await purposeSelect.waitFor({ state: "visible" });
-    await purposeSelect.selectOption("deposit");
+    await purposeSelect.selectOption("booking_deposit");
 
     const statusSelect = this.page.getByRole("combobox", { name: /estado/i });
     await statusSelect.waitFor({ state: "visible" });
-    await statusSelect.selectOption("approved");
+    await statusSelect.selectOption("paid");
   },
 );
 
 Then(
-  "el listado muestra exclusivamente los cobros de seña que se encuentran aprobados",
+  "el listado muestra exclusivamente las intenciones de seña que se encuentran pagadas",
   async function (this: CustomWorld) {
     const table = this.page.getByRole("table");
     await table.waitFor();
+    await this.page.waitForFunction(() => document.querySelectorAll("tbody tr").length === 1);
     const rows = this.page.locator("tbody tr");
-    await rows.first().waitFor();
     assert.equal(await rows.count(), 1);
     const text = await rows.first().innerText();
-    assert.ok(text.includes("Seña") || text.includes("deposit"));
-    assert.ok(text.includes("Aprobado"));
-    assert.ok(text.includes("María Gómez"));
-    assert.ok(!text.includes("Juan Pérez"));
+    assert.ok(text.includes("Seña"));
+    assert.ok(text.includes("Pagado"));
+    assert.ok(text.includes("#1"));
+    assert.ok(!text.includes("#3"));
   },
 );
 
@@ -184,11 +183,11 @@ When(
   "aplico un filtro de búsqueda sin resultados en la sección de pagos",
   async function (this: CustomWorld) {
     const searchInput = this.page
-      .getByRole("searchbox", { name: /buscar por referencia o participante/i })
-      .or(this.page.getByPlaceholder(/buscar por referencia o participante/i))
+      .getByRole("searchbox", { name: /buscar pagos/i })
       .or(this.page.locator("#payments-search"));
     await searchInput.waitFor({ state: "visible" });
-    await searchInput.fill("NON_EXISTING_TRANSACTION_QUERY_XYZ");
+    await searchInput.fill("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+    await this.page.getByRole("button", { name: "Buscar" }).click();
   },
 );
 

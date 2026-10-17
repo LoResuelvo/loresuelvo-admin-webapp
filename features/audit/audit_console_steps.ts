@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { Given, When, Then } from "@cucumber/cucumber";
 import { ROUTES } from "@/lib/routes";
 import { CustomWorld } from "../support/world";
-import { multiMonthAuditLogsResponse, sampleAuditLogsResponse } from "./audit_fixtures";
+import {
+  firstAuditPage,
+  multiMonthAuditLogsResponse,
+  sampleAuditLogsResponse,
+  secondAuditPage,
+} from "./audit_fixtures";
 
 Given(
   "que existen intervenciones administrativas registradas en la plataforma",
@@ -17,7 +22,7 @@ When("accedo a la sección de auditoría", async function (this: CustomWorld) {
 });
 
 Then(
-  "visualizo los registros ordenados por fecha con el operador responsable, el recurso involucrado, la acción efectuada y el motivo justificado",
+  "visualizo los registros ordenados por fecha con el ID real del operador, el recurso, la acción, el resultado y el motivo disponible",
   async function (this: CustomWorld) {
     const table = this.page.getByRole("table");
     await table.waitFor();
@@ -28,23 +33,25 @@ Then(
     const row0 = rows.nth(0);
     const text0 = await row0.innerText();
     assert.ok(text0.includes("28/09/2026") || text0.includes("2026-09-28"));
-    assert.ok(text0.includes("operador@loresuelvo.com"));
+    assert.ok(text0.includes("101"));
     assert.ok(text0.includes("Contratación #105") || text0.includes("105"));
-    assert.ok(text0.includes("Acceso a chat privado"));
+    assert.ok(text0.includes("Acceso"));
+    assert.ok(text0.includes("Exitoso"));
     assert.ok(text0.includes("Investigación de reporte"));
 
     const row1 = rows.nth(1);
     const text1 = await row1.innerText();
     assert.ok(text1.includes("27/09/2026") || text1.includes("2026-09-27"));
-    assert.ok(text1.includes("soporte@loresuelvo.com"));
+    assert.ok(text1.includes("102"));
     assert.ok(text1.includes("Reclamo #clm-204") || text1.includes("clm-204"));
-    assert.ok(text1.includes("Resolución de reclamo"));
+    assert.ok(text1.includes("Ejecución"));
+    assert.ok(text1.includes("Preparado"));
     assert.ok(text1.includes("Resolución de disputa"));
   },
 );
 
 Given(
-  "que la bitácora registra accesos a chats privados y resoluciones de reclamos",
+  "que la bitácora registra acciones de acceso y ejecución",
   async function (this: CustomWorld) {
     await this.stubGet("/admin/audit-logs", sampleAuditLogsResponse);
   },
@@ -64,7 +71,7 @@ When(
 );
 
 Then(
-  "se presentan únicamente las intervenciones vinculadas a la inspección de mensajes",
+  'se presentan únicamente las intervenciones cuya acción es "Acceso"',
   async function (this: CustomWorld) {
     const table = this.page.getByRole("table");
     await table.waitFor();
@@ -78,9 +85,9 @@ Then(
     assert.equal(await rows.count(), 1);
 
     const text = await rows.first().innerText();
-    assert.ok(text.includes("Acceso a chat privado"));
-    assert.ok(text.includes("operador@loresuelvo.com"));
-    assert.ok(!text.includes("Resolución de reclamo"));
+    assert.ok(text.includes("Acceso"));
+    assert.ok(text.includes("101"));
+    assert.ok(!text.includes("Ejecución"));
   },
 );
 
@@ -92,21 +99,21 @@ Given(
 );
 
 When(
-  "busco los registros asociados al correo {string}",
-  async function (this: CustomWorld, operatorEmail: string) {
+  "busco los registros asociados al ID de operador {string}",
+  async function (this: CustomWorld, operatorId: string) {
     const auditPath = (ROUTES as unknown as Record<string, string>).audit ?? "/auditoria";
     if (!this.page.url().includes(auditPath)) {
       await this.page.goto(new URL(auditPath, this.appUrl).href);
     }
-    const searchInput = this.page.getByLabel("Buscar por operador");
+    const searchInput = this.page.getByLabel("Filtrar por ID del operador");
     await searchInput.waitFor();
-    await searchInput.fill(operatorEmail);
+    await searchInput.fill(operatorId);
   },
 );
 
 Then(
-  "el listado expone exclusivamente las intervenciones realizadas por dicho operador",
-  async function (this: CustomWorld) {
+  "el listado expone exclusivamente las intervenciones realizadas por el operador con ID {int}",
+  async function (this: CustomWorld, operatorId: number) {
     const table = this.page.getByRole("table");
     await table.waitFor();
     await this.page.waitForFunction(
@@ -119,8 +126,7 @@ Then(
     assert.equal(await rows.count(), 1);
 
     const text = await rows.first().innerText();
-    assert.ok(text.includes("operador@loresuelvo.com"));
-    assert.ok(!text.includes("soporte@loresuelvo.com"));
+    assert.ok(text.includes(String(operatorId)));
   },
 );
 
@@ -196,22 +202,20 @@ When(
 );
 
 Then(
-  "visualizo la información contextual de la acción, el origen protegido de la solicitud y su identificador de trazabilidad",
+  "visualizo el ID del operador, la acción, el resultado y el identificador de correlación provistos por la API sin inventar datos de origen",
   async function (this: CustomWorld) {
     const modal = this.page.getByRole("dialog");
     await modal.waitFor();
     const modalText = await modal.innerText();
 
-    assert.ok(modalText.includes("operador@loresuelvo.com"));
-    assert.ok(modalText.includes("Acceso a chat privado"));
+    assert.ok(modalText.includes("101"));
+    assert.ok(modalText.includes("Acceso"));
+    assert.ok(modalText.includes("Exitoso"));
     assert.ok(modalText.includes("Investigación de reporte"));
     assert.ok(modalText.includes("Contratación #105") || modalText.includes("105"));
-
-    assert.ok(modalText.includes("192.168.1.xxx") || modalText.includes("192.168.1.***"));
+    assert.ok(modalText.includes("trace-001"));
     assert.ok(!modalText.includes("192.168.1.50"));
-    assert.ok(modalText.includes("Mozilla/5.0") || modalText.includes("Admin Console"));
-
-    assert.ok(modalText.includes("aud-001"));
+    assert.ok(!modalText.includes("Mozilla/5.0"));
   },
 );
 
@@ -272,4 +276,38 @@ When("intento consultar la consola de auditoría", async function (this: CustomW
   const auditPath = (ROUTES as unknown as Record<string, string>).audit ?? "/auditoria";
   await this.page.goto(new URL(auditPath, this.appUrl).href);
 });
+
+Given(
+  "que existe una página adicional de registros de auditoría",
+  async function (this: CustomWorld) {
+    const auditPath = (ROUTES as unknown as Record<string, string>).audit ?? "/auditoria";
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/audit-logs",
+      status: 200,
+      body: firstAuditPage,
+    });
+    await this.addApiStub({
+      method: "GET",
+      endpoint: "/admin/audit-logs?cursor=opaque-audit-cursor",
+      status: 200,
+      body: secondAuditPage,
+    });
+    await this.page.goto(new URL(auditPath, this.appUrl).href);
+    await this.page.getByRole("button", { name: "Cargar más" }).waitFor();
+  },
+);
+
+When("solicito la página siguiente de la bitácora", async function (this: CustomWorld) {
+  await this.page.getByRole("button", { name: "Cargar más" }).click();
+});
+
+Then(
+  "se agregan sus registros al listado y se oculta la opción de continuar cuando no hay otro cursor",
+  async function (this: CustomWorld) {
+    await this.page.getByText("102", { exact: true }).waitFor();
+    assert.equal(await this.page.locator("tbody tr").count(), 2);
+    assert.equal(await this.page.getByRole("button", { name: "Cargar más" }).count(), 0);
+  },
+);
 

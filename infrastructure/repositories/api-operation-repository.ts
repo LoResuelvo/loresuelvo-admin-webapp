@@ -1,5 +1,4 @@
 import "server-only";
-import { hasPendingAdvanceOver24Hours } from "@/domain/operations/operation-filter";
 import type { OperationFilters, OperationRepository } from "@/ports/operations/operation-repository";
 import type { OperationSummary, OperationPage } from "@/domain/operations/operation-summary";
 import type { UnifiedOperationDetail } from "@/domain/operations/unified-operation-detail";
@@ -12,17 +11,20 @@ function buildOperationsUrl(baseUrl: string, filters: OperationFilters = {}): UR
   const url = new URL(`${baseUrl.replace(/\/$/, "")}/admin/operations`);
   if (filters.categoryId)
     url.searchParams.set("category_id", String(filters.categoryId));
+  if (filters.providerId)
+    url.searchParams.set("provider_id", String(filters.providerId));
   if (filters.cursor)
     url.searchParams.set("cursor", filters.cursor);
   if (filters.limit)
     url.searchParams.set("limit", String(filters.limit));
   switch (filters.bottleneck) {
-    case "stalled": break;
-    case "delayed_service":
-      url.searchParams.set("alert", "delayed");
+    case "request_pending_over_24h":
+    case "booking_deadline_passed":
+    case "stalled":
+      url.searchParams.set("alert", filters.bottleneck);
       break;
-    case "pending_booking_deposit":
-      url.searchParams.set("stage", "proposal_pending");
+    case "delayed":
+      url.searchParams.set("alert", "delayed");
       break;
     case "pending_final_payment":
       url.searchParams.set("stage", "work_order_awaiting_payment");
@@ -82,11 +84,10 @@ async function fetchOperationsPage(token: string, filters?: OperationFilters): P
 }
 
 async function fetchOperations(token: string, filters: OperationFilters = {}): Promise<OperationPage> {
-  if (filters.bottleneck === "pending_proposal_24h")
-    throw new OperationError("unknown", "Request acceptance timestamp unavailable");
   // Text search is absent from the API. Traverse the complete filtered inbox so
   // matches on later pages remain reachable; never send unsupported q parameters.
-  if (!filters.q && filters.bottleneck !== "none" && filters.bottleneck !== "stalled")
+  // All alert filters are server-side; only text search and no-alerts need a scan.
+  if (!filters.q && filters.bottleneck !== "none")
     return fetchOperationsPage(token, filters);
   const operations: OperationSummary[] = [];
   const visited = new Set<string>();
@@ -109,8 +110,7 @@ async function fetchOperations(token: string, filters: OperationFilters = {}): P
 }
 
 function matchesLocalFilters(operation: OperationSummary, filters: OperationFilters, query?: string): boolean {
-  if (filters.bottleneck === "none" && operation.alerts?.length !== 0) return false;
-  if (filters.bottleneck === "stalled" && !hasPendingAdvanceOver24Hours(operation, Date.now())) return false;
+  if (filters.bottleneck === "none" && (operation.alerts?.length ?? 0) !== 0) return false;
   if (!query) return true;
   const participants = [operation.consumer, operation.provider];
   return participants.some(party =>

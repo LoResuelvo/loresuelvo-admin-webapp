@@ -1,33 +1,27 @@
 import { z } from "zod";
 
-export const apiAuditActionTypeSchema = z.enum([
-  "chat_access",
-  "payment_reconcile",
-  "category_create",
-  "category_update",
-  "category_deactivate",
-  "provider_status_change",
-  "claim_resolution",
-  "review_moderation",
-]);
+export const apiAuditActionTypeSchema = z.enum(["create", "access", "execute"]);
+
+export const apiAuditResultSchema = z.enum(["succeeded", "prepared", "failed"]);
 
 export const apiAuditLogEntrySchema = z.object({
-  id: z.string().min(1),
-  timestamp: z.string(),
-  operator_id: z.string(),
-  operator_email: z.string().email(),
+  id: z.string().uuid(),
+  operator_id: z.number().int().positive(),
   action: apiAuditActionTypeSchema,
-  resource_type: z.string(),
-  resource_id: z.string(),
-  reason: z.string(),
-  ip_address: z.string(),
-  user_agent: z.string(),
-  status: z.enum(["success", "failure"]),
-  metadata: z.record(z.string(), z.unknown()).nullable().optional(),
+  resource_type: z.string().min(1),
+  resource_id: z.string().optional(),
+  occurred_on: z.string().datetime({ offset: true }),
+  result: apiAuditResultSchema,
+  correlation_id: z.string().min(1),
+  reason: z.string().optional(),
 });
 
-export const apiAuditLogsResponseSchema = z.array(apiAuditLogEntrySchema);
+export const apiAuditLogsResponseSchema = z.object({
+  events: z.array(apiAuditLogEntrySchema),
+  next_cursor: z.string().nullable(),
+});
 
 export type ApiAuditActionType = z.infer<typeof apiAuditActionTypeSchema>;
+export type ApiAuditResult = z.infer<typeof apiAuditResultSchema>;
 export type ApiAuditLogEntry = z.infer<typeof apiAuditLogEntrySchema>;
 export type ApiAuditLogsResponse = z.infer<typeof apiAuditLogsResponseSchema>;

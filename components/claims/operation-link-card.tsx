@@ -3,7 +3,7 @@ import { ROUTES } from "@/lib/routes";
 import { translations } from "@/infrastructure/i18n/translations";
 
 export interface OperationLinkCardProps {
-  operationId: number;
+  operationId: string | number;
   className?: string;
 }
 

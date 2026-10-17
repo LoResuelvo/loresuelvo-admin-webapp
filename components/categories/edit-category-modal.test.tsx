@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { EditCategoryModal } from "./edit-category-modal";
 
 describe("EditCategoryModal", () => {
-  const sampleCategory = { id: 1, name: "Plomería" };
+  const sampleCategory = { id: 1, name: "Plomería", version: 3 };
 
   it("renders form elements properly with pre-filled name when open", () => {
     render(
@@ -87,7 +87,7 @@ describe("EditCategoryModal", () => {
     const submitButton = screen.getByRole("button", { name: "Guardar cambios" });
     await userEvent.click(submitButton);
 
-    expect(onSubmit).toHaveBeenCalledWith(1, "Instalaciones Sanitarias");
+    expect(onSubmit).toHaveBeenCalledWith(1, "Instalaciones Sanitarias", 3);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
@@ -160,7 +160,7 @@ describe("EditCategoryModal", () => {
     expect(retryButton).toBeInTheDocument();
 
     await userEvent.click(retryButton);
-    expect(onSubmit).toHaveBeenCalledWith(1, "Plomería");
+    expect(onSubmit).toHaveBeenCalledWith(1, "Plomería", 3);
   });
 
   it("does not display retry button when error is forbidden or duplicate", () => {

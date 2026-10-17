@@ -1,7 +1,20 @@
 import { translations } from "@/infrastructure/i18n/translations";
 import { OperationsInboxClient } from "@/components/operations/operations-inbox-client";
 
-export default function OperationsPage() {
+interface OperationsPageProps {
+  searchParams: Promise<{ provider_id?: string | string[] }>;
+}
+
+function parseProviderId(value: string | string[] | undefined): number | undefined {
+  if (typeof value !== "string" || !/^\d+$/.test(value)) return undefined;
+  const providerId = Number(value);
+  return Number.isSafeInteger(providerId) && providerId > 0 && providerId <= 2_147_483_647
+    ? providerId
+    : undefined;
+}
+
+export default async function OperationsPage({ searchParams }: OperationsPageProps) {
+  const providerId = parseProviderId((await searchParams).provider_id);
   const copy = translations.operations;
 
   return (
@@ -15,7 +28,7 @@ export default function OperationsPage() {
         </p>
       </div>
 
-      <OperationsInboxClient />
+      <OperationsInboxClient initialFilters={providerId ? { providerId } : undefined} />
     </section>
   );
 }

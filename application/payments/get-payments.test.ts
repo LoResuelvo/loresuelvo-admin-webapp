@@ -6,10 +6,7 @@ import type { PaymentListResult } from "@/domain/payments/payment";
 describe("getPayments use case", () => {
   const mockResult: PaymentListResult = {
     items: [],
-    total: 0,
-    page: 1,
-    limit: 10,
-    totalPages: 0,
+    page: { limit: 20, nextCursor: null },
   };
 
   it("delegates call to repository via getPayments function", async () => {
@@ -17,9 +14,10 @@ describe("getPayments use case", () => {
       getPayments: vi.fn().mockResolvedValue(mockResult),
     };
 
-    const result = await getPayments(repository, "token-123", { query: "ref-1" });
+    const filters = { paymentIntentId: "0f8fad5b-d9cb-469f-a165-70867728950e" };
+    const result = await getPayments(repository, "token-123", filters);
 
-    expect(repository.getPayments).toHaveBeenCalledWith("token-123", { query: "ref-1" });
+    expect(repository.getPayments).toHaveBeenCalledWith("token-123", filters);
     expect(result).toBe(mockResult);
   });
 
@@ -29,9 +27,9 @@ describe("getPayments use case", () => {
     };
 
     const useCase = new GetPaymentsUseCase(repository);
-    const result = await useCase.execute("token-123", { purpose: "deposit" });
+    const result = await useCase.execute("token-123", { purpose: "booking_deposit" });
 
-    expect(repository.getPayments).toHaveBeenCalledWith("token-123", { purpose: "deposit" });
+    expect(repository.getPayments).toHaveBeenCalledWith("token-123", { purpose: "booking_deposit" });
     expect(result).toBe(mockResult);
   });
 

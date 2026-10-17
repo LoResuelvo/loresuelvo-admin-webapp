@@ -1,84 +1,70 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { AuditFiltersBar } from "./audit-filters-bar";
 
 describe("AuditFiltersBar", () => {
-  it("renders action filter select with all options", () => {
+  it("renders the API-supported action filters", () => {
     const handleChange = vi.fn();
     render(<AuditFiltersBar filters={{ action: "" }} onChange={handleChange} />);
 
     expect(screen.getByRole("search", { name: "Filtros de auditoría" })).toBeInTheDocument();
-
-    const select = screen.getByLabelText("Filtrar por acción");
-    expect(select).toBeInTheDocument();
+    expect(screen.getByLabelText("Filtrar por acción")).toBeInTheDocument();
     expect(screen.getByText("Todas las acciones")).toBeInTheDocument();
-    expect(screen.getByText("Acceso a chat privado")).toBeInTheDocument();
-    expect(screen.getByText("Resolución de reclamo")).toBeInTheDocument();
+    expect(screen.getByText("Creación")).toBeInTheDocument();
+    expect(screen.getByText("Acceso")).toBeInTheDocument();
+    expect(screen.getByText("Ejecución")).toBeInTheDocument();
   });
 
   it("calls onChange when selecting an action", async () => {
     const handleChange = vi.fn();
     const user = userEvent.setup();
-
     render(<AuditFiltersBar filters={{ action: "" }} onChange={handleChange} />);
 
-    const select = screen.getByLabelText("Filtrar por acción");
-    await user.selectOptions(select, "chat_access");
-
-    expect(handleChange).toHaveBeenCalledWith({ action: "chat_access" });
+    await user.selectOptions(screen.getByLabelText("Filtrar por acción"), "access");
+    expect(handleChange).toHaveBeenCalledWith({ action: "access" });
   });
 
-  it("renders clear button when action filter is active and clears on click", async () => {
+  it("clears selected filters", async () => {
     const handleChange = vi.fn();
     const user = userEvent.setup();
+    render(<AuditFiltersBar filters={{ action: "access" }} onChange={handleChange} />);
 
-    render(<AuditFiltersBar filters={{ action: "chat_access" }} onChange={handleChange} />);
-
-    const clearBtn = screen.getByRole("button", { name: "Limpiar filtros" });
-    expect(clearBtn).toBeInTheDocument();
-
-    await user.click(clearBtn);
-    expect(handleChange).toHaveBeenCalledWith({ action: "", operator: "", from: "", to: "" });
+    await user.click(screen.getByRole("button", { name: "Limpiar filtros" }));
+    expect(handleChange).toHaveBeenCalledWith({ action: "", operatorId: "", from: "", to: "" });
   });
 
-  it("renders operator search input and calls onChange on typing", async () => {
+  it("filters by a numeric operator identifier", () => {
     const handleChange = vi.fn();
-    const user = userEvent.setup();
+    render(<AuditFiltersBar filters={{ operatorId: "" }} onChange={handleChange} />);
 
-    render(<AuditFiltersBar filters={{ operator: "" }} onChange={handleChange} />);
-
-    const searchInput = screen.getByLabelText("Buscar por operador");
-    expect(searchInput).toBeInTheDocument();
-    expect(searchInput).toHaveAttribute("placeholder", "Buscar por correo del operador...");
-
-    await user.type(searchInput, "op");
-    expect(handleChange).toHaveBeenCalled();
+    const operatorInput = screen.getByLabelText("Filtrar por ID del operador");
+    expect(operatorInput).toHaveAttribute("type", "number");
+    expect(operatorInput).toHaveAttribute("min", "1");
+    expect(operatorInput).toHaveAttribute("placeholder", "Ingresá el ID del operador...");
+    fireEvent.change(operatorInput, { target: { value: "101" } });
+    expect(handleChange).toHaveBeenCalledWith({ operatorId: "101" });
   });
 
   it("renders date range inputs and calls onChange on date change", async () => {
     const handleChange = vi.fn();
     const user = userEvent.setup();
-
     render(<AuditFiltersBar filters={{ from: "", to: "" }} onChange={handleChange} />);
 
     const fromInput = screen.getByLabelText("Fecha desde");
     const toInput = screen.getByLabelText("Fecha hasta");
-
     expect(fromInput).toBeInTheDocument();
     expect(toInput).toBeInTheDocument();
 
     await user.type(fromInput, "2026-09-01");
     expect(handleChange).toHaveBeenCalledWith({ from: "2026-09-01", to: "" });
-
     await user.type(toInput, "2026-09-20");
     expect(handleChange).toHaveBeenCalledWith({ from: "", to: "2026-09-20" });
   });
 
-  it("renders clear button when date filters are active and clears all filters", async () => {
+  it("clears active date filters", async () => {
     const handleChange = vi.fn();
     const user = userEvent.setup();
-
     render(
       <AuditFiltersBar
         filters={{ from: "2026-09-01", to: "2026-09-20" }}
@@ -86,13 +72,10 @@ describe("AuditFiltersBar", () => {
       />,
     );
 
-    const clearBtn = screen.getByRole("button", { name: "Limpiar filtros" });
-    expect(clearBtn).toBeInTheDocument();
-
-    await user.click(clearBtn);
+    await user.click(screen.getByRole("button", { name: "Limpiar filtros" }));
     expect(handleChange).toHaveBeenCalledWith({
       action: "",
-      operator: "",
+      operatorId: "",
       from: "",
       to: "",
     });

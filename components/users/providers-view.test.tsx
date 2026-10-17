@@ -118,6 +118,9 @@ describe("ProvidersView", () => {
     expect(screen.getByRole("option", { name: "En revisión" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Rechazado" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Sin verificar" })).toBeInTheDocument();
+    expect(statusSelect.querySelector('option[value="in_progress"]')).toBeInTheDocument();
+    expect(statusSelect.querySelector('option[value="expired"]')).toBeInTheDocument();
+    expect(statusSelect.querySelector('option[value="kyc_expired"]')).toBeInTheDocument();
   });
 
   it("calls onCategoryChange when selecting a category option", async () => {
@@ -134,8 +137,8 @@ describe("ProvidersView", () => {
     render(<ProvidersView providers={sampleProviders} onStatusChange={onStatusChange} />);
 
     const statusSelect = screen.getByLabelText("Filtrar por estado");
-    await userEvent.selectOptions(statusSelect, "approved");
-    expect(onStatusChange).toHaveBeenCalledWith("approved");
+    await userEvent.selectOptions(statusSelect, "in_progress");
+    expect(onStatusChange).toHaveBeenCalledWith("in_progress");
   });
 });
 

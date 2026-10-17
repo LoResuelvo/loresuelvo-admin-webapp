@@ -6,25 +6,25 @@ Feature: Consola de pagos y desglose económico
   Background:
     Given que he iniciado sesión en el panel de administración
 
-  Scenario: 01-PAY Visualizar listado de pagos con desglose económico
+  Scenario: 01-PAY Visualizar pagos e IDs disponibles con desglose económico
     Given que existen transacciones registradas de señas y saldos en el sistema
     When accedo a la sección de pagos
-    Then visualizo el listado de transacciones con el propósito, cliente, prestador, total del servicio, neto del prestador, comisión de plataforma y estado
+    Then visualizo el propósito, IDs de cliente y prestador, total del pago, neto del prestador, comisión de plataforma y estado de intención
 
   Scenario: 02-PAY Diferenciar visualmente intención de checkout de pago acreditado
     Given que existe una transacción con checkout iniciado pero pendiente de cobro
     When consulto el listado en la sección de pagos
     Then el pago se visualiza con estado pendiente sin computarse como cobro acreditado
 
-  Scenario: 03-PAY Buscar pagos por referencia externa o participante
+  Scenario: 03-PAY Buscar un pago por ID de intención
     Given que existen pagos registrados vinculados a operaciones del marketplace
-    When realizo una búsqueda por la referencia "MP-REF-45892"
-    Then el listado contiene únicamente la transacción vinculada a esa referencia
+    When realizo una búsqueda por el ID de intención "d9428888-122b-11e1-b85c-61cd3cbb3210"
+    Then el listado contiene únicamente la intención de pago con ese ID
 
   Scenario: 04-PAY Filtrar pagos por propósito y estado
     Given que existen múltiples pagos registrados de señas y saldos
-    When aplico los filtros para ver pagos de seña con estado aprobado
-    Then el listado muestra exclusivamente los cobros de seña que se encuentran aprobados
+    When aplico los filtros para ver señas con estado pagado
+    Then el listado muestra exclusivamente las intenciones de seña que se encuentran pagadas
 
   Scenario: 05-PAY Mostrar estado de espera mientras se cargan los pagos
     Given que la consulta de transacciones financieras toma unos momentos

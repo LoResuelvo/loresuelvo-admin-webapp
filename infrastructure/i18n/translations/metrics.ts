@@ -1,6 +1,12 @@
 export const metricsTranslations = {
   title: "Métricas de Conversión Operativa",
-  subtitle: "Embudo de conversión del marketplace y demoras operativas",
+  subtitle: "Embudo de servicios iniciados con diagnóstico IA y demoras operativas",
+  overview: {
+    ariaLabel: "Resumen de conversión global",
+    performance: "Rendimiento operativo",
+    description: "Porcentaje de diagnósticos IA que llegaron a una orden con finalización reportada. Las reseñas se muestran como una etapa posterior del embudo.",
+    rate: "Tasa global", origins: "Diagnósticos", completed: "Órdenes completadas",
+  },
   globalConversionRate: "Tasa de conversión global",
   relativeRetention: "Tasa de retención",
   averageDuration: "Demora promedio",
@@ -26,6 +32,7 @@ export const metricsTranslations = {
     proposals_sent: "Propuestas comerciales",
     deposits_paid: "Señas pagadas",
     orders_completed: "Órdenes concluidas",
+    full_payments: "Pagos completos",
     reviews_submitted: "Reseñas enviadas",
   },
 } as const;

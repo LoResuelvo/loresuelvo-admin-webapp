@@ -45,7 +45,7 @@ export function useCategoriesCreation(
 }
 
 export function useCategoriesEdit(
-  onUpdateCategory: ((id: number, name: string) => Promise<void>) | undefined,
+  onUpdateCategory: ((id: number, name: string, expectedVersion: number) => Promise<void>) | undefined,
   onSuccess: (msg: string) => void,
 ) {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -63,12 +63,12 @@ export function useCategoriesEdit(
     setSubmitError(null);
   };
 
-  const handleUpdate = async (id: number, name: string) => {
+  const handleUpdate = async (id: number, name: string, expectedVersion: number) => {
     if (!onUpdateCategory) return;
     setIsSubmitting(true);
     setSubmitError(null);
     try {
-      await onUpdateCategory(id, name);
+      await onUpdateCategory(id, name, expectedVersion);
       setEditingCategory(null);
       onSuccess(translations.categories.updateSuccess);
     } catch (err: unknown) {
@@ -109,7 +109,9 @@ const initialDeactivationState: DeactivationState = {
 
 export function useCategoriesDeactivation(
   onGetImpact: ((id: number) => Promise<CategoryImpact>) | undefined,
-  onDeactivateCategory: ((id: number) => Promise<void>) | undefined,
+  onDeactivateCategory: (
+    (id: number, expectedVersion: number, reason: string, confirmOngoingOrders: boolean) => Promise<void>
+  ) | undefined,
   onSuccess: (msg: string) => void,
 ) {
   const [state, setState] = useState<DeactivationState>(initialDeactivationState);
@@ -131,11 +133,16 @@ export function useCategoriesDeactivation(
     setState(initialDeactivationState);
   };
 
-  const handleConfirmDeactivate = async (id: number) => {
+  const handleConfirmDeactivate = async (
+    id: number,
+    expectedVersion: number,
+    reason: string,
+    confirmOngoingOrders: boolean,
+  ) => {
     if (!onDeactivateCategory) return;
     setState((prev) => ({ ...prev, isSubmitting: true, deactivateError: null }));
     try {
-      await onDeactivateCategory(id);
+      await onDeactivateCategory(id, expectedVersion, reason, confirmOngoingOrders);
       setState(initialDeactivationState);
       onSuccess(translations.categories.deactivateSuccess);
     } catch (err: unknown) {

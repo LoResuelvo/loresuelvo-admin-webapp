@@ -1,22 +1,43 @@
 import "server-only";
-import type { AuditFilters, AuditLogEntry } from "@/domain/audit/audit-log";
+import type { AuditFilters, AuditLogsPage } from "@/domain/audit/audit-log";
 import { AuditError } from "@/domain/audit/audit-error";
 import type { AuditRepository } from "@/ports/audit/audit-repository";
-import { mapAuditLogsList } from "./audit-mapper";
+import { mapAuditLogsPage } from "./audit-mapper";
 import { getE2EAuditLogsStub, resolveAuditLogsFromStub } from "./audit-stubs";
 
-function buildApiUrl(baseUrl: string, filters?: AuditFilters): URL {
+function toUtcBoundary(date: string, includeFollowingDay = false): string | undefined {
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(date);
+  const parsed = new Date(dateOnly ? `${date}T00:00:00.000Z` : date);
+  if (Number.isNaN(parsed.getTime())) return undefined;
+
+  if (dateOnly && parsed.toISOString().slice(0, 10) !== date) return undefined;
+  if (includeFollowingDay) parsed.setUTCDate(parsed.getUTCDate() + 1);
+  return parsed.toISOString();
+}
+
+function buildApiUrl(baseUrl: string, filters?: AuditFilters, cursor?: string): URL {
   const url = new URL(`${baseUrl.replace(/\/$/, "")}/admin/audit-logs`);
   if (filters?.action) url.searchParams.set("action", filters.action);
-  if (filters?.operator) url.searchParams.set("operator", filters.operator);
-  if (filters?.from) url.searchParams.set("from", filters.from);
-  if (filters?.to) url.searchParams.set("to", filters.to);
+  if (filters?.operatorId) url.searchParams.set("operator_id", String(filters.operatorId));
+  if (filters?.from) {
+    const occurredFrom = toUtcBoundary(filters.from);
+    if (occurredFrom) url.searchParams.set("occurred_from", occurredFrom);
+  }
+  if (filters?.to) {
+    const occurredTo = toUtcBoundary(filters.to, true);
+    if (occurredTo) url.searchParams.set("occurred_to", occurredTo);
+  }
+  if (cursor) url.searchParams.set("cursor", cursor);
   return url;
 }
 
 export const apiAuditRepository: AuditRepository = {
-  async getAuditLogs(token: string, filters?: AuditFilters): Promise<AuditLogEntry[]> {
-    const stub = await getE2EAuditLogsStub(filters);
+  async getAuditLogs(
+    token: string,
+    filters?: AuditFilters,
+    cursor?: string,
+  ): Promise<AuditLogsPage> {
+    const stub = await getE2EAuditLogsStub(cursor);
     if (stub) {
       return resolveAuditLogsFromStub(stub, filters);
     }
@@ -26,7 +47,7 @@ export const apiAuditRepository: AuditRepository = {
       throw new Error("API_URL is not configured");
     }
 
-    const url = buildApiUrl(baseUrl, filters);
+    const url = buildApiUrl(baseUrl, filters, cursor);
     let response: Response;
     try {
       response = await fetch(url.toString(), {
@@ -47,6 +68,6 @@ export const apiAuditRepository: AuditRepository = {
     if (!response.ok) throw new AuditError("unknown", `Failed: ${response.status}`);
 
     const data = await response.json();
-    return mapAuditLogsList(data);
+    return mapAuditLogsPage(data);
   },
 };

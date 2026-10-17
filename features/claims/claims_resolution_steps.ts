@@ -6,8 +6,8 @@ import { sampleClaimDetailOpenResponse } from "./claims_fixtures";
 Given(
   "que me encuentro en el formulario de dictamen del reclamo",
   async function (this: CustomWorld) {
-    await this.stubGet("/admin/claims/clm-101", sampleClaimDetailOpenResponse);
-    await this.page.goto(new URL("/reclamos/clm-101", this.appUrl).href);
+    await this.stubGet("/admin/claims/101", sampleClaimDetailOpenResponse);
+    await this.page.goto(new URL("/reclamos/101", this.appUrl).href);
     const openModalBtn = this.page.getByRole("button", {
       name: /dictaminar resolución|resolver reclamo/i,
     });
@@ -54,8 +54,8 @@ Then("el formulario no se envía", async function (this: CustomWorld) {
 Given(
   "que el servidor de soporte experimenta inconvenientes",
   async function (this: CustomWorld) {
-    await this.stubGet("/admin/claims/clm-101", sampleClaimDetailOpenResponse);
-    await this.stubPost("/admin/claims/clm-101/resolution", 500, {
+    await this.stubGet("/admin/claims/101", sampleClaimDetailOpenResponse);
+    await this.stubPost("/admin/claims/101/resolution", 500, {
       error: "Internal Server Error",
     });
   },
@@ -64,7 +64,7 @@ Given(
 When(
   "intento registrar el dictamen de un reclamo",
   async function (this: CustomWorld) {
-    await this.page.goto(new URL("/reclamos/clm-101", this.appUrl).href);
+    await this.page.goto(new URL("/reclamos/101", this.appUrl).href);
     const openModalBtn = this.page.getByRole("button", {
       name: /dictaminar resolución|resolver reclamo/i,
     });

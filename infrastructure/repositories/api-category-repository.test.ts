@@ -8,11 +8,11 @@ describe("apiCategoryRepository", () => {
     vi.unstubAllEnvs();
   });
 
-  it("requests /categories with bearer token and returns mapped categories", async () => {
+  it("requests all admin categories with bearer token and returns versions", async () => {
     vi.stubEnv("API_URL", "https://api.example.com");
     const sampleData = [
-      { id: 2, name: "Electricidad" },
-      { id: 1, name: "Albañilería" },
+      { id: 2, name: "Electricidad", enabled: false, version: 3 },
+      { id: 1, name: "Albañilería", enabled: true, version: 2 },
     ];
     const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(sampleData)));
     vi.stubGlobal("fetch", fetcher);
@@ -20,7 +20,7 @@ describe("apiCategoryRepository", () => {
     const result = await apiCategoryRepository.getAll("test-token");
 
     expect(fetcher).toHaveBeenCalledWith(
-      "https://api.example.com/categories",
+      "https://api.example.com/categories?include_disabled=true",
       expect.objectContaining({
         cache: "no-store",
         headers: {
@@ -31,8 +31,8 @@ describe("apiCategoryRepository", () => {
       }),
     );
     expect(result).toEqual([
-      { id: 1, name: "Albañilería", enabled: true },
-      { id: 2, name: "Electricidad", enabled: true },
+      { id: 1, name: "Albañilería", enabled: true, version: 2 },
+      { id: 2, name: "Electricidad", enabled: false, version: 3 },
     ]);
   });
 
@@ -78,7 +78,7 @@ describe("apiCategoryRepository", () => {
 
     it("throws CategoryError with duplicate code on 409 Conflict", async () => {
       vi.stubEnv("API_URL", "https://api.example.com");
-      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Conflict", { status: 409 })));
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: "category already exists" }), { status: 409 })));
       await expect(apiCategoryRepository.create("token", "Plomería")).rejects.toSatisfy(
         (err) => err instanceof CategoryError && err.code === "duplicate",
       );
@@ -103,18 +103,18 @@ describe("apiCategoryRepository", () => {
     it("throws error if HTTP response is not ok (e.g. 400)", async () => {
       vi.stubEnv("API_URL", "https://api.example.com");
       vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Bad request", { status: 400 })));
-      await expect(apiCategoryRepository.create("token", "Plomería")).rejects.toThrow("Failed to create category: 400");
+      await expect(apiCategoryRepository.create("token", "Plomería")).rejects.toThrow("Invalid category request: 400");
     });
   });
 
   describe("update", () => {
     it("patches /categories/:id with bearer token and body and returns mapped category", async () => {
       vi.stubEnv("API_URL", "https://api.example.com");
-      const updatedData = { id: 1, name: "Instalaciones Sanitarias" };
+      const updatedData = { id: 1, name: "Instalaciones Sanitarias", enabled: true, version: 2 };
       const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(updatedData), { status: 200 }));
       vi.stubGlobal("fetch", fetcher);
 
-      const result = await apiCategoryRepository.update("test-token", 1, "Instalaciones Sanitarias");
+      const result = await apiCategoryRepository.update("test-token", 1, "Instalaciones Sanitarias", 1);
 
       expect(fetcher).toHaveBeenCalledWith(
         "https://api.example.com/categories/1",
@@ -125,21 +125,21 @@ describe("apiCategoryRepository", () => {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          body: JSON.stringify({ name: "Instalaciones Sanitarias" }),
+          body: JSON.stringify({ name: "Instalaciones Sanitarias", expected_version: 1 }),
         }),
       );
-      expect(result).toEqual({ id: 1, name: "Instalaciones Sanitarias", enabled: true });
+      expect(result).toEqual({ id: 1, name: "Instalaciones Sanitarias", enabled: true, version: 2 });
     });
 
     it("throws error if API_URL is not configured for update", async () => {
       vi.stubEnv("API_URL", "");
-      await expect(apiCategoryRepository.update("token", 1, "Plomería")).rejects.toThrow("API_URL is not configured");
+      await expect(apiCategoryRepository.update("token", 1, "Plomería", 1)).rejects.toThrow("API_URL is not configured");
     });
 
     it("throws CategoryError with duplicate code on 409 Conflict", async () => {
       vi.stubEnv("API_URL", "https://api.example.com");
-      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Conflict", { status: 409 })));
-      await expect(apiCategoryRepository.update("token", 1, "Gasista")).rejects.toSatisfy(
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: "category already exists" }), { status: 409 })));
+      await expect(apiCategoryRepository.update("token", 1, "Gasista", 1)).rejects.toSatisfy(
         (err) => err instanceof CategoryError && err.code === "duplicate",
       );
     });
@@ -147,7 +147,7 @@ describe("apiCategoryRepository", () => {
     it("throws CategoryError with forbidden code on 403 Forbidden", async () => {
       vi.stubEnv("API_URL", "https://api.example.com");
       vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Forbidden", { status: 403 })));
-      await expect(apiCategoryRepository.update("token", 1, "Plomería")).rejects.toSatisfy(
+      await expect(apiCategoryRepository.update("token", 1, "Plomería", 1)).rejects.toSatisfy(
         (err) => err instanceof CategoryError && err.code === "forbidden",
       );
     });
@@ -155,7 +155,7 @@ describe("apiCategoryRepository", () => {
     it("throws CategoryError with unavailable code on 500 Server Error", async () => {
       vi.stubEnv("API_URL", "https://api.example.com");
       vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Internal error", { status: 500 })));
-      await expect(apiCategoryRepository.update("token", 1, "Plomería")).rejects.toSatisfy(
+      await expect(apiCategoryRepository.update("token", 1, "Plomería", 1)).rejects.toSatisfy(
         (err) => err instanceof CategoryError && err.code === "unavailable",
       );
     });
@@ -163,7 +163,7 @@ describe("apiCategoryRepository", () => {
     it("throws error if HTTP response is not ok (e.g. 400)", async () => {
       vi.stubEnv("API_URL", "https://api.example.com");
       vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Bad request", { status: 400 })));
-      await expect(apiCategoryRepository.update("token", 1, "Plomería")).rejects.toThrow("Failed to update category: 400");
+      await expect(apiCategoryRepository.update("token", 1, "Plomería", 1)).rejects.toThrow("Invalid category request: 400");
     });
   });
 
@@ -171,11 +171,19 @@ describe("apiCategoryRepository", () => {
     it("requests /admin/categories/:id/impact and returns mapped impact", async () => {
       vi.stubEnv("API_URL", "https://api.example.com");
       const impactData = {
-        category_id: 1,
-        category_name: "Cerrajería",
-        provider_count: 3,
-        active_orders_count: 0,
-        can_deactivate: true,
+        category: { id: 1, name: "Cerrajería", enabled: true, version: 2 },
+        observed_at: "2026-10-15T12:00:00Z",
+        counts: {
+          assigned_providers: 3,
+          pending_requests: 0,
+          accepted_requests_without_proposal: 0,
+          pending_proposals: 0,
+          scheduled_orders: 0,
+          awaiting_payment_orders: 0,
+        },
+        has_ongoing_orders: false,
+        requires_confirmation: false,
+        existing_operations_can_continue: true,
       };
       const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(impactData), { status: 200 }));
       vi.stubGlobal("fetch", fetcher);
@@ -191,9 +199,20 @@ describe("apiCategoryRepository", () => {
       expect(result).toEqual({
         categoryId: 1,
         categoryName: "Cerrajería",
+        observedAt: "2026-10-15T12:00:00Z",
+        counts: {
+          assignedProviders: 3,
+          pendingRequests: 0,
+          acceptedRequestsWithoutProposal: 0,
+          pendingProposals: 0,
+          scheduledOrders: 0,
+          awaitingPaymentOrders: 0,
+        },
+        hasOngoingOrders: false,
+        requiresConfirmation: false,
+        existingOperationsCanContinue: true,
         providerCount: 3,
         activeOrdersCount: 0,
-        canDeactivate: true,
       });
     });
 
@@ -205,28 +224,33 @@ describe("apiCategoryRepository", () => {
   });
 
   describe("deactivate", () => {
-    it("patches /categories/:id with enabled: false and returns mapped category", async () => {
+    it("patches /categories/:id with version, reason and explicit order confirmation", async () => {
       vi.stubEnv("API_URL", "https://api.example.com");
-      const deactivatedData = { id: 1, name: "Cerrajería", enabled: false };
+      const deactivatedData = { id: 1, name: "Cerrajería", enabled: false, version: 3 };
       const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(deactivatedData), { status: 200 }));
       vi.stubGlobal("fetch", fetcher);
 
-      const result = await apiCategoryRepository.deactivate("test-token", 1);
+      const result = await apiCategoryRepository.deactivate("test-token", 1, 2, "Cierre del rubro", true);
 
       expect(fetcher).toHaveBeenCalledWith(
         "https://api.example.com/categories/1",
         expect.objectContaining({
           method: "PATCH",
-          body: JSON.stringify({ enabled: false }),
+          body: JSON.stringify({
+            enabled: false,
+            expected_version: 2,
+            reason: "Cierre del rubro",
+            confirm_ongoing_orders: true,
+          }),
         }),
       );
-      expect(result).toEqual({ id: 1, name: "Cerrajería", enabled: false });
+      expect(result).toEqual({ id: 1, name: "Cerrajería", enabled: false, version: 3 });
     });
 
     it("throws error if response is not ok for deactivate", async () => {
       vi.stubEnv("API_URL", "https://api.example.com");
       vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Forbidden", { status: 403 })));
-      await expect(apiCategoryRepository.deactivate("token", 1)).rejects.toThrow("Forbidden");
+      await expect(apiCategoryRepository.deactivate("token", 1, 1, "Motivo", false)).rejects.toThrow("Forbidden");
     });
   });
 

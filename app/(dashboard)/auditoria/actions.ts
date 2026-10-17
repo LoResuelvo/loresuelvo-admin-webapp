@@ -1,6 +1,6 @@
 "use server";
 
-import type { AuditFilters, AuditLogEntry } from "@/domain/audit/audit-log";
+import type { AuditFilters, AuditLogsPage } from "@/domain/audit/audit-log";
 import { AuditError } from "@/domain/audit/audit-error";
 import { getAuditLogs } from "@/application/audit/get-audit-logs";
 import { apiAuditRepository } from "@/infrastructure/repositories/api-audit-repository";
@@ -8,7 +8,7 @@ import { authSession } from "@/infrastructure/auth/auth-session";
 import { translations } from "@/infrastructure/i18n/translations";
 
 export type GetAuditLogsResult =
-  | { success: true; data: AuditLogEntry[] }
+  | { success: true; data: AuditLogsPage }
   | { success: false; error: string; isForbidden?: boolean };
 
 async function resolveAuthToken(): Promise<string> {
@@ -24,11 +24,12 @@ async function resolveAuthToken(): Promise<string> {
 
 export async function getAuditLogsAction(
   filters?: AuditFilters,
+  cursor?: string,
 ): Promise<GetAuditLogsResult> {
   const copy = translations.audit;
   try {
     const token = await resolveAuthToken();
-    const data = await getAuditLogs(apiAuditRepository, token, filters);
+    const data = await getAuditLogs(apiAuditRepository, token, filters, cursor);
     return { success: true, data };
   } catch (error: unknown) {
     if (error instanceof AuditError && error.code === "forbidden") {

@@ -93,11 +93,24 @@ describe("OperationsInboxClient", () => {
     });
 
     const select = screen.getByRole("combobox", { name: "Alerta Operativa" });
-    await user.selectOptions(select, "stalled");
+    await user.selectOptions(select, "request_pending_over_24h");
 
     expect(actions.getOperationsAction).toHaveBeenCalledWith(
-      expect.objectContaining({ bottleneck: "stalled" }),
+      expect.objectContaining({ bottleneck: "request_pending_over_24h" }),
     );
+  });
+
+  it("keeps the provider scope from a diagnostic deep link", async () => {
+    vi.mocked(actions.getOperationsAction).mockResolvedValue({
+      success: true,
+      data: { operations: mockOperations, nextCursor: null },
+    });
+
+    render(<OperationsInboxClient initialFilters={{ providerId: 201 }} />);
+
+    await waitFor(() => {
+      expect(actions.getOperationsAction).toHaveBeenCalledWith({ providerId: 201 });
+    });
   });
 
   it("filters operations when category changes", async () => {

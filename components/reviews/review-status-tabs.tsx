@@ -1,16 +1,16 @@
 "use client";
 
-import type { ReviewStatus } from "@/domain/reviews/review-moderation";
+import type { ReviewListFilter } from "@/domain/reviews/review-moderation";
 import { translations } from "@/infrastructure/i18n/translations";
 
 export interface ReviewStatusTabsProps {
-  currentStatus?: ReviewStatus;
-  onStatusChange: (status?: ReviewStatus) => void;
+  currentStatus?: ReviewListFilter;
+  onStatusChange: (status?: ReviewListFilter) => void;
   className?: string;
 }
 
 type TabOption = {
-  value: ReviewStatus | undefined;
+  value: ReviewListFilter | undefined;
   label: string;
 };
 

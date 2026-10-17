@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MetricError } from "@/domain/metrics/metric-error";
-import { apiMetricRepository } from "./api-metric-repository";
+import { apiMetricRepository, formatToRfc3339 } from "./api-metric-repository";
 
 describe("apiMetricRepository", () => {
   afterEach(() => {
@@ -41,7 +41,7 @@ describe("apiMetricRepository", () => {
     });
 
     expect(fetcher).toHaveBeenCalledWith(
-      "https://api.example.com/admin/metrics/funnel?from=2026-08-25T00%3A00%3A00Z&to=2026-09-24T23%3A59%3A59Z&category_id=3",
+      "https://api.example.com/admin/metrics/funnel?from=2026-08-25T00%3A00%3A00-03%3A00&to=2026-09-25T00%3A00%3A00-03%3A00&category_id=3",
       expect.objectContaining({
         cache: "no-store",
         headers: {
@@ -111,7 +111,7 @@ describe("apiMetricRepository", () => {
     expect(result.from).toBe("2026-09-10T00:00:00Z");
     expect(result.to).toBe("2026-09-11T00:00:00Z");
     expect(result.globalConversionRate).toBe(0.6667);
-    expect(result.steps).toHaveLength(6);
+    expect(result.steps).toHaveLength(7);
     expect(result.steps[0].stepName).toBe("ai_diagnostics");
     expect(result.steps[0].count).toBe(3);
     expect(result.steps[4].stepName).toBe("orders_completed");
@@ -137,5 +137,23 @@ describe("apiMetricRepository", () => {
     await expect(apiMetricRepository.getFunnel("my-token")).rejects.toMatchObject({
       code: "unavailable",
     });
+  });
+});
+
+
+describe("funnel calendar boundaries", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it("uses Buenos Aires midnights and the next exclusive midnight", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-16T12:00:00Z"));
+    expect(formatToRfc3339("2026-09-30")).toBe("2026-09-30T00:00:00-03:00");
+    expect(formatToRfc3339("2026-09-30", true)).toBe("2026-10-01T00:00:00-03:00");
+  });
+
+  it("caps the current local day at the observation time across UTC midnight", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-17T01:00:00Z"));
+    expect(formatToRfc3339("2026-10-16", true)).toBe("2026-10-17T01:00:00.000Z");
   });
 });

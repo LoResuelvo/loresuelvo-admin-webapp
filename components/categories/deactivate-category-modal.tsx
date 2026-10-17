@@ -1,5 +1,7 @@
 "use client";
 
+import { useId, useState } from "react";
+
 import type { Category } from "@/domain/categories/category";
 import type { CategoryImpact } from "@/domain/categories/category-impact";
 import { Modal } from "@/components/ui/modal";
@@ -12,7 +14,12 @@ export interface DeactivateCategoryModalProps {
   isLoadingImpact?: boolean;
   impactError?: string | null;
   onClose: () => void;
-  onConfirm: (id: number) => Promise<void> | void;
+  onConfirm: (
+    id: number,
+    expectedVersion: number,
+    reason: string,
+    confirmOngoingOrders: boolean,
+  ) => Promise<void> | void;
   isSubmitting?: boolean;
   error?: string | null;
 }
@@ -67,7 +74,7 @@ function DeactivateModalLoading() {
   );
 }
 
-function DeactivateModalBlockingAlert({ ordersCount }: { ordersCount: number }) {
+function DeactivateModalImpactWarning({ ordersCount }: { ordersCount: number }) {
   const copy = translations.categories.deactivateModal;
   return (
     <div
@@ -76,7 +83,7 @@ function DeactivateModalBlockingAlert({ ordersCount }: { ordersCount: number }) 
     >
       <WarningIcon />
       <div className="space-y-1">
-        <p className="font-medium">{copy.blockingWarning(ordersCount)}</p>
+        <p className="font-medium">{copy.ongoingOrdersWarning(ordersCount)}</p>
       </div>
     </div>
   );
@@ -90,11 +97,6 @@ function DeactivateModalContent({
   categoryName: string;
 }) {
   const copy = translations.categories.deactivateModal;
-  const isBlocked = impact.activeOrdersCount > 0 || !impact.canDeactivate;
-
-  if (isBlocked) {
-    return <DeactivateModalBlockingAlert ordersCount={impact.activeOrdersCount} />;
-  }
 
   return (
     <div className="space-y-3">
@@ -106,24 +108,27 @@ function DeactivateModalContent({
           ? copy.impactNotice(impact.providerCount)
           : copy.noProvidersNotice}
       </div>
+      {impact.hasOngoingOrders && (
+        <DeactivateModalImpactWarning ordersCount={impact.activeOrdersCount} />
+      )}
     </div>
   );
 }
 
 interface DeactivateModalFooterProps {
-  isBlocked: boolean;
   isSubmitting: boolean;
   isLoadingImpact: boolean;
   hasImpact: boolean;
+  canConfirm: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }
 
 function DeactivateModalFooter({
-  isBlocked,
   isSubmitting,
   isLoadingImpact,
   hasImpact,
+  canConfirm,
   onClose,
   onConfirm,
 }: DeactivateModalFooterProps) {
@@ -138,18 +143,16 @@ function DeactivateModalFooter({
       >
         {copy.cancelButton}
       </button>
-      {!isBlocked && (
-        <button
-          type="button"
-          onClick={onConfirm}
-          disabled={isSubmitting || isLoadingImpact || !hasImpact}
-          aria-busy={isSubmitting}
-          className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
-        >
-          {isSubmitting && <SpinnerIcon />}
-          <span>{isSubmitting ? copy.confirmingButton : copy.confirmButton}</span>
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={onConfirm}
+        disabled={isSubmitting || isLoadingImpact || !hasImpact || !canConfirm}
+        aria-busy={isSubmitting}
+        className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+      >
+        {isSubmitting && <SpinnerIcon />}
+        <span>{isSubmitting ? copy.confirmingButton : copy.confirmButton}</span>
+      </button>
     </div>
   );
 }
@@ -166,17 +169,44 @@ export function DeactivateCategoryModal({
   error = null,
 }: DeactivateCategoryModalProps) {
   const copy = translations.categories.deactivateModal;
-  const isBlocked = Boolean(impact && (impact.activeOrdersCount > 0 || !impact.canDeactivate));
+  const reasonId = useId();
+  const confirmationId = useId();
+  const [reason, setReason] = useState("");
+  const [confirmedOngoingOrders, setConfirmedOngoingOrders] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const requiresConfirmation = Boolean(impact?.requiresConfirmation);
+  const hasVersion = Boolean(category?.version);
+  const canConfirm = Boolean(
+    reason.trim() && hasVersion && (!requiresConfirmation || confirmedOngoingOrders),
+  );
+
+  const handleClose = () => {
+    if (isSubmitting) return;
+    setReason("");
+    setConfirmedOngoingOrders(false);
+    setValidationError(null);
+    onClose();
+  };
 
   const handleConfirm = async () => {
-    if (!category || isBlocked || isLoadingImpact || isSubmitting) return;
-    await onConfirm(category.id);
+    if (!category || !impact || isLoadingImpact || isSubmitting) return;
+    if (!reason.trim()) {
+      setValidationError(copy.reasonRequired);
+      return;
+    }
+    if (!category.version) {
+      setValidationError(copy.versionRequired);
+      return;
+    }
+    if (requiresConfirmation && !confirmedOngoingOrders) return;
+    setValidationError(null);
+    await onConfirm(category.id, category.version, reason.trim(), confirmedOngoingOrders);
   };
 
   return (
     <Modal
       isOpen={isOpen}
-      onClose={isSubmitting ? () => {} : onClose}
+      onClose={isSubmitting ? () => {} : handleClose}
       title={copy.title}
       closeAriaLabel={copy.closeAriaLabel}
     >
@@ -190,15 +220,57 @@ export function DeactivateCategoryModal({
         {isLoadingImpact && <DeactivateModalLoading />}
 
         {!isLoadingImpact && impact && category && (
-          <DeactivateModalContent impact={impact} categoryName={category.name} />
+          <>
+            <DeactivateModalContent impact={impact} categoryName={category.name} />
+            <div className="space-y-3">
+              <div>
+                <label htmlFor={reasonId} className="block text-sm font-medium text-[#1A2B48]">
+                  {copy.reasonLabel}
+                </label>
+                <textarea
+                  id={reasonId}
+                  value={reason}
+                  onChange={(event) => {
+                    setReason(event.target.value);
+                    if (validationError) setValidationError(null);
+                  }}
+                  maxLength={500}
+                  rows={3}
+                  disabled={isSubmitting}
+                  placeholder={copy.reasonPlaceholder}
+                  aria-invalid={Boolean(validationError)}
+                  aria-describedby={validationError ? `${reasonId}-error` : undefined}
+                  className="mt-1.5 w-full resize-y rounded-xl border border-[#1A2B48]/20 bg-white px-3.5 py-2.5 text-sm text-[#1A2B48] placeholder-[#1A2B48]/40 focus:outline-none focus:ring-2 focus:ring-[#147560] disabled:bg-gray-100"
+                />
+                {validationError && (
+                  <p id={`${reasonId}-error`} role="alert" className="mt-1 text-xs font-medium text-red-600">
+                    {validationError}
+                  </p>
+                )}
+              </div>
+              {requiresConfirmation && (
+                <label htmlFor={confirmationId} className="flex items-start gap-2 text-sm text-[#1A2B48]">
+                  <input
+                    id={confirmationId}
+                    type="checkbox"
+                    checked={confirmedOngoingOrders}
+                    onChange={(event) => setConfirmedOngoingOrders(event.target.checked)}
+                    disabled={isSubmitting}
+                    className="mt-0.5 size-4 rounded border-[#1A2B48]/30 text-[#147560] focus:ring-[#147560]"
+                  />
+                  <span>{copy.confirmationLabel}</span>
+                </label>
+              )}
+            </div>
+          </>
         )}
 
         <DeactivateModalFooter
-          isBlocked={isBlocked}
           isSubmitting={isSubmitting}
           isLoadingImpact={isLoadingImpact}
           hasImpact={Boolean(impact)}
-          onClose={onClose}
+          canConfirm={canConfirm}
+          onClose={handleClose}
           onConfirm={handleConfirm}
         />
       </div>

@@ -8,6 +8,12 @@ export interface ProviderActivitySummaryProps {
 }
 
 const STATUS_STYLES: Record<string, string> = {
+  pending: "bg-amber-50 text-amber-700 border-amber-200",
+  accepted: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  rejected: "bg-red-50 text-red-700 border-red-200",
+  scheduled: "bg-blue-50 text-blue-700 border-blue-200",
+  awaiting_payment: "bg-amber-50 text-amber-700 border-amber-200",
+  paid: "bg-emerald-50 text-emerald-700 border-emerald-200",
   in_progress: "bg-blue-50 text-blue-700 border-blue-200",
   completed: "bg-emerald-50 text-emerald-700 border-emerald-200",
   cancelled: "bg-red-50 text-red-700 border-red-200",
@@ -72,11 +78,13 @@ function OperationListItem({
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-semibold text-[#1A2B48]">
-            {op.consumerName}
+            {op.consumerName ?? `${(copy.types as Record<string, string>)[op.resourceType ?? ""] ?? op.resourceType} #${op.id}`}
           </span>
-          <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-[#536176]">
-            {op.categoryName}
-          </span>
+          {op.categoryName && (
+            <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-[#536176]">
+              {op.categoryName}
+            </span>
+          )}
           <span
             className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${statusClass}`}
           >
@@ -90,7 +98,7 @@ function OperationListItem({
 
       <div className="flex items-center sm:self-center">
         <Link
-          href={ROUTES.operationDetail(op.id)}
+          href={op.operationsHref ?? ROUTES.operationDetail(op.id)}
           className="inline-flex items-center rounded-lg border border-[#147560]/30 bg-white px-3 py-1.5 text-xs font-medium text-[#147560] transition-colors hover:bg-[#147560]/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]"
         >
           {copy.viewDetail}
@@ -119,7 +127,7 @@ function RecentOperationsList({
     <div className="overflow-hidden rounded-xl border border-[#1A2B48]/10 bg-white shadow-2xs">
       <ul className="divide-y divide-[#1A2B48]/5" aria-label={copy.title}>
         {operations.map((op) => (
-          <OperationListItem key={op.id} op={op} copy={copy} />
+          <OperationListItem key={`${op.resourceType ?? "operation"}-${op.id}`} op={op} copy={copy} />
         ))}
       </ul>
     </div>
@@ -143,9 +151,9 @@ function ActivityMetricsGrid({
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <MetricCard label={copy.metrics.totalRequests} value={totalRequests} />
-      <MetricCard label={copy.metrics.activeOrders} value={activeOrders} />
-      <MetricCard label={copy.metrics.completedOrders} value={completedOrders} />
+      <MetricCard label={copy.metrics.totalRequests} value={totalRequests ?? copy.notAvailable} />
+      <MetricCard label={copy.metrics.activeOrders} value={activeOrders ?? copy.notAvailable} />
+      <MetricCard label={copy.metrics.completedOrders} value={completedOrders ?? copy.notAvailable} />
       <MetricCard
         label={copy.metrics.averageRating}
         value={averageRating > 0 ? averageRating.toFixed(1) : "—"}

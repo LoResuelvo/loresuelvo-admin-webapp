@@ -181,3 +181,19 @@ describe("MetricsView", () => {
     expect(screen.queryByTestId("global-conversion-rate")).not.toBeInTheDocument();
   });
 });
+
+
+it("uses completed orders rather than reviews for the API completion conversion", () => {
+  const data: ConversionFunnel = {
+    from: "2026-09-01", to: "2026-09-02", globalConversionRate: 0.6667,
+    steps: [
+      { stepName: "ai_diagnostics", label: "Diagnósticos IA", count: 3, relativeConversion: 1 },
+      { stepName: "orders_completed", label: "Órdenes concluidas", count: 2, relativeConversion: 0.6667 },
+      { stepName: "reviews_submitted", label: "Reseñas enviadas", count: 1, relativeConversion: 0.5 },
+    ],
+  };
+  render(<MetricsView data={data} />);
+  const overview = screen.getByRole("region", { name: "Resumen de conversión global" });
+  expect(overview).toHaveTextContent("Órdenes completadas: 2");
+  expect(overview).not.toHaveTextContent("Órdenes completadas: 1");
+});

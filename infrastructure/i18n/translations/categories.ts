@@ -33,6 +33,8 @@ export const categoriesTranslations = {
     errors: {
       nameRequired: "El nombre es obligatorio",
       duplicate: "El rubro ya existe",
+      conflict: "El rubro cambió desde que lo cargaste. Actualizá el catálogo e intentá nuevamente",
+      versionRequired: "No se pudo obtener la versión actual del rubro. Actualizá el catálogo e intentá nuevamente.",
       forbidden: "No tenés permisos para realizar esta acción",
       serverError: "No se pudo crear el rubro. Intentá nuevamente más tarde",
     },
@@ -47,7 +49,9 @@ export const categoriesTranslations = {
     closeAriaLabel: "Cerrar modal de edición",
     errors: {
       nameRequired: "El nombre es obligatorio",
+      conflict: "El rubro cambió desde que lo cargaste. Actualizá el catálogo e intentá nuevamente.",
       duplicate: "El rubro ya existe",
+      versionRequired: "No se pudo obtener la versión actual del rubro. Actualizá el catálogo e intentá nuevamente.",
       forbidden: "No tenés permisos para realizar esta acción",
       serverError: "No se pudo actualizar el rubro. Intentá nuevamente más tarde",
     },
@@ -60,14 +64,22 @@ export const categoriesTranslations = {
         ? "Existe 1 prestador con este rubro asignado que dejará de recibir solicitudes."
         : `Existen ${providers} prestadores con este rubro asignado que dejarán de recibir solicitudes.`,
     noProvidersNotice: "No hay prestadores asignados a este rubro.",
-    blockingWarning: (orders: number) =>
-      `No es posible desactivar este rubro porque registra ${orders} ${orders === 1 ? "orden" : "órdenes"} de trabajo activas en curso que impiden desactivar el rubro.`,
+    ongoingOrdersWarning: (orders: number) =>
+      `Hay ${orders} ${orders === 1 ? "orden" : "órdenes"} programadas o pendientes de pago. Si confirmás, esas operaciones existentes podrán continuar.`,
+    reasonLabel: "Motivo de desactivación",
+    reasonPlaceholder: "Explicá por qué se desactiva este rubro",
+    reasonRequired: "Ingresá un motivo para desactivar el rubro.",
+    confirmationLabel: "Confirmo la desactivación aunque existan órdenes en curso",
+    versionRequired: "No se pudo obtener la versión actual del rubro. Actualizá el catálogo e intentá nuevamente.",
     confirmButton: "Confirmar desactivación",
     confirmingButton: "Desactivando...",
     cancelButton: "Cancelar",
     closeAriaLabel: "Cerrar diálogo",
     errors: {
       forbidden: "No tenés permisos para realizar esta acción",
+      confirmationRequired: "Confirmá la desactivación de las operaciones en curso para continuar.",
+      conflict: "El rubro cambió desde que lo cargaste. Actualizá el catálogo e intentá nuevamente.",
+      invalid: "Revisá el motivo y los datos de la desactivación.",
       serverError: "No se pudo desactivar el rubro. Intentá nuevamente más tarde",
     },
   },

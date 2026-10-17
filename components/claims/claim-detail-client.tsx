@@ -2,7 +2,7 @@
 
 // Client container for claim detail and dispute resolution
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { applyClaimResolution, type ClaimDetails } from "@/domain/claims/claim";
 import { getClaimDetailsAction, resolveClaimAction } from "@/app/(dashboard)/reclamos/actions";
@@ -109,7 +109,8 @@ function useClaimResolution(
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleOpen = () => setIsOpen(true);
+  const submission = useRef<{ fingerprint: string; key: string; reviewKey: string } | null>(null);
+  const handleOpen = () => { submission.current = null; setIsOpen(true); };
   const handleClose = () => {
     if (!isSubmitting) {
       setIsOpen(false);
@@ -121,7 +122,13 @@ function useClaimResolution(
     setIsSubmitting(true);
     setError(null);
     try {
-      const result = await resolveClaimAction(id, data);
+      const fingerprint = JSON.stringify(data);
+      if (submission.current?.fingerprint !== fingerprint) {
+        submission.current = { fingerprint, key: crypto.randomUUID(), reviewKey: crypto.randomUUID() };
+      }
+      const result = await resolveClaimAction(id, {
+        ...data, idempotencyKey: submission.current.key, reviewIdempotencyKey: submission.current.reviewKey,
+      });
       if (result.success) {
         setClaim((prev) =>
           prev ? applyClaimResolution(prev, result.data) : prev,

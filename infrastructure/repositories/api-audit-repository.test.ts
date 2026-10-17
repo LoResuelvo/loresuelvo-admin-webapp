@@ -8,34 +8,37 @@ describe("apiAuditRepository", () => {
     vi.unstubAllEnvs();
   });
 
-  const sampleListResponse = [
-    {
-      id: "aud-001",
-      timestamp: "2026-09-28T14:30:00Z",
-      operator_id: "op-101",
-      operator_email: "operador@loresuelvo.com",
-      action: "chat_access",
-      resource_type: "operation",
-      resource_id: "105",
-      reason: "Investigación de reporte por posible fraude",
-      ip_address: "192.168.1.50",
-      user_agent: "Mozilla/5.0",
-      status: "success",
-    },
-  ];
+  const samplePageResponse = {
+    events: [
+      {
+        id: "018f3f3a-8e75-7bc4-9a50-8f512998d110",
+        operator_id: 101,
+        action: "access",
+        resource_type: "operation",
+        resource_id: "105",
+        occurred_on: "2026-09-28T14:30:00Z",
+        result: "succeeded",
+        correlation_id: "trace-001",
+        reason: "Investigación de reporte por posible fraude",
+      },
+    ],
+    next_cursor: "next-page",
+  };
 
-  it("calls /admin/audit-logs with auth bearer token and parses list", async () => {
+  it("calls the API with contract filters, bearer token, and parses a page", async () => {
     vi.stubEnv("API_URL", "https://api.example.com");
-    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(sampleListResponse)));
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(samplePageResponse)));
     vi.stubGlobal("fetch", fetcher);
 
     const result = await apiAuditRepository.getAuditLogs("my-token", {
-      action: "chat_access",
-      operator: "operador@loresuelvo.com",
+      action: "access",
+      operatorId: 101,
+      from: "2026-09-01",
+      to: "2026-09-20",
     });
 
     expect(fetcher).toHaveBeenCalledWith(
-      "https://api.example.com/admin/audit-logs?action=chat_access&operator=operador%40loresuelvo.com",
+      "https://api.example.com/admin/audit-logs?action=access&operator_id=101&occurred_from=2026-09-01T00%3A00%3A00.000Z&occurred_to=2026-09-21T00%3A00%3A00.000Z",
       expect.objectContaining({
         cache: "no-store",
         headers: {
@@ -44,9 +47,28 @@ describe("apiAuditRepository", () => {
         },
       }),
     );
-    expect(result).toHaveLength(1);
-    expect(result[0].id).toBe("aud-001");
-    expect(result[0].actionLabel).toBe("Acceso a chat privado");
+    expect(result.events).toHaveLength(1);
+    expect(result.events[0].id).toBe("018f3f3a-8e75-7bc4-9a50-8f512998d110");
+    expect(result.events[0].operatorId).toBe(101);
+    expect(result.events[0].action).toBe("access");
+    expect(result.nextCursor).toBe("next-page");
+  });
+
+  it("continues the API cursor without resending filters", async () => {
+    vi.stubEnv("API_URL", "https://api.example.com");
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      events: [],
+      next_cursor: null,
+    })));
+    vi.stubGlobal("fetch", fetcher);
+
+    const result = await apiAuditRepository.getAuditLogs("token", undefined, "opaque cursor");
+
+    expect(fetcher).toHaveBeenCalledWith(
+      "https://api.example.com/admin/audit-logs?cursor=opaque+cursor",
+      expect.any(Object),
+    );
+    expect(result).toEqual({ events: [], nextCursor: null });
   });
 
   it("throws error when API_URL is missing", async () => {

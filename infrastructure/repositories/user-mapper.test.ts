@@ -157,6 +157,30 @@ describe("user-mapper", () => {
       expect(providers[1].category.name).toBe("Electricidad");
     });
 
+    it("preserves every identity verification status returned by the provider directory", () => {
+      const statuses = [
+        "unverified",
+        "not_started",
+        "in_progress",
+        "awaiting_user",
+        "in_review",
+        "approved",
+        "declined",
+        "resubmitted",
+        "abandoned",
+        "expired",
+        "kyc_expired",
+      ] as const;
+
+      const providers = mapProviders(statuses.map((identity_verification_status, index) => ({
+        ...validProviderDto,
+        id: index + 1,
+        identity_verification_status,
+      })));
+
+      expect(providers.map((provider) => provider.identityVerificationStatus)).toEqual(statuses);
+    });
+
     it("throws error on invalid providers list data", () => {
       expect(() => mapProviders("not-an-array")).toThrow("Invalid providers list data");
     });

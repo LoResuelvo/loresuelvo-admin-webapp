@@ -10,8 +10,9 @@ describe("OperationsFilterBar", () => {
     const select = screen.getByRole("combobox", { name: "Alerta Operativa" });
     expect(select).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Todas las alertas" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Estancada > 24h" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: /Propuesta demorada > 24h/ })).toBeDisabled();
+    expect(screen.getByRole("option", { name: "Estancada > 72h" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Solicitud pendiente > 24h" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Plazo de seña vencido" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Al día" })).toBeInTheDocument();
   });
 

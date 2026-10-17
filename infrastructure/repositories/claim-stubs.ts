@@ -1,4 +1,4 @@
-import type { Claim, ClaimDetails, ClaimFilters, ClaimResolution } from "@/domain/claims/claim";
+import type { ClaimPage, ClaimDetails, ClaimFilters, ClaimResolution } from "@/domain/claims/claim";
 import { ClaimError } from "@/domain/claims/claim-error";
 import type { ApiStub } from "@/infrastructure/api/types";
 import { parseE2EStubsFromCookies } from "@/infrastructure/api/e2e-stubs-utils";
@@ -11,34 +11,14 @@ export async function getE2EClaimsStub(filters?: ClaimFilters): Promise<ApiStub 
     const cookieStore = await cookies();
     const stubs = parseE2EStubsFromCookies(cookieStore.getAll());
 
-    if (filters?.status) {
-      const match = stubs.find(
-        (s) =>
-          s.method === "GET" &&
-          s.endpoint.includes(`status=${encodeURIComponent(filters.status!)}`),
-      );
-      if (match) return match;
-    }
-
-    if (filters?.q) {
-      const match = stubs.find(
-        (s) =>
-          s.method === "GET" &&
-          s.endpoint.includes(`q=${encodeURIComponent(filters.q!)}`),
-      );
-      if (match) return match;
-    }
-
-    return (
-      stubs.find(
-        (s) =>
-          s.method === "GET" &&
-          (s.endpoint === "/admin/claims" ||
-            s.endpoint === "/claims" ||
-            s.endpoint.startsWith("/admin/claims?") ||
-            s.endpoint.startsWith("/claims?")),
-      ) ?? null
-    );
+    const candidates = stubs.filter(stub => stub.method === "GET" && new URL(stub.endpoint, "http://stub.local").pathname === "/admin/claims");
+    return candidates.find(stub => {
+      const params = new URL(stub.endpoint, "http://stub.local").searchParams;
+      return params.get("status") === (filters?.status || null)
+        && params.get("q") === (filters?.q || null)
+        && Number(params.get("page") ?? 1) === (filters?.page ?? 1)
+        && Number(params.get("limit") ?? 20) === (filters?.limit ?? 20);
+    }) ?? candidates.find(stub => !stub.endpoint.includes("?")) ?? null;
   } catch {
     return null;
   }
@@ -47,7 +27,7 @@ export async function getE2EClaimsStub(filters?: ClaimFilters): Promise<ApiStub 
 export async function resolveClaimsFromStub(
   stub: ApiStub,
   filters?: ClaimFilters,
-): Promise<Claim[]> {
+): Promise<ClaimPage> {
   if (stub.delayMs) {
     await new Promise((resolve) => setTimeout(resolve, stub.delayMs));
   }
@@ -55,16 +35,20 @@ export async function resolveClaimsFromStub(
   if (stub.status >= 500) throw new ClaimError("unavailable", `Failed: ${stub.status}`);
   if (stub.status >= 400) throw new ClaimError("unknown", `Failed: ${stub.status}`);
 
-  let result = mapClaimsList(stub.body);
+  const page = mapClaimsList(stub.body);
+  if (stub.endpoint.includes("?")) return page;
+  let result = page.items;
   if (filters?.status) result = result.filter((c) => c.status === filters.status);
   if (filters?.q) {
     const q = filters.q.toLowerCase().trim();
     result = result.filter(
-      (c) => c.claimantName.toLowerCase().includes(q) || c.respondentName.toLowerCase().includes(q),
+      (c) => c.claimantName.toLowerCase().includes(q) || (c.respondentName ?? "").toLowerCase().includes(q),
     );
   }
-  if (filters?.urgency) result = result.filter((c) => c.urgency === filters.urgency);
-  return result;
+
+  const pageNumber = filters?.page ?? page.page;
+  const limit = filters?.limit ?? page.limit;
+  return { items: result.slice((pageNumber - 1) * limit, pageNumber * limit), page: pageNumber, limit, total: result.length };
 }
 
 export async function getE2EClaimDetailStub(id: string): Promise<ApiStub | null> {

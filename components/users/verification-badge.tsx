@@ -22,6 +22,34 @@ const statusStyles: Record<
     container: "bg-red-50 text-red-700 border-red-200",
     dot: "bg-red-500",
   },
+  not_started: {
+    container: "bg-slate-50 text-slate-600 border-slate-200",
+    dot: "bg-slate-400",
+  },
+  in_progress: {
+    container: "bg-blue-50 text-blue-700 border-blue-200",
+    dot: "bg-blue-500",
+  },
+  awaiting_user: {
+    container: "bg-amber-50 text-amber-700 border-amber-200",
+    dot: "bg-amber-500",
+  },
+  resubmitted: {
+    container: "bg-cyan-50 text-cyan-700 border-cyan-200",
+    dot: "bg-cyan-500",
+  },
+  abandoned: {
+    container: "bg-slate-50 text-slate-600 border-slate-200",
+    dot: "bg-slate-400",
+  },
+  expired: {
+    container: "bg-red-50 text-red-700 border-red-200",
+    dot: "bg-red-500",
+  },
+  kyc_expired: {
+    container: "bg-red-50 text-red-700 border-red-200",
+    dot: "bg-red-500",
+  },
   unverified: {
     container: "bg-slate-50 text-slate-600 border-slate-200",
     dot: "bg-slate-400",
@@ -30,7 +58,8 @@ const statusStyles: Record<
 
 export function VerificationBadge({ status, className = "" }: VerificationBadgeProps) {
   const styles = statusStyles[status] ?? statusStyles.unverified;
-  const label = translations.users.providers.status[status] ?? status;
+  const labels = translations.users.providers.status;
+  const label = labels[status as keyof typeof labels] ?? status;
 
   return (
     <span

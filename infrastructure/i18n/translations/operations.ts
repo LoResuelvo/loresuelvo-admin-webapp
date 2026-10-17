@@ -1,7 +1,6 @@
 export const operationsTranslations = {
   relatedProposals: "Otras propuestas de la conversación",
   timeline: { job_request_created: "Solicitud creada", service_proposal_created: "Propuesta creada", work_order_accepted: "Orden aceptada", completion_reported: "Finalización reportada", balance_paid: "Saldo pagado", payment_intent_created: "Intento de pago creado" },
-  unsupportedProposalAge: "Propuesta demorada > 24h (sin fecha de aceptación disponible)",
   unavailable: "Información no disponible",
   nextPage: "Siguiente página",
   previousPage: "Página anterior",
@@ -41,12 +40,12 @@ export const operationsTranslations = {
     cancelled: "Cancelado",
   },
   bottleneck: {
-    pending_proposal_24h: "Propuesta demorada > 24h",
-    pending_booking_deposit: "Pago de seña pendiente",
+    request_pending_over_24h: "Solicitud pendiente > 24h",
+    booking_deadline_passed: "Plazo de seña vencido",
     scheduled_today: "Agendado para hoy",
-    delayed_service: "Servicio demorado",
+    delayed: "Servicio demorado",
     pending_final_payment: "Pago final pendiente",
-    stalled: "Estancada > 24h",
+    stalled: "Estancada > 72h",
     none: "Al día",
   },
   responsible: {

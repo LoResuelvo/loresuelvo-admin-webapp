@@ -15,7 +15,8 @@ export function mapCategory(value: unknown): Category {
   return {
     id: parsed.data.id,
     name: parsed.data.name,
-    enabled: parsed.data.enabled ?? true,
+    enabled: parsed.data.enabled,
+    version: parsed.data.version,
   };
 }
 
@@ -36,7 +37,8 @@ export function mapCategories(value: unknown): Category[] {
     .map((item) => ({
       id: item.id,
       name: item.name,
-      enabled: item.enabled ?? true,
+      enabled: item.enabled,
+      version: item.version,
     }))
     .sort((a, b) => a.name.localeCompare(b.name, "es"));
 }
@@ -46,22 +48,26 @@ export function mapCategoryImpact(value: unknown): CategoryImpact {
   if (!parsed.success) {
     throw new Error("Invalid category impact data");
   }
-  const data = parsed.data;
-  const categoryId = data.categoryId ?? data.category_id;
-  const categoryName = data.categoryName ?? data.category_name;
-  if (!categoryId || !categoryName) {
-    throw new Error("Invalid category impact data");
-  }
-  const providerCount = data.providerCount ?? data.provider_count ?? 0;
-  const activeOrdersCount = data.activeOrdersCount ?? data.active_orders_count ?? 0;
-  const canDeactivate = data.canDeactivate ?? data.can_deactivate ?? activeOrdersCount === 0;
+  const { category, counts } = parsed.data;
+  const activeOrdersCount = counts.scheduled_orders + counts.awaiting_payment_orders;
 
   return {
-    categoryId,
-    categoryName,
-    providerCount,
+    categoryId: category.id,
+    categoryName: category.name,
+    observedAt: parsed.data.observed_at,
+    counts: {
+      assignedProviders: counts.assigned_providers,
+      pendingRequests: counts.pending_requests,
+      acceptedRequestsWithoutProposal: counts.accepted_requests_without_proposal,
+      pendingProposals: counts.pending_proposals,
+      scheduledOrders: counts.scheduled_orders,
+      awaitingPaymentOrders: counts.awaiting_payment_orders,
+    },
+    hasOngoingOrders: parsed.data.has_ongoing_orders,
+    requiresConfirmation: parsed.data.requires_confirmation,
+    existingOperationsCanContinue: parsed.data.existing_operations_can_continue,
+    providerCount: counts.assigned_providers,
     activeOrdersCount,
-    canDeactivate,
   };
 }
 

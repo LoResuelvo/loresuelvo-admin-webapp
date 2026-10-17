@@ -3,10 +3,39 @@ import { Given, When, Then } from "@cucumber/cucumber";
 import { ROUTES } from "@/lib/routes";
 import { CustomWorld } from "../support/world";
 
+function categoryDto(id: number, name: string, enabled = true, version = 1) {
+  return { id, name, enabled, version };
+}
+
+function categoryImpactDto(
+  id: number,
+  name: string,
+  providers: number,
+  scheduledOrders = 0,
+  awaitingPaymentOrders = 0,
+) {
+  const hasOngoingOrders = scheduledOrders + awaitingPaymentOrders > 0;
+  return {
+    category: categoryDto(id, name),
+    observed_at: "2026-10-15T12:00:00Z",
+    counts: {
+      assigned_providers: providers,
+      pending_requests: 0,
+      accepted_requests_without_proposal: 0,
+      pending_proposals: 0,
+      scheduled_orders: scheduledOrders,
+      awaiting_payment_orders: awaitingPaymentOrders,
+    },
+    has_ongoing_orders: hasOngoingOrders,
+    requires_confirmation: hasOngoingOrders,
+    existing_operations_can_continue: true,
+  };
+}
+
 Given(
   "que existe el rubro {string} en el catálogo",
   async function (this: CustomWorld, categoryName: string) {
-    await this.stubGet("/categories", [{ id: 1, name: categoryName }]);
+    await this.stubGet("/categories", [categoryDto(1, categoryName)]);
     await this.page.goto(new URL(ROUTES.categories, this.appUrl).href);
     const table = this.page.getByRole("table");
     await table.waitFor({ state: "visible" });
@@ -17,7 +46,7 @@ Given(
   /^(?:que )?abro la edición del rubro "([^"]+)"$/,
   async function (this: CustomWorld, categoryName: string) {
     if (!this.page.url().includes(ROUTES.categories)) {
-      await this.stubGet("/categories", [{ id: 1, name: categoryName }]);
+      await this.stubGet("/categories", [categoryDto(1, categoryName)]);
       await this.page.goto(new URL(ROUTES.categories, this.appUrl).href);
     }
     const editButton = this.page.getByRole("button", { name: `Editar rubro ${categoryName}` });
@@ -31,8 +60,8 @@ Given(
 When(
   "modifico el nombre por {string} y guardo los cambios",
   async function (this: CustomWorld, newName: string) {
-    await this.stubPatch("/categories/1", 200, { id: 1, name: newName });
-    await this.stubGet("/categories", [{ id: 1, name: newName }]);
+    await this.stubPatch("/categories/1", 200, categoryDto(1, newName, true, 2));
+    await this.stubGet("/categories", [categoryDto(1, newName, true, 2)]);
 
     const nameInput = this.page.getByLabel("Nombre del rubro");
     await nameInput.fill(newName);
@@ -90,10 +119,10 @@ Given(
   "que existen los rubros {string} y {string}",
   async function (this: CustomWorld, cat1: string, cat2: string) {
     await this.stubGet("/categories", [
-      { id: 1, name: cat1 },
-      { id: 2, name: cat2 },
+      categoryDto(1, cat1),
+      categoryDto(2, cat2),
     ]);
-    await this.stubPatch("/categories/1", 409, { error: "Conflict" });
+    await this.stubPatch("/categories/1", 409, { error: "category already exists" });
     await this.page.goto(new URL(ROUTES.categories, this.appUrl).href);
     const table = this.page.getByRole("table");
     await table.waitFor({ state: "visible" });
@@ -121,14 +150,8 @@ Then("el formulario de edición permanece abierto", async function (this: Custom
 Given(
   "que el rubro {string} no registra órdenes de trabajo activas en curso",
   async function (this: CustomWorld, categoryName: string) {
-    await this.stubGet("/categories", [{ id: 1, name: categoryName, enabled: true }]);
-    await this.stubGet("/admin/categories/1/impact", {
-      category_id: 1,
-      category_name: categoryName,
-      provider_count: 3,
-      active_orders_count: 0,
-      can_deactivate: true,
-    });
+    await this.stubGet("/categories", [categoryDto(1, categoryName)]);
+    await this.stubGet("/admin/categories/1/impact", categoryImpactDto(1, categoryName, 3));
     await this.page.goto(new URL(ROUTES.categories, this.appUrl).href);
     const table = this.page.getByRole("table");
     await table.waitFor({ state: "visible" });
@@ -151,7 +174,8 @@ When(
 When(
   "confirmo la desactivación tras revisar el impacto de prestadores asociados",
   async function (this: CustomWorld) {
-    await this.stubPatch("/categories/1", 200, { id: 1, name: "Cerrajería", enabled: false });
+    await this.stubPatch("/categories/1", 200, categoryDto(1, "Cerrajería", false, 2));
+    await this.page.getByLabel("Motivo de desactivación").fill("Cierre del rubro");
     const confirmButton = this.page.getByRole("button", { name: "Confirmar desactivación" });
     await confirmButton.waitFor({ state: "visible" });
     await confirmButton.click();
@@ -183,16 +207,10 @@ Then(
 );
 
 Given(
-  "que el rubro {string} registra órdenes de trabajo activas en curso",
-  async function (this: CustomWorld, categoryName: string) {
-    await this.stubGet("/categories", [{ id: 2, name: categoryName, enabled: true }]);
-    await this.stubGet("/admin/categories/2/impact", {
-      category_id: 2,
-      category_name: categoryName,
-      provider_count: 5,
-      active_orders_count: 3,
-      can_deactivate: false,
-    });
+  "que el rubro {string} registra {int} órdenes en curso que requieren confirmación",
+  async function (this: CustomWorld, categoryName: string, ordersCount: number) {
+    await this.stubGet("/categories", [categoryDto(2, categoryName)]);
+    await this.stubGet("/admin/categories/2/impact", categoryImpactDto(2, categoryName, 5, ordersCount, 0));
     await this.page.goto(new URL(ROUTES.categories, this.appUrl).href);
     const table = this.page.getByRole("table");
     await table.waitFor({ state: "visible" });
@@ -200,32 +218,27 @@ Given(
 );
 
 Then(
-  "se presenta una advertencia de bloqueo operativo indicando la cantidad de órdenes activas que impiden desactivar el rubro",
+  "se presenta una advertencia con la cantidad de órdenes en curso y se solicita confirmación explícita",
   async function (this: CustomWorld) {
     const alert = this.page.getByRole("alert").filter({
-      hasText: "3 órdenes de trabajo activas",
+      hasText: "3 órdenes programadas o pendientes de pago",
     });
     await alert.waitFor({ state: "visible" });
-    const confirmButton = this.page.getByRole("button", { name: "Confirmar desactivación" });
-    assert.equal(await confirmButton.isVisible(), false);
+    const confirmation = this.page.getByLabel("Confirmo la desactivación aunque existan órdenes en curso");
+    await confirmation.waitFor({ state: "visible" });
+    assert.equal(await this.page.getByRole("button", { name: "Confirmar desactivación" }).isDisabled(), true);
   },
 );
 
 Given(
   "que el cálculo de impacto de un rubro toma unos momentos",
   async function (this: CustomWorld) {
-    await this.stubGet("/categories", [{ id: 3, name: "Pintura", enabled: true }]);
+    await this.stubGet("/categories", [categoryDto(3, "Pintura")]);
     await this.addApiStub({
       method: "GET",
       endpoint: "/admin/categories/3/impact",
       status: 200,
-      body: {
-        category_id: 3,
-        category_name: "Pintura",
-        provider_count: 2,
-        active_orders_count: 0,
-        can_deactivate: true,
-      },
+      body: categoryImpactDto(3, "Pintura", 2),
       delayMs: 1500,
     });
     await this.page.goto(new URL(ROUTES.categories, this.appUrl).href);
@@ -246,7 +259,7 @@ Then(
 Given(
   "que mi cuenta de usuario no posee permisos de modificación de rubros",
   async function (this: CustomWorld) {
-    await this.stubGet("/categories", [{ id: 1, name: "Plomería", enabled: true }]);
+    await this.stubGet("/categories", [categoryDto(1, "Plomería")]);
     await this.stubPatch("/categories/1", 403, { error: "Forbidden" });
     await this.page.goto(new URL(ROUTES.categories, this.appUrl).href);
     const table = this.page.getByRole("table");
@@ -270,7 +283,7 @@ When(
 Given(
   "que el servidor experimenta dificultades de comunicación al modificar un rubro",
   async function (this: CustomWorld) {
-    await this.stubGet("/categories", [{ id: 1, name: "Plomería", enabled: true }]);
+    await this.stubGet("/categories", [categoryDto(1, "Plomería")]);
     await this.stubPatch("/categories/1", 500, { error: "Internal Server Error" });
     await this.page.goto(new URL(ROUTES.categories, this.appUrl).href);
     const table = this.page.getByRole("table");

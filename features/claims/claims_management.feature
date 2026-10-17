@@ -6,14 +6,14 @@ Feature: Expediente de reclamos y resolución de disputas
   Background:
     Given que he iniciado sesión en el panel de administración
 
-  Scenario: 01-CLM Visualizar listado de reclamos e incidentes operativos con estado y urgencia
+  Scenario: 01-CLM Visualizar listado de reclamos con estado y datos disponibles
     Given que existen reclamos formales registrados en el sistema
     When accedo a la sección de reclamos en "/reclamos"
-    Then visualizo el listado de quejas con la fecha, reclamante, rubro, estado y nivel de urgencia
+    Then visualizo el listado de quejas con la fecha, reclamante, rubro, estado y sin atribuir una urgencia no informada
 
   Scenario: 02-CLM Consultar expediente completo del reclamo con evidencias y acceso a la contratación
-    Given que existe un reclamo en estado "En revisión" con ID "clm-101"
-    When accedo al expediente del reclamo en "/reclamos/clm-101"
+    Given que existe un reclamo en estado "En revisión" con ID "101"
+    When accedo al expediente del reclamo en "/reclamos/101"
     Then visualizo la descripción del conflicto, las fotos de evidencia y el enlace directo hacia la contratación asociada
 
   Scenario: 03-CLM Registrar dictamen de resolución de mediación con motivo justificado
@@ -30,7 +30,7 @@ Feature: Expediente de reclamos y resolución de disputas
 
   Scenario: 05-CLM Filtrar reclamos por estado y buscar por participante
     Given que existen reclamos abiertos y resueltos de diferentes participantes
-    When filtro por estado "Abierto" y busco el apellido "López"
+    When filtro por estado "Abierto" y busco el correo "lopez"
     Then el listado presenta únicamente las disputas abiertas vinculadas al participante buscado
 
   Scenario: 06-CLM Mostrar estado de espera mientras se recupera el expediente
@@ -47,3 +47,8 @@ Feature: Expediente de reclamos y resolución de disputas
     Given que el servidor de soporte experimenta inconvenientes
     When intento registrar el dictamen de un reclamo
     Then se presenta un aviso informando el inconveniente con la posibilidad de reintentar
+
+  Scenario: 09-CLM Recorrer páginas de reclamos
+    Given que existen más reclamos que los incluidos en la primera página
+    When avanzo a la página siguiente de reclamos
+    Then visualizo los reclamos de la segunda página sin perder los filtros

@@ -3,7 +3,8 @@ import { z } from "zod";
 export const apiCategoryListItemSchema = z.object({
   id: z.number().int().positive(),
   name: z.string().trim().min(1),
-  enabled: z.boolean().optional(),
+  enabled: z.boolean(),
+  version: z.number().int().positive(),
 });
 
 export const apiCategoriesListSchema = z.array(apiCategoryListItemSchema);
@@ -19,16 +20,19 @@ export const apiCreateCategoryResponseSchema = z.object({
 export type ApiCreateCategoryResponse = z.infer<typeof apiCreateCategoryResponseSchema>;
 
 export const apiCategoryImpactResponseSchema = z.object({
-  category_id: z.number().int().positive().optional(),
-  categoryId: z.number().int().positive().optional(),
-  category_name: z.string().trim().min(1).optional(),
-  categoryName: z.string().trim().min(1).optional(),
-  provider_count: z.number().int().nonnegative().optional(),
-  providerCount: z.number().int().nonnegative().optional(),
-  active_orders_count: z.number().int().nonnegative().optional(),
-  activeOrdersCount: z.number().int().nonnegative().optional(),
-  can_deactivate: z.boolean().optional(),
-  canDeactivate: z.boolean().optional(),
+  category: apiCategoryListItemSchema,
+  observed_at: z.string().datetime({ offset: true }),
+  counts: z.object({
+    assigned_providers: z.number().int().nonnegative(),
+    pending_requests: z.number().int().nonnegative(),
+    accepted_requests_without_proposal: z.number().int().nonnegative(),
+    pending_proposals: z.number().int().nonnegative(),
+    scheduled_orders: z.number().int().nonnegative(),
+    awaiting_payment_orders: z.number().int().nonnegative(),
+  }),
+  has_ongoing_orders: z.boolean(),
+  requires_confirmation: z.boolean(),
+  existing_operations_can_continue: z.boolean(),
 });
 
 export type ApiCategoryImpactResponse = z.infer<typeof apiCategoryImpactResponseSchema>;

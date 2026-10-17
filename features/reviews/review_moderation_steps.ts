@@ -8,6 +8,8 @@ import {
   sampleModeratedOffensiveReviewResponse,
   sampleHiddenReviewListResponse,
   sampleRestoredReviewResponse,
+  sampleReportedReviewDetail,
+  sampleHiddenReviewDetail,
 } from "./review_fixtures";
 
 Given(
@@ -24,7 +26,7 @@ When("accedo a la sección de moderación", async function (this: CustomWorld) {
 });
 
 Then(
-  "visualizo el listado de reseñas con el autor, prestador calificado, calificación, comentario y motivo del reporte",
+  "visualizo el listado con los IDs de consumidor y prestador, contratación, calificación, reportes pendientes y fecha del reporte",
   async function (this: CustomWorld) {
     const table = this.page.getByRole("table");
     await table.waitFor();
@@ -34,19 +36,19 @@ Then(
 
     const row0 = rows.nth(0);
     const text0 = await row0.innerText();
-    assert.ok(text0.includes("Lucía Fernández"));
-    assert.ok(text0.includes("Roberto Gómez"));
+    assert.ok(text0.includes("10"));
+    assert.ok(text0.includes("20"));
+    assert.ok(text0.includes("work_order-101"));
     assert.ok(text0.includes("1"));
-    assert.ok(text0.includes("El trabajo fue pésimo"));
-    assert.ok(text0.includes("Lenguaje agraviante y trato ofensivo"));
+    assert.ok(text0.includes("25/09/2026"));
 
     const row1 = rows.nth(1);
     const text1 = await row1.innerText();
-    assert.ok(text1.includes("Esteban Morales"));
-    assert.ok(text1.includes("Clara Domínguez"));
+    assert.ok(text1.includes("11"));
+    assert.ok(text1.includes("21"));
+    assert.ok(text1.includes("work_order-102"));
     assert.ok(text1.includes("2"));
-    assert.ok(text1.includes("Publicó mis datos personales"));
-    assert.ok(text1.includes("Divulgación de datos personales"));
+    assert.ok(text1.includes("24/09/2026"));
   },
 );
 
@@ -58,7 +60,7 @@ Given(
 );
 
 When(
-  "filtro el listado por estado {string}",
+  "filtro el listado por visibilidad {string}",
   async function (this: CustomWorld, statusLabel: string) {
     const moderationPath =
       (ROUTES as unknown as Record<string, string>).moderation ?? "/moderacion";
@@ -88,8 +90,9 @@ Then(
     assert.equal(await rows.count(), 1);
 
     const rowText = await rows.first().innerText();
-    assert.ok(rowText.includes("Lucas Benítez"));
-    assert.ok(rowText.includes("Florencia Peña"));
+    assert.ok(rowText.includes("13"));
+    assert.ok(rowText.includes("23"));
+    assert.ok(rowText.includes("work_order-203"));
     assert.ok(rowText.includes("Ocultada"));
     assert.ok(!rowText.includes("Gonzalo Arias"));
     assert.ok(!rowText.includes("Mariana Paz"));
@@ -101,10 +104,11 @@ Given(
   async function (this: CustomWorld) {
     await this.stubGet("/admin/reviews", sampleReportedReviewsListResponse);
     await this.stubPost(
-      "/admin/reviews/rev-101/moderate",
+      "/admin/reviews/101/moderate",
       200,
       sampleModeratedOffensiveReviewResponse,
     );
+    await this.stubGet("/admin/reviews/101", sampleReportedReviewDetail);
     const moderationPath =
       (ROUTES as unknown as Record<string, string>).moderation ?? "/moderacion";
     await this.page.goto(new URL(moderationPath, this.appUrl).href);
@@ -169,8 +173,9 @@ Given(
   'que existe una reseña en estado "Ocultada"',
   async function (this: CustomWorld) {
     await this.stubGet("/admin/reviews", sampleHiddenReviewListResponse);
+    await this.stubGet("/admin/reviews/203", sampleHiddenReviewDetail);
     await this.stubPost(
-      "/admin/reviews/rev-203/moderate",
+      "/admin/reviews/203/moderate",
       200,
       sampleRestoredReviewResponse,
     );
@@ -181,7 +186,7 @@ Given(
 );
 
 When(
-  "solicito restablecer la visibilidad pública de la reseña",
+  "solicito restablecer la visibilidad pública e indico un motivo",
   async function (this: CustomWorld) {
     const table = this.page.getByRole("table");
     await table.waitFor();
@@ -190,6 +195,10 @@ When(
       .first();
     await restoreButton.waitFor();
     await restoreButton.click();
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor();
+    await dialog.getByLabel(/motivo detallado/i).fill("Revisión solicitada por el autor");
+    await dialog.getByRole("button", { name: /restablecer visibilidad/i }).click();
   },
 );
 
@@ -224,6 +233,7 @@ Given(
   "que me encuentro en el formulario de moderación de una reseña",
   async function (this: CustomWorld) {
     await this.stubGet("/admin/reviews", sampleReportedReviewsListResponse);
+    await this.stubGet("/admin/reviews/101", sampleReportedReviewDetail);
     const moderationPath =
       (ROUTES as unknown as Record<string, string>).moderation ?? "/moderacion";
     await this.page.goto(new URL(moderationPath, this.appUrl).href);
@@ -237,6 +247,7 @@ Given(
     await hideButton.click();
     const dialog = this.page.getByRole("dialog");
     await dialog.waitFor();
+    await dialog.getByLabel(/categoría de infracción/i).waitFor({ state: "visible" });
   },
 );
 
@@ -323,7 +334,8 @@ Given(
   "que el servicio de moderación experimenta dificultades de red",
   async function (this: CustomWorld) {
     await this.stubGet("/admin/reviews", sampleReportedReviewsListResponse);
-    await this.stubPost("/admin/reviews/rev-101/moderate", 500, {
+    await this.stubGet("/admin/reviews/101", sampleReportedReviewDetail);
+    await this.stubPost("/admin/reviews/101/moderate", 500, {
       error: "Internal Server Error",
       message: "Error temporal de conexión con el servicio",
     });

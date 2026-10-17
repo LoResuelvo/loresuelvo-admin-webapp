@@ -10,22 +10,22 @@ vi.mock("@/infrastructure/auth/auth-session", () => ({
 
 const mockReviewsList: ReviewModerationItem[] = [
   {
-    id: "rev-101",
-    createdAt: "2026-09-25T14:00:00Z",
-    operationId: 101,
-    authorName: "Lucía Fernández",
-    providerName: "Roberto Gómez",
+    id: "101",
+    consumerId: 10,
+    providerId: 20,
+    operationId: "work_order-101",
     rating: 1,
-    comment: "El trabajo fue pésimo.",
-    status: "reported",
-    reportReason: "Lenguaje agraviante",
-    moderation: null,
+    visibility: "visible",
+    version: 3,
+    pendingReportCount: 1,
+    reportedOn: "2026-09-25T14:00:00Z",
   },
 ];
 
 vi.mock("@/infrastructure/repositories/api-review-repository", () => ({
   apiReviewRepository: {
     getReviews: vi.fn(),
+    getReviewById: vi.fn(),
     moderate: vi.fn(),
   },
 }));

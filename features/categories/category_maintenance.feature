@@ -36,11 +36,11 @@ Feature: Mantenimiento y desactivación de rubros con análisis de impacto
     And veo un mensaje de confirmación de desactivación
     And el rubro "Cerrajería" se visualiza como inactivo en el catálogo
 
-  Scenario: 05-MNT Bloquear desactivación cuando existen órdenes de trabajo en curso
+  Scenario: 05-MNT Confirmar desactivación cuando existen órdenes de trabajo en curso
 
-    Given que el rubro "Electricidad" registra órdenes de trabajo activas en curso
+    Given que el rubro "Electricidad" registra 3 órdenes en curso que requieren confirmación
     When solicito desactivar el rubro "Electricidad"
-    Then se presenta una advertencia de bloqueo operativo indicando la cantidad de órdenes activas que impiden desactivar el rubro
+    Then se presenta una advertencia con la cantidad de órdenes en curso y se solicita confirmación explícita
 
   Scenario: 06-MNT Mostrar estado de espera mientras se calcula el impacto operativo
 

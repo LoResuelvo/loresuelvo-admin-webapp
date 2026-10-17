@@ -1,8 +1,10 @@
 export type {
   PaymentPurpose,
   PaymentStatus,
-  PaymentParty,
-  FinancialBreakdown,
+  PaymentTransaction,
+  PaymentBreakdown,
+  PaymentAmount,
+  PaymentSummary,
   PaymentIntentSummary,
   PaymentListResult,
   PaymentFilters,

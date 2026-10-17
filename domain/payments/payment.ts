@@ -1,48 +1,95 @@
-export type PaymentPurpose = "deposit" | "balance";
+export type PaymentPurpose = "booking_deposit" | "service_balance";
 
-export type PaymentStatus = "approved" | "pending" | "rejected" | "cancelled";
+export type PaymentStatus =
+  | "requires_checkout"
+  | "checkout_ready"
+  | "processing"
+  | "paid"
+  | "rejected"
+  | "expired"
+  | "cancelled"
+  | "refunded"
+  | "disputed"
+  | "payment_mismatch";
 
-export interface PaymentParty {
+export interface PaymentTransaction {
   id: number;
-  name: string;
-  email: string;
+  processor: string;
+  externalPaymentId: string;
+  status: string;
+  currency: string;
+  amountCents: number;
+  verifiedOn: string | null;
+  createdOn: string;
+  updatedOn: string;
+  processorFeeCents: number | null;
+  netSettlementCents: number | null;
 }
 
-export interface FinancialBreakdown {
-  serviceAmountCents: number;
-  sellerAmountCents: number;
-  platformFeeCents: number;
-  totalAmountCents: number;
+export interface PaymentBreakdown {
   currency: string;
+  serviceTotalCents: number;
+  depositCents: number;
+  platformFeeTotalCents: number;
+  platformFeeDueNowCents: number;
+  bookingPaymentDeadline: string;
+  amountDueNowCents: number | null;
+  remainingServiceBalanceCents: number | null;
+  remainingPlatformFeeCents: number | null;
+  remainingAmountDueCents: number | null;
+}
+
+export interface PaymentAmount {
+  currency: string;
+  amountCents: number;
+}
+
+export interface PaymentSummary {
+  approvedAmounts: PaymentAmount[];
+  pendingAmount: PaymentAmount | null;
+  anomalies: string[];
 }
 
 export interface PaymentIntentSummary {
-  id: number;
-  externalPaymentId?: string | null;
-  externalReference?: string | null;
+  id: string;
+  serviceProposalId: number;
+  workOrderId: number | null;
+  consumerId: number;
+  providerId: number;
   purpose: PaymentPurpose;
   status: PaymentStatus;
-  serviceProposalId?: number | null;
-  workOrderId?: number | null;
-  consumer: PaymentParty;
-  provider: PaymentParty;
-  breakdown: FinancialBreakdown;
-  createdAt: string;
-  verifiedAt?: string | null;
+  currency: string;
+  sellerAmountCents: number;
+  platformFeeCents: number;
+  totalAmountCents: number;
+  createdOn: string;
+  updatedOn: string;
+  transactions: PaymentTransaction[];
+  breakdown: PaymentBreakdown;
+  summary: PaymentSummary;
+  anomalies: string[];
 }
 
 export interface PaymentListResult {
   items: PaymentIntentSummary[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  page: {
+    limit: number;
+    nextCursor: string | null;
+  };
 }
 
+/** Filters accepted by GET /admin/payments. */
 export interface PaymentFilters {
-  query?: string;
+  paymentIntentId?: string;
+  externalReference?: string;
+  externalPaymentId?: string;
+  serviceProposalId?: number;
+  consumerEmail?: string;
+  providerEmail?: string;
   purpose?: PaymentPurpose;
-  status?: PaymentStatus;
-  page?: number;
+  intentStatus?: PaymentStatus;
+  createdFrom?: string;
+  createdTo?: string;
   limit?: number;
+  cursor?: string;
 }

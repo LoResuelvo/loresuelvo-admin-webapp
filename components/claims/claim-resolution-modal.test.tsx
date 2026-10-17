@@ -85,6 +85,33 @@ describe("ClaimResolutionModal", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
+  it.each(["0", "-1"])("rejects non-positive compensation amount %s", async (amount) => {
+    const onSubmit = vi.fn();
+    render(<ClaimResolutionModal isOpen onClose={vi.fn()} onSubmit={onSubmit} />);
+
+    await userEvent.type(screen.getByLabelText("Motivo justificado"), "Motivo válido");
+    await userEvent.type(screen.getByLabelText("Compensación sugerida (ARS, opcional)"), amount);
+    await userEvent.click(screen.getByRole("button", { name: "Confirmar dictamen" }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent("La compensación sugerida debe ser un importe positivo válido");
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("converts a positive ARS amount into minor units before submitting", async () => {
+    const onSubmit = vi.fn();
+    render(<ClaimResolutionModal isOpen onClose={vi.fn()} onSubmit={onSubmit} />);
+
+    await userEvent.type(screen.getByLabelText("Motivo justificado"), "Motivo válido");
+    await userEvent.type(screen.getByLabelText("Compensación sugerida (ARS, opcional)"), "25.50");
+    await userEvent.click(screen.getByRole("button", { name: "Confirmar dictamen" }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      resolutionType: "favor_consumer",
+      reason: "Motivo válido",
+      compensationAmountCents: 2550,
+    });
+  });
+
   it("shows loading state when isSubmitting is true", () => {
     render(
       <ClaimResolutionModal

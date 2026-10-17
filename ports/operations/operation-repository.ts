@@ -6,6 +6,7 @@ export interface OperationFilters {
   bottleneck?: BottleneckType;
   q?: string;
   categoryId?: number;
+  providerId?: number;
   cursor?: string;
   limit?: number;
 }

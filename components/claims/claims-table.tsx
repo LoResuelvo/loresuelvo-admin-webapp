@@ -108,16 +108,16 @@ function ClaimsTableRow({ claim, onSelectClaim }: ClaimsTableRowProps) {
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
-        <div className="font-medium text-[#1A2B48]">{claim.respondentName}</div>
+        <div className="font-medium text-[#1A2B48]">{claim.respondentName ?? copy.notAvailable}</div>
       </td>
       <td className="px-6 py-4 font-medium text-[#1A2B48] whitespace-nowrap">
-        {claim.categoryName}
+        {claim.categoryName ?? copy.notAvailable}
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <ClaimStatusBadge status={claim.status} />
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
-        <ClaimUrgencyBadge urgency={claim.urgency} />
+        {claim.urgency ? <ClaimUrgencyBadge urgency={claim.urgency} /> : copy.notAvailable}
       </td>
     </tr>
   );

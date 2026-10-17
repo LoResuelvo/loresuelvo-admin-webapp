@@ -4,7 +4,7 @@ export interface ProviderProfileHeaderProps {
   name: string;
   surname: string;
   email: string;
-  phone: string;
+  phone?: string;
   profilePhotoUrl?: string;
   category: {
     id: number;
@@ -55,7 +55,7 @@ export function ProviderProfileHeader({
             </span>
             <span>
               <strong className="font-medium text-[#1A2B48]/70">{copy.phoneLabel}:</strong>{" "}
-              {phone}
+              {phone ?? translations.users.consumerDetail.profile.notAvailable}
             </span>
           </div>
         </div>

@@ -55,53 +55,44 @@ export function mapConsumerDetail(data: unknown): ConsumerDetail {
 
 export function mapProviderDiagnostic(data: unknown): ProviderDiagnostic {
   const parsed = apiProviderDiagnosticResponseSchema.safeParse(data);
-  if (!parsed.success) {
-    throw new Error("Invalid provider diagnostic data");
-  }
+  if (!parsed.success) throw new Error("Invalid provider diagnostic data");
   const dto = parsed.data;
+  const provider = dto.provider;
   return {
-    id: dto.id,
-    name: dto.name,
-    surname: dto.surname,
-    email: dto.email,
-    phone: dto.phone,
-    profilePhotoUrl: dto.profile_photo_url ?? undefined,
-    category: {
-      id: dto.category.id,
-      name: dto.category.name,
-    },
-    coverageZones: dto.coverage_zones.map((zone) => ({
+    checks: dto.checks.map(check => ({
+      control: check.control,
+      result: check.result,
+      reasonCode: check.reason_code,
+      evidenceOn: check.evidence_on ?? undefined,
+    })),
+    id: provider.id,
+    name: provider.name,
+    surname: provider.surname,
+    email: provider.email,
+    profilePhotoUrl: provider.profile_photo_url ?? undefined,
+    category: provider.category,
+    coverageZones: provider.coverage_zones.map(zone => ({
       id: zone.id,
       name: zone.name,
-      isActive: zone.is_active,
+      isActive: zone.enabled,
     })),
     identityVerification: {
-      status: dto.identity_verification.status,
-      verifiedAt: dto.identity_verification.verified_at ?? undefined,
+      status: provider.identity_verification_status,
+      verifiedAt: provider.identity_verified_on ?? undefined,
     },
-    paymentConnection: {
-      isConnected: dto.payment_connection.is_connected,
-      accountId: dto.payment_connection.account_id ?? undefined,
-      canReceivePayments: dto.payment_connection.can_receive_payments,
+    // Connection evidence does not assert the provider's ability to receive a payment.
+    paymentConnection: { isConnected: dto.payment.state === "connected", canReceivePayments: null },
+    calendarConnection: { status: dto.calendar.calendar_connection_status },
+    activitySummary: {
+      averageRating: dto.reputation.average,
+      reviewsCount: dto.reputation.count,
+      recentOperations: dto.activity.map(item => ({
+        id: item.id,
+        resourceType: item.type,
+        status: item.status,
+        createdAt: item.occurred_on,
+        operationsHref: `/operaciones?provider_id=${provider.id}`,
+      })),
     },
-    calendarConnection: {
-      status: dto.calendar_connection.status,
-    },
-    activitySummary: dto.activity_summary
-      ? {
-          totalRequests: dto.activity_summary.total_requests,
-          activeOrders: dto.activity_summary.active_orders,
-          completedOrders: dto.activity_summary.completed_orders,
-          averageRating: dto.activity_summary.average_rating,
-          reviewsCount: dto.activity_summary.reviews_count,
-          recentOperations: dto.activity_summary.recent_operations.map((op) => ({
-            id: op.id,
-            categoryName: op.category_name,
-            consumerName: op.consumer_name,
-            status: op.status,
-            createdAt: op.created_at,
-          })),
-        }
-      : undefined,
   };
 }

@@ -37,7 +37,7 @@ Then(
     const globalRate = page.getByTestId("global-conversion-rate");
     await globalRate.waitFor({ state: "visible", timeout: 10000 });
     const globalText = await globalRate.textContent();
-    assert.match(globalText ?? "", /32/);
+    assert.match(globalText ?? "", /35/);
 
     for (const step of expectedSteps) {
       const stepElement = page.getByTestId(step.testId);
@@ -105,13 +105,13 @@ Then(
     await this.page.waitForFunction(
       () => {
         const el = document.querySelector('[data-testid="global-conversion-rate"]');
-        return el && el.textContent?.includes("45");
+        return el && el.textContent?.includes("47");
       },
       null,
       { timeout: 10000 },
     );
     const globalText = await globalRate.textContent();
-    assert.match(globalText ?? "", /45/);
+    assert.match(globalText ?? "", /47/);
 
     const stepElement = this.page.getByTestId("funnel-step-ai_diagnostics");
     const countText = await stepElement.textContent();
@@ -146,13 +146,13 @@ Then(
     await this.page.waitForFunction(
       () => {
         const el = document.querySelector('[data-testid="global-conversion-rate"]');
-        return el && el.textContent?.includes("28");
+        return el && el.textContent?.includes("32");
       },
       null,
       { timeout: 10000 },
     );
     const globalText = await globalRate.textContent();
-    assert.match(globalText ?? "", /28/);
+    assert.match(globalText ?? "", /32/);
 
     const stepElement = this.page.getByTestId("funnel-step-ai_diagnostics");
     const countText = await stepElement.textContent();

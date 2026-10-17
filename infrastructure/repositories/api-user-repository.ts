@@ -156,7 +156,6 @@ function buildProvidersUrl(baseUrl: string, filters?: ProviderFilters): URL {
   const url = new URL(`${baseUrl.replace(/\/$/, "")}/admin/providers`);
   if (filters?.q) url.searchParams.set("q", filters.q);
   if (filters?.categoryId) url.searchParams.set("category_id", String(filters.categoryId));
-  if (filters?.category) url.searchParams.set("category", filters.category);
   if (filters?.coverageZoneId) url.searchParams.set("coverage_zone_id", String(filters.coverageZoneId));
   if (filters?.verificationStatus) url.searchParams.set("identity_verification_status", filters.verificationStatus);
   return url;
@@ -195,7 +194,12 @@ async function fetchProvidersFromApi(token: string, filters?: ProviderFilters): 
   }
 
   const data = await response.json();
-  return mapProviders(data);
+  const providers = mapProviders(data);
+  // The API's unpaginated directory supports category_id, while this UI selects a name.
+  const categoryName = filters?.category?.toLowerCase();
+  return categoryName
+    ? providers.filter(provider => provider.category.name.toLowerCase() === categoryName)
+    : providers;
 }
 
 export const apiUserRepository: UserRepository = {

@@ -1,6 +1,20 @@
 import type { VerificationStatus } from "@/domain/users/provider";
 import { translations } from "@/infrastructure/i18n/translations";
 
+const VERIFICATION_STATUS_OPTIONS: readonly VerificationStatus[] = [
+  "unverified",
+  "not_started",
+  "in_progress",
+  "awaiting_user",
+  "in_review",
+  "approved",
+  "declined",
+  "resubmitted",
+  "abandoned",
+  "expired",
+  "kyc_expired",
+];
+
 export interface ProvidersFilterBarProps {
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
@@ -84,10 +98,11 @@ function StatusFilterSelect({
         className="rounded-xl border border-[#1A2B48]/15 bg-white px-3 py-2.5 text-sm text-[#1A2B48] transition-colors focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
       >
         <option value="">{filters.status.all}</option>
-        <option value="approved">{statusTrans.approved}</option>
-        <option value="in_review">{statusTrans.in_review}</option>
-        <option value="declined">{statusTrans.declined}</option>
-        <option value="unverified">{statusTrans.unverified}</option>
+        {VERIFICATION_STATUS_OPTIONS.map((status) => (
+          <option key={status} value={status}>
+            {statusTrans[status as keyof typeof statusTrans] ?? status}
+          </option>
+        ))}
       </select>
     </div>
   );

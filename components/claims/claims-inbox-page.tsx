@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import type { Claim } from "@/domain/claims/claim";
+import type { Claim, ClaimPage } from "@/domain/claims/claim";
 import { translations } from "@/infrastructure/i18n/translations";
 import { ROUTES } from "@/lib/routes";
 import { getClaimsAction } from "@/app/(dashboard)/reclamos/actions";
@@ -46,35 +46,38 @@ function ClaimsSkeleton() {
 export function ClaimsInboxPage() {
   const router = useRouter();
   const copy = translations.claims;
-  const [claims, setClaims] = useState<Claim[]>([]);
+  const generation = useRef(0);
+  const [page, setPage] = useState(1);
+  const [resultPage, setResultPage] = useState<ClaimPage | null>(null);
+  const claims = resultPage?.items ?? [];
+  const totalPages = resultPage ? Math.max(1, Math.ceil(resultPage.total / resultPage.limit)) : 1;
   const [filters, setFilters] = useState<ClaimsFiltersState>({ status: "", q: "" });
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isForbidden, setIsForbidden] = useState(false);
+  const [status, setStatus] = useState<{ loading: boolean; error: string | null; forbidden: boolean }>({
+    loading: true, error: null, forbidden: false,
+  });
+  const { loading: isLoading, error, forbidden: isForbidden } = status;
 
   const loadClaims = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    setIsForbidden(false);
+    const requestId = ++generation.current;
+    setStatus({ loading: true, error: null, forbidden: false });
     try {
-      const result = await getClaimsAction(filters);
+      const result = await getClaimsAction({ ...filters, page });
+      if (requestId !== generation.current) return;
       if (result.success) {
-        setClaims(result.data);
+        setResultPage(result.data);
+        setStatus({ loading: false, error: null, forbidden: false });
       } else {
-        if (result.isForbidden) {
-          setIsForbidden(true);
-        }
-        setError(result.error);
+        setStatus({ loading: false, error: result.error, forbidden: Boolean(result.isForbidden) });
       }
     } catch {
-      setError(copy.error);
-    } finally {
-      setIsLoading(false);
+      if (requestId !== generation.current) return;
+      setStatus({ loading: false, error: copy.error, forbidden: false });
     }
-  }, [filters, copy.error]);
+  }, [filters, page, copy.error]);
 
   useEffect(() => {
-    loadClaims();
+    void loadClaims();
+    return () => { generation.current += 1; };
   }, [loadClaims]);
 
   const handleSelectClaim = (claim: Claim) => {
@@ -85,7 +88,7 @@ export function ClaimsInboxPage() {
 
   return (
     <div className="space-y-6">
-      <ClaimsFilters filters={filters} onChange={setFilters} />
+      <ClaimsFilters filters={filters} onChange={next => { setFilters(next); setPage(1); }} />
 
       {isForbidden ? (
         <ClaimsForbidden message={error ?? copy.forbidden} />
@@ -99,6 +102,13 @@ export function ClaimsInboxPage() {
           onSelectClaim={handleSelectClaim}
           emptyMessage={hasActiveFilters ? copy.table.emptyFiltered : copy.table.empty}
         />
+      )}
+      {!isLoading && !error && !isForbidden && totalPages > 1 && (
+        <nav aria-label={copy.paginationLabel} className="flex items-center gap-3">
+          <button type="button" disabled={page <= 1} onClick={() => setPage(value => value - 1)}>{copy.previousPage}</button>
+          <span>{copy.page} {page} / {totalPages}</span>
+          <button type="button" disabled={page >= totalPages} onClick={() => setPage(value => value + 1)}>{copy.nextPage}</button>
+        </nav>
       )}
     </div>
   );

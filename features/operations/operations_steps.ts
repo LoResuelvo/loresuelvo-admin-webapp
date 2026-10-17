@@ -119,9 +119,16 @@ Then(
 );
 
 Given(
-  "que existen contrataciones con solicitudes demoradas por más de 24 horas y otras al día",
+  "que existen solicitudes pendientes por más de 24 horas y otras al día",
   async function (this: CustomWorld) {
     await this.stubGet("/admin/operations", operationPage(sampleOperations));
+    const overdueRequests = sampleOperations.filter((operation) =>
+      operation.alerts.includes("request_pending_over_24h")
+    );
+    await this.stubGet(
+      "/admin/operations?alert=request_pending_over_24h",
+      operationPage(overdueRequests),
+    );
     await this.stubGet("/operations", operationPage(sampleOperations));
   },
 );
@@ -140,7 +147,7 @@ When(
 );
 
 Then(
-  "se presentan únicamente los trabajos que requieren atención por llevar más de un día sin avance",
+  "se presentan únicamente las solicitudes pendientes que superan las 24 horas",
   async function (this: CustomWorld) {
     const table = this.page.getByRole("table");
     await table.waitFor();
@@ -150,7 +157,7 @@ Then(
 
     const row0Text = await rows.nth(0).innerText();
     assert.ok(row0Text.includes("Juan") && row0Text.includes("Pérez"));
-    assert.ok(row0Text.includes("Estancada") || row0Text.includes("Sin avance"));
+    assert.ok(row0Text.includes("Solicitud pendiente > 24h"));
   },
 );
 
@@ -163,9 +170,9 @@ Given(
     ];
 
     await this.stubGet("/categories", [
-      { id: 1, name: "Plomería" },
-      { id: 2, name: "Electricidad" },
-      { id: 3, name: "Gas" },
+      { id: 1, name: "Plomería", enabled: true, version: 1 },
+      { id: 2, name: "Electricidad", enabled: true, version: 1 },
+      { id: 3, name: "Gas", enabled: true, version: 1 },
     ]);
     await this.stubGet("/admin/operations", operationPage(diverseOperations));
     await this.stubGet("/admin/operations?category_id=1", operationPage(diverseOperations.filter((item) => item.category?.id === 1)));

@@ -1,94 +1,78 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { PaymentsFilters } from "./payments-filters";
+import { PaymentsFilters, type PaymentsFiltersProps } from "./payments-filters";
+
+function createProps(overrides: Partial<PaymentsFiltersProps> = {}): PaymentsFiltersProps {
+  return {
+    searchField: "paymentIntentId",
+    onSearchFieldChange: vi.fn(),
+    searchQuery: "",
+    onSearchChange: vi.fn(),
+    onSearchSubmit: vi.fn(),
+    selectedPurpose: "",
+    onPurposeChange: vi.fn(),
+    selectedStatus: "",
+    onStatusChange: vi.fn(),
+    ...overrides,
+  };
+}
 
 describe("PaymentsFilters", () => {
-  it("renders search input with accessible label and placeholder", () => {
-    render(<PaymentsFilters />);
+  it("provides API filter fields and an accessible search input", () => {
+    render(<PaymentsFilters {...createProps()} />);
 
-    const input = screen.getByRole("searchbox", {
-      name: "Buscar por referencia o participante",
-    });
-    expect(input).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("Buscar por referencia o participante..."),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Buscar por" })).toHaveValue("paymentIntentId");
+    expect(screen.getByRole("option", { name: "ID de intención" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Referencia externa" })).toBeInTheDocument();
+    expect(screen.getByRole("searchbox", { name: "Buscar pagos" })).toBeInTheDocument();
   });
 
-  it("reflects the searchQuery prop value", () => {
-    render(<PaymentsFilters searchQuery="MP-REF-45892" />);
-
-    const input = screen.getByRole("searchbox", {
-      name: "Buscar por referencia o participante",
-    });
-    expect(input).toHaveValue("MP-REF-45892");
-  });
-
-  it("calls onSearchChange when typing in the search input", async () => {
+  it("forwards search field, text, and submit interactions", async () => {
+    const onSearchFieldChange = vi.fn();
+    const onSearchChange = vi.fn();
+    const onSearchSubmit = vi.fn();
     const user = userEvent.setup();
-    const handleSearchChange = vi.fn();
-    render(<PaymentsFilters onSearchChange={handleSearchChange} />);
+    render(<PaymentsFilters {...createProps({ onSearchFieldChange, onSearchChange, onSearchSubmit })} />);
 
-    const input = screen.getByRole("searchbox", {
-      name: "Buscar por referencia o participante",
-    });
-    await user.type(input, "test");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Buscar por" }), "externalPaymentId");
+    await user.type(screen.getByRole("searchbox", { name: "Buscar pagos" }), "pay_1001");
+    await user.click(screen.getByRole("button", { name: "Buscar" }));
 
-    expect(handleSearchChange).toHaveBeenCalled();
+    expect(onSearchFieldChange).toHaveBeenCalledWith("externalPaymentId");
+    expect(onSearchChange).toHaveBeenCalled();
+    expect(onSearchSubmit).toHaveBeenCalledTimes(1);
   });
 
-  it("renders purpose select with options and reflects selectedPurpose", () => {
-    render(<PaymentsFilters selectedPurpose="deposit" />);
+  it("renders purpose options from the API purpose enum", () => {
+    render(<PaymentsFilters {...createProps({ selectedPurpose: "booking_deposit" })} />);
 
-    const select = screen.getByRole("combobox", {
-      name: "Filtrar por propósito",
-    }) as HTMLSelectElement;
-    expect(select).toBeInTheDocument();
-    expect(select.value).toBe("deposit");
+    const select = screen.getByRole("combobox", { name: "Filtrar por propósito" });
+    expect(select).toHaveValue("booking_deposit");
     expect(screen.getByRole("option", { name: "Todos los propósitos" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Seña" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Saldo" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Saldo del servicio" })).toBeInTheDocument();
   });
 
-  it("calls onPurposeChange when selecting a purpose", async () => {
+  it("forwards the selected purpose", async () => {
+    const onPurposeChange = vi.fn();
     const user = userEvent.setup();
-    const handlePurposeChange = vi.fn();
-    render(<PaymentsFilters onPurposeChange={handlePurposeChange} />);
+    render(<PaymentsFilters {...createProps({ onPurposeChange })} />);
 
-    const select = screen.getByRole("combobox", {
-      name: "Filtrar por propósito",
-    });
-    await user.selectOptions(select, "balance");
-
-    expect(handlePurposeChange).toHaveBeenCalledWith("balance");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Filtrar por propósito" }), "service_balance");
+    expect(onPurposeChange).toHaveBeenCalledWith("service_balance");
   });
 
-  it("renders status select with options and reflects selectedStatus", () => {
-    render(<PaymentsFilters selectedStatus="approved" />);
-
-    const select = screen.getByRole("combobox", {
-      name: "Filtrar por estado",
-    }) as HTMLSelectElement;
-    expect(select).toBeInTheDocument();
-    expect(select.value).toBe("approved");
-    expect(screen.getByRole("option", { name: "Todos los estados" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Aprobado" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Pendiente" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Rechazado" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Cancelado" })).toBeInTheDocument();
-  });
-
-  it("calls onStatusChange when selecting a status", async () => {
+  it("renders intent statuses and forwards the selected status", async () => {
+    const onStatusChange = vi.fn();
     const user = userEvent.setup();
-    const handleStatusChange = vi.fn();
-    render(<PaymentsFilters onStatusChange={handleStatusChange} />);
+    render(<PaymentsFilters {...createProps({ selectedStatus: "paid", onStatusChange })} />);
 
-    const select = screen.getByRole("combobox", {
-      name: "Filtrar por estado",
-    });
-    await user.selectOptions(select, "approved");
-
-    expect(handleStatusChange).toHaveBeenCalledWith("approved");
+    const select = screen.getByRole("combobox", { name: "Filtrar por estado" });
+    expect(select).toHaveValue("paid");
+    expect(screen.getByRole("option", { name: "Pagado" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "En proceso" })).toBeInTheDocument();
+    await user.selectOptions(select, "processing");
+    expect(onStatusChange).toHaveBeenCalledWith("processing");
   });
 });

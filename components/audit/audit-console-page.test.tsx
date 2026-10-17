@@ -1,7 +1,7 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { AuditConsolePage } from "./audit-console-page";
-import type { AuditLogEntry } from "@/domain/audit/audit-log";
+import type { AuditLogEntry, AuditLogsPage } from "@/domain/audit/audit-log";
 
 vi.mock("@/app/(dashboard)/auditoria/actions", () => ({
   getAuditLogsAction: vi.fn(),
@@ -11,22 +11,27 @@ import { getAuditLogsAction } from "@/app/(dashboard)/auditoria/actions";
 
 const mockEntries: AuditLogEntry[] = [
   {
-    id: "aud-001",
-    timestamp: "2026-09-28T14:30:00Z",
-    operatorId: "op-101",
-    operatorEmail: "operador@loresuelvo.com",
-    action: "chat_access",
-    actionLabel: "Acceso a chat privado",
+    id: "018f3f3a-8e75-7bc4-9a50-8f512998d110",
+    occurredOn: "2026-09-28T14:30:00Z",
+    operatorId: 101,
+    action: "access",
     resourceType: "operation",
     resourceId: "105",
     reason: "Investigación de reporte por posible fraude",
-    ipAddress: "192.168.1.50",
-    userAgent: "Mozilla/5.0",
-    status: "success",
+    correlationId: "trace-001",
+    result: "succeeded",
   },
 ];
 
+function page(events: readonly AuditLogEntry[] = mockEntries, nextCursor: string | null = null): AuditLogsPage {
+  return { events, nextCursor };
+}
+
 describe("AuditConsolePage", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it.each(["success", "forbidden", "rejection"] as const)("ignores stale %s while the latest search is loading and after it resolves", async (outcome) => {
     let resolveOld!: (value: Awaited<ReturnType<typeof getAuditLogsAction>>) => void;
     let rejectOld!: (error: Error) => void;
@@ -35,14 +40,16 @@ describe("AuditConsolePage", () => {
     const latest = new Promise<Awaited<ReturnType<typeof getAuditLogsAction>>>((resolve) => { resolveLatest = resolve; });
     vi.mocked(getAuditLogsAction).mockReturnValueOnce(old).mockReturnValueOnce(latest);
     render(<AuditConsolePage />);
-    fireEvent.change(screen.getByLabelText("Buscar por operador"), { target: { value: "new" } });
+    fireEvent.change(screen.getByLabelText("Filtrar por ID del operador"), { target: { value: "102" } });
     await act(async () => {
       if (outcome === "rejection") rejectOld(new Error("stale failure"));
-      else resolveOld(outcome === "forbidden" ? { success: false, error: "stale forbidden", isForbidden: true } : { success: true, data: [] });
+      else resolveOld(outcome === "forbidden"
+        ? { success: false, error: "stale forbidden", isForbidden: true }
+        : { success: true, data: page([]) });
     });
     expect(screen.getByLabelText("Cargando bitácora de auditoría...")).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    await act(async () => { resolveLatest({ success: true, data: [] }); });
+    await act(async () => { resolveLatest({ success: true, data: page([]) }); });
     expect(screen.queryByLabelText("Cargando bitácora de auditoría...")).not.toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
@@ -54,9 +61,9 @@ describe("AuditConsolePage", () => {
       .mockReturnValueOnce(new Promise((resolve) => { resolveOld = resolve; }))
       .mockReturnValueOnce(new Promise((resolve) => { resolveLatest = resolve; }));
     render(<AuditConsolePage />);
-    fireEvent.change(screen.getByLabelText("Buscar por operador"), { target: { value: "new" } });
+    fireEvent.change(screen.getByLabelText("Filtrar por ID del operador"), { target: { value: "102" } });
     await act(async () => { resolveLatest({ success: false, error: "latest error" }); });
-    await act(async () => { resolveOld({ success: true, data: [] }); });
+    await act(async () => { resolveOld({ success: true, data: page([]) }); });
     expect(screen.getByRole("alert")).toHaveTextContent("latest error");
   });
 
@@ -69,25 +76,17 @@ describe("AuditConsolePage", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("renders loading skeleton initially and then displays entries", async () => {
-    vi.mocked(getAuditLogsAction).mockResolvedValue({
-      success: true,
-      data: mockEntries,
-    });
+  it("renders loading skeleton and displays API event values", async () => {
+    vi.mocked(getAuditLogsAction).mockResolvedValue({ success: true, data: page() });
 
     render(<AuditConsolePage />);
 
     expect(screen.getByLabelText("Cargando bitácora de auditoría...")).toBeInTheDocument();
-
-    await waitFor(() => {
-      expect(screen.getByText("operador@loresuelvo.com")).toBeInTheDocument();
-    });
-
+    await waitFor(() => expect(screen.getByText("101")).toBeInTheDocument());
     expect(screen.getByText("Contratación #105")).toBeInTheDocument();
+    const table = within(screen.getByRole("table"));
+    expect(table.getByText("Acceso")).toBeInTheDocument();
+    expect(table.getByText("Exitoso")).toBeInTheDocument();
   });
 
   it("displays forbidden message when user lacks permissions", async () => {
@@ -98,15 +97,10 @@ describe("AuditConsolePage", () => {
     });
 
     render(<AuditConsolePage />);
-
     await waitFor(() => {
-      expect(
-        screen.getByText("No posees permisos suficientes para acceder a la consola de auditoría."),
-      ).toBeInTheDocument();
+      expect(screen.getByText("No posees permisos suficientes para acceder a la consola de auditoría.")).toBeInTheDocument();
     });
-
-    const alert = screen.getByRole("alert");
-    expect(alert).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Reintentar" })).not.toBeInTheDocument();
   });
 
@@ -115,101 +109,66 @@ describe("AuditConsolePage", () => {
       success: false,
       error: "Ocurrió un error al cargar la bitácora de auditoría.",
     });
-
     render(<AuditConsolePage />);
+    await waitFor(() => expect(screen.getByText("Ocurrió un error al cargar la bitácora de auditoría.")).toBeInTheDocument());
 
-    await waitFor(() => {
-      expect(screen.getByText("Ocurrió un error al cargar la bitácora de auditoría.")).toBeInTheDocument();
-    });
-
-    const retryButton = screen.getByRole("button", { name: "Reintentar" });
-    expect(retryButton).toBeInTheDocument();
-
-    vi.mocked(getAuditLogsAction).mockResolvedValueOnce({
-      success: true,
-      data: mockEntries,
-    });
-
-    retryButton.click();
-
-    await waitFor(() => {
-      expect(screen.getByText("operador@loresuelvo.com")).toBeInTheDocument();
-    });
+    vi.mocked(getAuditLogsAction).mockResolvedValueOnce({ success: true, data: page() });
+    screen.getByRole("button", { name: "Reintentar" }).click();
+    await waitFor(() => expect(screen.getByText("101")).toBeInTheDocument());
   });
 
-  it("filters entries when action is selected in AuditFiltersBar", async () => {
-    vi.mocked(getAuditLogsAction).mockResolvedValue({
-      success: true,
-      data: mockEntries,
-    });
-
+  it("renders action and numeric operator filters", async () => {
+    vi.mocked(getAuditLogsAction).mockResolvedValue({ success: true, data: page() });
     render(<AuditConsolePage />);
 
-    await waitFor(() => {
-      expect(screen.getByText("operador@loresuelvo.com")).toBeInTheDocument();
-    });
-
-    const select = screen.getByLabelText("Filtrar por acción");
-    expect(select).toBeInTheDocument();
-  });
-
-  it("renders operator search input in AuditFiltersBar", async () => {
-    vi.mocked(getAuditLogsAction).mockResolvedValue({
-      success: true,
-      data: mockEntries,
-    });
-
-    render(<AuditConsolePage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("operador@loresuelvo.com")).toBeInTheDocument();
-    });
-
-    const searchInput = screen.getByLabelText("Buscar por operador");
-    expect(searchInput).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText("101")).toBeInTheDocument());
+    expect(screen.getByLabelText("Filtrar por acción")).toBeInTheDocument();
+    expect(screen.getByLabelText("Filtrar por ID del operador")).toHaveAttribute("type", "number");
   });
 
   it("passes date range filters to getAuditLogsAction", async () => {
-    vi.mocked(getAuditLogsAction).mockResolvedValue({
-      success: true,
-      data: mockEntries,
-    });
-
-    render(
-      <AuditConsolePage
-        initialFilters={{ from: "2026-09-01", to: "2026-09-20" }}
-      />,
-    );
+    vi.mocked(getAuditLogsAction).mockResolvedValue({ success: true, data: page() });
+    render(<AuditConsolePage initialFilters={{ from: "2026-09-01", to: "2026-09-20" }} />);
 
     await waitFor(() => {
-      expect(getAuditLogsAction).toHaveBeenCalledWith({
-        from: "2026-09-01",
-        to: "2026-09-20",
-      });
+      expect(getAuditLogsAction).toHaveBeenCalledWith({ from: "2026-09-01", to: "2026-09-20" });
     });
   });
 
-  it("opens audit detail modal when clicking a row in the table", async () => {
-    vi.mocked(getAuditLogsAction).mockResolvedValue({
-      success: true,
-      data: mockEntries,
-    });
+  it("loads and appends the next cursor page", async () => {
+    const nextEntry: AuditLogEntry = {
+      ...mockEntries[0],
+      id: "018f3f3a-8e75-7bc4-9a50-8f512998d111",
+      operatorId: 102,
+      result: "prepared",
+      correlationId: "trace-002",
+    };
+    vi.mocked(getAuditLogsAction)
+      .mockResolvedValueOnce({ success: true, data: page(mockEntries, "opaque-cursor") })
+      .mockResolvedValueOnce({ success: true, data: page([nextEntry]) });
 
     render(<AuditConsolePage />);
+    await waitFor(() => expect(screen.getByRole("button", { name: "Cargar más" })).toBeInTheDocument());
+    screen.getByRole("button", { name: "Cargar más" }).click();
 
-    await waitFor(() => {
-      expect(screen.getByText("operador@loresuelvo.com")).toBeInTheDocument();
-    });
+    await waitFor(() => expect(screen.getByText("102")).toBeInTheDocument());
+    expect(getAuditLogsAction).toHaveBeenLastCalledWith({}, "opaque-cursor");
+    expect(screen.getAllByRole("row")).toHaveLength(3);
+    expect(screen.queryByRole("button", { name: "Cargar más" })).not.toBeInTheDocument();
+  });
 
-    const row = screen.getByText("operador@loresuelvo.com").closest("tr")!;
-    row.click();
+  it("opens details with the API correlation identifier", async () => {
+    vi.mocked(getAuditLogsAction).mockResolvedValue({ success: true, data: page() });
+    render(<AuditConsolePage />);
+
+    await waitFor(() => expect(screen.getByText("101")).toBeInTheDocument());
+    screen.getByText("101").closest("tr")!.click();
 
     await waitFor(() => {
       expect(screen.getByRole("dialog")).toBeInTheDocument();
       expect(screen.getByText("Detalle de intervención")).toBeInTheDocument();
-      expect(screen.getByText("aud-001")).toBeInTheDocument();
-      expect(screen.getByText("192.168.1.xxx")).toBeInTheDocument();
+      expect(screen.getByText("trace-001")).toBeInTheDocument();
+      expect(screen.queryByText(/IP|Agente de usuario/)).not.toBeInTheDocument();
     });
   });
 });
-

@@ -2,11 +2,11 @@ import type { BottleneckType } from "@/domain/operations/operation-summary";
 import { translations } from "@/infrastructure/i18n/translations";
 
 const BOTTLENECK_OPTIONS: readonly BottleneckType[] = [
+  "request_pending_over_24h",
+  "booking_deadline_passed",
   "stalled",
-  "pending_proposal_24h",
-  "pending_booking_deposit",
   "scheduled_today",
-  "delayed_service",
+  "delayed",
   "pending_final_payment",
   "none",
 ];
@@ -132,7 +132,7 @@ function BottleneckFilterSelect({
       >
         <option value="">{filters.bottleneck.all}</option>
         {BOTTLENECK_OPTIONS.map((key) => (
-          <option key={key} value={key} disabled={key === "pending_proposal_24h"}>
+          <option key={key} value={key}>
             {bottleneckTrans[key]}
           </option>
         ))}

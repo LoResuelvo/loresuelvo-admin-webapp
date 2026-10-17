@@ -109,8 +109,8 @@ export function ResolutionCompensationInput({
       <input
         id={id}
         type="number"
-        min="0"
-        step="1"
+        min="0.01"
+        step="0.01"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}

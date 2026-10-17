@@ -69,6 +69,11 @@ const STEPS_CONFIG: StepConfig[] = [
     getDelay: (d) => mapDelayToMinutes(d.confirmed_hiring_to_reported_completion.mean_seconds),
   },
   {
+    stageKey: "full_payment",
+    stepName: "full_payments",
+    getDelay: (d) => mapDelayToMinutes(d.reported_completion_to_full_payment.mean_seconds),
+  },
+  {
     stageKey: "review",
     stepName: "reviews_submitted",
     getDelay: () => null,

@@ -6,10 +6,10 @@ Feature: Moderación de reseñas y comentarios
   Background:
     Given que he iniciado sesión en el panel de administración
 
-  Scenario: 01-REV Visualizar listado de reseñas reportadas con calificación y motivo
+  Scenario: 01-REV Visualizar el resumen de reseñas reportadas con datos disponibles
     Given que existen reseñas denunciadas por usuarios en el marketplace
     When accedo a la sección de moderación
-    Then visualizo el listado de reseñas con el autor, prestador calificado, calificación, comentario y motivo del reporte
+    Then visualizo el listado con los IDs de consumidor y prestador, contratación, calificación, reportes pendientes y fecha del reporte
 
   Scenario: 02-REV Ocultar reseña ofensiva con categoría de infracción y motivo justificado
     Given que identifico una reseña reportada con lenguaje agraviante
@@ -19,7 +19,7 @@ Feature: Moderación de reseñas y comentarios
 
   Scenario: 03-REV Restablecer visibilidad pública de una reseña previamente ocultada
     Given que existe una reseña en estado "Ocultada"
-    When solicito restablecer la visibilidad pública de la reseña
+    When solicito restablecer la visibilidad pública e indico un motivo
     Then el estado de la reseña pasa nuevamente a "Visible"
     And veo una confirmación del restablecimiento aplicado
 
@@ -29,9 +29,9 @@ Feature: Moderación de reseñas y comentarios
     Then veo un mensaje indicando que la categoría de infracción es requerida
     And la acción no se procesa
 
-  Scenario: 05-REV Filtrar reseñas por estado de moderación
+  Scenario: 05-REV Filtrar reseñas por visibilidad pública
     Given que existen reseñas visibles, reportadas y ocultadas
-    When filtro el listado por estado "Ocultada"
+    When filtro el listado por visibilidad "Ocultada"
     Then el listado presenta únicamente las reseñas que fueron retiradas de la vista pública
 
   Scenario: 06-REV Mostrar estado de espera mientras se consultan las reseñas

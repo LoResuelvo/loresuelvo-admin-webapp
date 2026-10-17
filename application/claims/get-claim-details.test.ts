@@ -5,16 +5,14 @@ import { getClaimDetails } from "./get-claim-details";
 
 describe("getClaimDetails use case", () => {
   const mockClaimDetails: ClaimDetails = {
-    id: "clm-101",
+    id: "101",
     createdAt: "2026-09-24T10:00:00Z",
-    operationId: 42,
+    operationId: "sp-42",
     claimantType: "consumer",
-    claimantName: "Ana Gómez",
-    respondentName: "Carlos López",
+    claimantName: "ana@example.com",
     categoryName: "Plomería",
     status: "in_review",
-    urgency: "high",
-    claimReason: "Incumplimiento de horario y cobro indebido",
+    claimReason: "non_compliance",
     description: "El prestador se presentó tarde.",
     evidencePhotoUrls: ["https://example.com/p1.jpg"],
     resolution: null,
@@ -27,9 +25,9 @@ describe("getClaimDetails use case", () => {
       resolveClaim: vi.fn(),
     };
 
-    const result = await getClaimDetails(repository, "test-token", "clm-101");
+    const result = await getClaimDetails(repository, "test-token", "101");
 
-    expect(repository.getClaimById).toHaveBeenCalledWith("test-token", "clm-101");
+    expect(repository.getClaimById).toHaveBeenCalledWith("test-token", "101");
     expect(result).toEqual(mockClaimDetails);
   });
 
@@ -40,6 +38,6 @@ describe("getClaimDetails use case", () => {
       resolveClaim: vi.fn(),
     };
 
-    await expect(getClaimDetails(repository, "token", "clm-101")).rejects.toThrow("Network failure");
+    await expect(getClaimDetails(repository, "token", "101")).rejects.toThrow("Network failure");
   });
 });

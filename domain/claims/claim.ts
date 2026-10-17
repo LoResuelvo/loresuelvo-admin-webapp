@@ -11,24 +11,27 @@ export interface ResolutionInput {
   resolutionType: ResolutionType;
   reason: string;
   compensationAmountCents?: number | null;
+  idempotencyKey?: string;
+  reviewIdempotencyKey?: string;
 }
 
 export interface Claim {
   id: string;
   createdAt: string;
-  operationId: number;
+  operationId: string | number;
   claimantType: ClaimantType;
   claimantName: string;
-  respondentName: string;
-  categoryName: string;
+  respondentName?: string;
+  categoryName?: string;
   status: ClaimStatus;
-  urgency: ClaimUrgency;
+  urgency?: ClaimUrgency;
 }
 
 export interface ClaimFilters {
   status?: ClaimStatus | "";
   q?: string;
-  urgency?: ClaimUrgency | "";
+  page?: number;
+  limit?: number;
 }
 
 export interface ClaimResolution {
@@ -48,4 +51,11 @@ export interface ClaimDetails extends Claim {
 
 export function applyClaimResolution(claim: ClaimDetails, resolution: ClaimResolution): ClaimDetails {
   return { ...claim, status: resolution.resolutionType === "dismissed" ? "dismissed" : "resolved", resolution };
+}
+
+export interface ClaimPage {
+  items: Claim[];
+  page: number;
+  limit: number;
+  total: number;
 }

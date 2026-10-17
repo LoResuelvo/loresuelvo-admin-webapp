@@ -52,7 +52,7 @@ const mockOperations: OperationSummary[] = [
       name: "Electricidad",
     },
     status: "quoted",
-    bottleneck: "pending_proposal_24h",
+    bottleneck: "request_pending_over_24h",
     nextActionBy: "consumer",
     createdAt: "2026-09-21T09:00:00Z",
     updatedAt: "2026-09-22T11:00:00Z",
@@ -83,7 +83,7 @@ describe("OperationsTable", () => {
     expect(row1.getByText("carlos.lopez@example.com")).toBeInTheDocument();
     expect(row1.getByText("Plomería")).toBeInTheDocument();
     expect(row1.getByText("En progreso")).toBeInTheDocument();
-    expect(row1.getByText("Estancada > 24h")).toBeInTheDocument();
+    expect(row1.getByText("Estancada > 72h")).toBeInTheDocument();
     expect(row1.getByText("Prestador")).toBeInTheDocument();
 
     const row2 = within(rows[2]);
@@ -93,7 +93,7 @@ describe("OperationsTable", () => {
     expect(row2.getByText("roberto.diaz@example.com")).toBeInTheDocument();
     expect(row2.getByText("Electricidad")).toBeInTheDocument();
     expect(row2.getByText("Cotizado")).toBeInTheDocument();
-    expect(row2.getByText("Propuesta demorada > 24h")).toBeInTheDocument();
+    expect(row2.getByText("Solicitud pendiente > 24h")).toBeInTheDocument();
     expect(row2.getByText("Cliente")).toBeInTheDocument();
   });
 

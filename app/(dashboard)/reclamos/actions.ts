@@ -1,7 +1,7 @@
 "use server";
 
 import type {
-  Claim,
+  ClaimPage,
   ClaimDetails,
   ClaimFilters,
   ClaimResolution,
@@ -16,7 +16,7 @@ import { authSession } from "@/infrastructure/auth/auth-session";
 import { translations } from "@/infrastructure/i18n/translations";
 
 export type GetClaimsResult =
-  | { success: true; data: Claim[] }
+  | { success: true; data: ClaimPage }
   | { success: false; error: string; isForbidden?: boolean };
 
 export type GetClaimDetailsResult =
@@ -59,7 +59,7 @@ export async function getClaimsAction(
         error: translations.claims.error,
       };
     }
-    const message = error instanceof Error ? error.message : translations.claims.error;
+    const message = translations.claims.error;
     return { success: false, error: message };
   }
 }
@@ -93,7 +93,7 @@ export async function getClaimDetailsAction(
         error: copy.detail.error,
       };
     }
-    const message = error instanceof Error ? error.message : copy.detail.error;
+    const message = copy.detail.error;
     return { success: false, error: message };
   }
 }
@@ -128,7 +128,7 @@ export async function resolveClaimAction(
         error: copy.detail.error,
       };
     }
-    const message = error instanceof Error ? error.message : copy.detail.error;
+    const message = copy.detail.error;
     return { success: false, error: message };
   }
 }

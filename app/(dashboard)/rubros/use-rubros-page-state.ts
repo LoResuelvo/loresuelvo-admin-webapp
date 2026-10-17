@@ -42,10 +42,11 @@ export function useRubrosPageState() {
     const res = await createCategoryAction(name);
     if (!res.success) throw new Error(res.error);
     setCategories((prev) => sortCategories([...prev, res.data]));
+    void loadCategories();
   };
 
-  const handleUpdate = async (id: number, name: string) => {
-    const res = await updateCategoryAction(id, name);
+  const handleUpdate = async (id: number, name: string, expectedVersion: number) => {
+    const res = await updateCategoryAction(id, name, expectedVersion);
     if (!res.success) throw new Error(res.error);
     setCategories((prev) => sortCategories(prev.map((c) => (c.id === id ? res.data : c))));
   };
@@ -56,8 +57,13 @@ export function useRubrosPageState() {
     return res.data;
   };
 
-  const handleDeactivate = async (id: number) => {
-    const res = await deactivateCategoryAction(id);
+  const handleDeactivate = async (
+    id: number,
+    expectedVersion: number,
+    reason: string,
+    confirmOngoingOrders: boolean,
+  ) => {
+    const res = await deactivateCategoryAction(id, expectedVersion, reason, confirmOngoingOrders);
     if (!res.success) throw new Error(res.error);
     setCategories((prev) => sortCategories(prev.map((c) => (c.id === id ? res.data : c))));
   };

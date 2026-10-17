@@ -7,6 +7,8 @@ Given("que existen los siguientes rubros:", async function (this: CustomWorld, d
   const categories = dataTable.hashes().map((row) => ({
     id: Number(row.id),
     name: row.nombre,
+    enabled: true,
+    version: 1,
   }));
   await this.stubGet("/categories", categories);
 });
@@ -113,7 +115,7 @@ When(
       normalized_name: categoryName.toLowerCase(),
     });
     await this.stubGet("/categories", [
-      { id: 99, name: categoryName },
+      { id: 99, name: categoryName, enabled: true, version: 1 },
     ]);
 
     const nameInput = this.page.getByLabel("Nombre del rubro");
@@ -209,8 +211,8 @@ Then("el modal permanece abierto", async function (this: CustomWorld) {
 Given(
   "que existe el rubro {string}",
   async function (this: CustomWorld, categoryName: string) {
-    await this.stubGet("/categories", [{ id: 1, name: categoryName }]);
-    await this.stubPost("/categories", 409, { error: "Conflict" });
+    await this.stubGet("/categories", [{ id: 1, name: categoryName, enabled: true, version: 1 }]);
+    await this.stubPost("/categories", 409, { error: "category already exists" });
   },
 );
 

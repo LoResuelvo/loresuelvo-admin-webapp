@@ -51,6 +51,8 @@ export const usersTranslations = {
       },
     },
     status: {
+      not_started: "Sin iniciar", in_progress: "En curso", awaiting_user: "Pendiente de acción del usuario",
+      resubmitted: "Reenviada", abandoned: "Abandonada", expired: "Vencida", kyc_expired: "Validación vencida",
       approved: "Verificado",
       in_review: "En revisión",
       declined: "Rechazado",
@@ -64,6 +66,21 @@ export const usersTranslations = {
   },
   diagnostic: {
     title: "Diagnóstico Operativo",
+    checks: {
+      title: "Evidencia del diagnóstico",
+      results: { pass: "Correcto", warning: "Atención", unknown: "Sin evidencia suficiente" },
+      controls: { identity_verification: "Verificación de identidad", payment_account_connection: "Conexión de cobros", payment_token_expiry: "Vigencia de credenciales de cobro", calendar_connection: "Conexión de calendario" },
+      reasons: {
+        identity_no_session: "Sin sesión de verificación", identity_approved: "Identidad aprobada",
+        identity_in_review: "Identidad en revisión", identity_declined: "Verificación rechazada",
+        identity_not_started: "Verificación sin iniciar", identity_in_progress: "Verificación en curso",
+        identity_awaiting_user: "Verificación pendiente de acción del usuario", identity_resubmitted: "Verificación reenviada",
+        identity_abandoned: "Verificación abandonada", identity_expired: "Verificación vencida", identity_kyc_expired: "Validación de identidad vencida",
+        payment_account_not_connected: "Cuenta de cobro no conectada", payment_account_connected: "Cuenta de cobro conectada",
+        payment_token_expiry_unavailable: "Vencimiento de credenciales no disponible", payment_token_expiry_elapsed: "Credenciales vencidas", payment_token_expiry_future: "Credenciales vigentes",
+        calendar_connected: "Calendario conectado", calendar_authorization_required: "El calendario requiere autorización", calendar_not_connected: "Calendario no conectado",
+      },
+    },
     backToList: "Volver a prestadores",
     profile: {
       emailLabel: "Correo",
@@ -75,7 +92,9 @@ export const usersTranslations = {
       identity: {
         title: "Identidad",
         status: {
-          approved: "Verificado",
+          not_started: "Sin iniciar", in_progress: "En curso", awaiting_user: "Pendiente de acción del usuario",
+      resubmitted: "Reenviada", abandoned: "Abandonada", expired: "Vencida", kyc_expired: "Validación vencida",
+      approved: "Verificado",
           pending: "En revisión",
           in_review: "En revisión",
           rejected: "Rechazado",
@@ -92,6 +111,7 @@ export const usersTranslations = {
         title: "Cobros",
         connected: "Conectado",
         disconnected: "Desconectado",
+        capacityUnknown: "Capacidad de cobro no informada",
         cannotReceivePayments: "No puede recibir señas ni pagos",
         canReceivePayments: "Habilitado para recibir cobros",
         accountLabel: "Cuenta de cobro",
@@ -107,6 +127,9 @@ export const usersTranslations = {
         noZones: "Sin zonas asignadas",
       },
       calendar: {
+        actionRequired: "Requiere autorización",
+        linked: "Cuenta de calendario vinculada",
+        unlinked: "Sin cuenta de calendario vinculada",
         title: "Calendario",
         connected: "Conectado",
         disconnected: "Desconectado",
@@ -114,7 +137,8 @@ export const usersTranslations = {
     },
     activity: {
       title: "Resumen de Actividad",
-      subtitle: "Historial de trabajos y contrataciones en el Centro de Operaciones",
+      subtitle: "Actividad reciente y reputación registrada del prestador",
+      notAvailable: "No informado",
       metrics: {
         totalRequests: "Solicitudes recibidas",
         activeOrders: "Órdenes activas",
@@ -124,6 +148,7 @@ export const usersTranslations = {
       },
       recentOperations: {
         title: "Historial de Contrataciones",
+        types: { job_request: "Solicitud", service_proposal: "Propuesta", work_order: "Orden" },
         client: "Cliente",
         category: "Rubro",
         status: "Estado",
@@ -131,6 +156,8 @@ export const usersTranslations = {
         viewDetail: "Ver en Centro de Operaciones",
         empty: "No registra contrataciones recientes",
         statuses: {
+          pending: "Pendiente", accepted: "Aceptada", rejected: "Rechazada",
+          scheduled: "Programada", awaiting_payment: "Pendiente de pago", paid: "Pagada",
           in_progress: "En progreso",
           completed: "Completado",
           cancelled: "Cancelado",

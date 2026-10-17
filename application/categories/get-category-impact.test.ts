@@ -6,9 +6,20 @@ describe("getCategoryImpact", () => {
   const mockImpact = {
     categoryId: 1,
     categoryName: "Cerrajería",
+    observedAt: "2026-10-15T12:00:00Z",
+    counts: {
+      assignedProviders: 3,
+      pendingRequests: 0,
+      acceptedRequestsWithoutProposal: 0,
+      pendingProposals: 0,
+      scheduledOrders: 0,
+      awaitingPaymentOrders: 0,
+    },
+    hasOngoingOrders: false,
+    requiresConfirmation: false,
+    existingOperationsCanContinue: true,
     providerCount: 3,
     activeOrdersCount: 0,
-    canDeactivate: true,
   };
 
   it("delegates to categoryRepository.getImpact with token and id", async () => {

@@ -1,105 +1,145 @@
 import "server-only";
 import type {
-  InfractionCategory,
+  ReviewListFilter,
+  ReviewModerationCommand,
+  ReviewModerationDetail,
   ReviewModerationItem,
-  ReviewStatus,
+  ReviewModerationResult,
 } from "@/domain/reviews/review-moderation";
 import { ReviewError } from "@/domain/reviews/review-error";
 import type { ReviewRepository } from "@/ports/reviews/review-repository";
-import { mapReviewsList, mapReviewModerationItem } from "./review-mapper";
+import {
+  apiReviewDetailSchema,
+  apiReviewModerationResultSchema,
+  apiReviewsPageSchema,
+} from "@/infrastructure/api/types";
+import { mapReviewModerationDetail, mapReviewModerationResult, mapReviewsList } from "./review-mapper";
 import {
   getE2EReviewsStub,
   resolveReviewsFromStub,
+  getE2EReviewDetailStub,
+  resolveReviewDetailFromStub,
   getE2EModerateReviewStub,
   resolveModerateReviewFromStub,
 } from "./review-stubs";
 
-function buildApiUrl(baseUrl: string, status?: ReviewStatus): URL {
+const pageLimit = 100;
+
+function getBaseUrl(): string {
+  const baseUrl = process.env.API_URL;
+  if (!baseUrl) throw new Error("API_URL is not configured");
+  return baseUrl.replace(/\/$/, "");
+}
+
+function buildListUrl(baseUrl: string, status: ReviewListFilter, page: number): URL {
   const url = new URL(`${baseUrl.replace(/\/$/, "")}/admin/reviews`);
-  if (status) {
-    url.searchParams.set("status", status);
-  }
+  url.searchParams.set("status", status);
+  url.searchParams.set("page", String(page));
+  url.searchParams.set("limit", String(pageLimit));
   return url;
 }
 
+async function throwReviewResponseError(response: Response): Promise<never> {
+  const body = await response.json().catch(() => null) as { error?: unknown } | null;
+  const message = typeof body?.error === "string" ? body.error : `Failed: ${response.status}`;
+  if (response.status === 403) throw new ReviewError("forbidden", message);
+  if (response.status === 404) throw new ReviewError("notFound", message);
+  if (response.status === 409) throw new ReviewError("conflict", message);
+  if (response.status === 400) throw new ReviewError("invalid", message);
+  if (response.status >= 500) throw new ReviewError("unavailable", message);
+  throw new ReviewError("unknown", message);
+}
+
 export const apiReviewRepository: ReviewRepository = {
-  async getReviews(token: string, status?: ReviewStatus): Promise<ReviewModerationItem[]> {
-    const stub = await getE2EReviewsStub(status);
-    if (stub) {
-      return resolveReviewsFromStub(stub, status);
-    }
+  async getReviews(token: string, status?: ReviewListFilter): Promise<ReviewModerationItem[]> {
+    const filter = status ?? "all";
+    const stub = await getE2EReviewsStub(filter);
+    if (stub) return resolveReviewsFromStub(stub, filter);
 
-    const baseUrl = process.env.API_URL;
-    if (!baseUrl) {
-      throw new Error("API_URL is not configured");
-    }
+    const baseUrl = getBaseUrl();
+    const reviews: ReviewModerationItem[] = [];
+    let page = 1;
+    let total = 0;
+    do {
+      let response: Response;
+      try {
+        response = await fetch(buildListUrl(baseUrl, filter, page).toString(), {
+          headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+          cache: "no-store",
+          signal: AbortSignal.timeout(10_000),
+        });
+      } catch (error: unknown) {
+        if (error instanceof ReviewError) throw error;
+        throw new ReviewError("unavailable", "Network error when fetching reviews");
+      }
+      if (!response.ok) await throwReviewResponseError(response);
+      const payload = await response.json();
+      const parsed = apiReviewsPageSchema.safeParse(payload);
+      if (!parsed.success) throw new Error("Invalid reviews page data");
+      reviews.push(...mapReviewsList(payload));
+      total = parsed.data.total;
+      page = parsed.data.page + 1;
+    } while ((page - 1) * pageLimit < total);
+    return reviews;
+  },
 
-    const url = buildApiUrl(baseUrl, status);
+  async getReviewById(token: string, id: string): Promise<ReviewModerationDetail> {
+    const stub = await getE2EReviewDetailStub(id);
+    if (stub) return resolveReviewDetailFromStub(stub);
+
     let response: Response;
     try {
-      response = await fetch(url.toString(), {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
+      response = await fetch(`${getBaseUrl()}/admin/reviews/${encodeURIComponent(id)}`, {
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
         cache: "no-store",
         signal: AbortSignal.timeout(10_000),
       });
-    } catch (err: unknown) {
-      if (err instanceof ReviewError) throw err;
-      throw new ReviewError("unavailable", "Network error when fetching reviews");
+    } catch {
+      throw new ReviewError("unavailable", "Network error when fetching review detail");
     }
-
-    if (response.status === 403) throw new ReviewError("forbidden", "Forbidden");
-    if (response.status >= 500) throw new ReviewError("unavailable", `Failed: ${response.status}`);
-    if (!response.ok) throw new ReviewError("unknown", `Failed: ${response.status}`);
-
-    const data = await response.json();
-    return mapReviewsList(data);
+    if (!response.ok) await throwReviewResponseError(response);
+    const payload: unknown = await response.json();
+    const parsed = apiReviewDetailSchema.safeParse(payload);
+    if (!parsed.success) throw new Error("Invalid review detail data");
+    return mapReviewModerationDetail(payload);
   },
 
   async moderate(
     token: string,
     id: string,
-    action: "hide" | "unhide",
-    category?: InfractionCategory,
-    reason?: string,
-  ): Promise<ReviewModerationItem> {
+    command: ReviewModerationCommand,
+  ): Promise<ReviewModerationResult> {
     const stub = await getE2EModerateReviewStub(id);
-    if (stub) {
-      return resolveModerateReviewFromStub(stub);
-    }
+    if (stub) return resolveModerateReviewFromStub(stub);
 
-    const baseUrl = process.env.API_URL;
-    if (!baseUrl) {
-      throw new Error("API_URL is not configured");
-    }
+    const body: Record<string, unknown> = {
+      action: command.action,
+      reason: command.reason,
+      expected_version: command.expectedVersion,
+    };
+    if (command.action === "hide" && command.category) body.category = command.category;
+    if (command.reportId) body.report_id = command.reportId;
 
-    const url = `${baseUrl.replace(/\/$/, "")}/admin/reviews/${encodeURIComponent(id)}/moderate`;
     let response: Response;
     try {
-      response = await fetch(url, {
+      response = await fetch(`${getBaseUrl()}/admin/reviews/${encodeURIComponent(id)}/moderate`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({ action, category, reason }),
+        body: JSON.stringify(body),
         cache: "no-store",
         signal: AbortSignal.timeout(10_000),
       });
-    } catch (err: unknown) {
-      if (err instanceof ReviewError) throw err;
+    } catch {
       throw new ReviewError("unavailable", "Network error when moderating review");
     }
-
-    if (response.status === 403) throw new ReviewError("forbidden", "Forbidden");
-    if (response.status >= 500) throw new ReviewError("unavailable", `Failed: ${response.status}`);
-    if (!response.ok) throw new ReviewError("unknown", `Failed: ${response.status}`);
-
-    const data = await response.json();
-    return mapReviewModerationItem(data);
+    if (!response.ok) await throwReviewResponseError(response);
+    const payload: unknown = await response.json();
+    const parsed = apiReviewModerationResultSchema.safeParse(payload);
+    if (!parsed.success) throw new Error("Invalid review moderation result");
+    return mapReviewModerationResult(payload);
   },
 };
-

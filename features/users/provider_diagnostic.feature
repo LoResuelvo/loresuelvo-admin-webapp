@@ -14,7 +14,7 @@ Feature: Ficha y diagnóstico operativo de prestadores
   Scenario: 02-DIA Diagnosticar condición de cobros de Mercado Pago desconectada
     Given que el prestador no ha vinculado su cuenta de cobro en la pasarela de pagos
     When consulto su ficha de diagnóstico operativo
-    Then la condición de cobros se visualiza desconectada indicando que no puede recibir señas ni pagos
+    Then la condición de cobros se visualiza desconectada sin inferir su capacidad de recibir pagos
 
   Scenario: 03-DIA Reflejar estado real de verificación de identidad sin inferir suspensiones
     Given que el prestador tiene su verificación de identidad pendiente de revisión

@@ -9,7 +9,7 @@ export interface EditCategoryModalProps {
   isOpen: boolean;
   category: Category | null;
   onClose: () => void;
-  onSubmit: (id: number, name: string) => Promise<void> | void;
+  onSubmit: (id: number, name: string, expectedVersion: number) => Promise<void> | void;
   isSubmitting?: boolean;
   error?: string | null;
 }
@@ -127,7 +127,7 @@ function useEditCategoryForm(
   category: Category | null,
   isOpen: boolean,
   onClose: () => void,
-  onSubmit: (id: number, name: string) => Promise<void> | void,
+  onSubmit: (id: number, name: string, expectedVersion: number) => Promise<void> | void,
   isSubmitting: boolean,
 ) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -162,8 +162,12 @@ function useEditCategoryForm(
       inputRef.current?.focus();
       return;
     }
+    if (!category.version) {
+      setValidationError(copy.errors.versionRequired);
+      return;
+    }
     setValidationError(null);
-    await onSubmit(category.id, trimmed);
+    await onSubmit(category.id, trimmed, category.version);
   };
 
   return { name, setName, inputRef, validationError, setValidationError, handleClose, handleSubmit };

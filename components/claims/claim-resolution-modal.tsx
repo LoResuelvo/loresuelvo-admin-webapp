@@ -62,11 +62,16 @@ function useResolutionForm(
       setValidationError(copy.errors.reasonRequired);
       return;
     }
+    const cents = parseCompensationCents(compensationAmount);
+    if (compensationAmount && (cents === null || !Number.isSafeInteger(cents) || cents <= 0)) {
+      setValidationError(copy.errors.compensationInvalid);
+      return;
+    }
     setValidationError(null);
     await onSubmit({
       resolutionType,
       reason: trimmedReason,
-      compensationAmountCents: parseCompensationCents(compensationAmount),
+      compensationAmountCents: cents,
     });
   };
 

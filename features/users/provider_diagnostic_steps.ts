@@ -1,49 +1,10 @@
+import { providerDiagnosticFixture } from "./provider_diagnostic_fixture";
 import assert from "node:assert/strict";
 import { Given, When, Then } from "@cucumber/cucumber";
 import { ROUTES } from "@/lib/routes";
 import { CustomWorld } from "../support/world";
 
-const defaultProviderDiagnostic = {
-  id: 201,
-  name: "Juan",
-  surname: "Gómez",
-  email: "juan@example.com",
-  phone: "+54 11 5555-0101",
-  profile_photo_url: "https://storage.loresuelvo.internal/profiles/201.jpg",
-  category: { id: 2, name: "Plomería" },
-  coverage_zones: [
-    { id: 6, name: "Comuna 6", is_active: true },
-    { id: 14, name: "Comuna 14", is_active: false },
-  ],
-  identity_verification: {
-    status: "approved",
-    verified_at: "2026-09-15T12:00:00-03:00",
-  },
-  payment_connection: {
-    is_connected: true,
-    account_id: "mp-acc-8812",
-    can_receive_payments: true,
-  },
-  calendar_connection: {
-    status: "connected",
-  },
-  activity_summary: {
-    total_requests: 14,
-    active_orders: 2,
-    completed_orders: 10,
-    average_rating: 4.8,
-    reviews_count: 9,
-    recent_operations: [
-      {
-        id: 105,
-        category_name: "Plomería",
-        consumer_name: "Carlos López",
-        status: "in_progress",
-        created_at: "2026-09-21T09:30:00-03:00",
-      },
-    ],
-  },
-};
+const defaultProviderDiagnostic = providerDiagnosticFixture;
 
 Given("que existe un prestador registrado en el marketplace", async function (this: CustomWorld) {
   await this.stubGet("/admin/providers/201/diagnostic", defaultProviderDiagnostic);
@@ -64,7 +25,7 @@ Then(
     const text = await this.page.locator("body").innerText();
     assert.ok(text.includes("Juan Gómez"), "Debe mostrar el nombre completo");
     assert.ok(text.includes("juan@example.com"), "Debe mostrar el correo electrónico");
-    assert.ok(text.includes("+54 11 5555-0101"), "Debe mostrar el teléfono");
+    assert.ok(text.includes("No disponible"), "No debe inventar el teléfono ausente");
     assert.ok(text.includes("Plomería"), "Debe mostrar el rubro");
 
     // Operational conditions panel checks
@@ -81,11 +42,7 @@ Given(
   async function (this: CustomWorld) {
     await this.stubGet("/admin/providers/201/diagnostic", {
       ...defaultProviderDiagnostic,
-      payment_connection: {
-        is_connected: false,
-        account_id: null,
-        can_receive_payments: false,
-      },
+      payment: { state: "disconnected", token_expires_on: null },
     });
   },
 );
@@ -95,7 +52,7 @@ When("consulto su ficha de diagnóstico operativo", async function (this: Custom
 });
 
 Then(
-  "la condición de cobros se visualiza desconectada indicando que no puede recibir señas ni pagos",
+  "la condición de cobros se visualiza desconectada sin inferir su capacidad de recibir pagos",
   async function (this: CustomWorld) {
     const conditionsPanel = this.page.getByTestId("operational-conditions-panel");
     await conditionsPanel.waitFor({ state: "visible" });
@@ -106,8 +63,8 @@ Then(
       "Debe mostrar la condición de cobros desconectada",
     );
     assert.ok(
-      conditionsText.includes("No puede recibir señas ni pagos"),
-      "Debe advertir que no puede recibir señas ni pagos",
+      conditionsText.includes("Capacidad de cobro no informada"),
+      "No debe inferir capacidad de cobro",
     );
   },
 );
@@ -116,10 +73,7 @@ Given(
   async function (this: CustomWorld) {
     await this.stubGet("/admin/providers/201/diagnostic", {
       ...defaultProviderDiagnostic,
-      identity_verification: {
-        status: "in_review",
-        verified_at: null,
-      },
+      provider: { ...defaultProviderDiagnostic.provider, identity_verification_status: "in_review", identity_verified_on: null },
     });
   },
 );
@@ -158,10 +112,10 @@ Given(
   async function (this: CustomWorld) {
     await this.stubGet("/admin/providers/201/diagnostic", {
       ...defaultProviderDiagnostic,
-      coverage_zones: [
-        { id: 6, name: "Comuna 6", is_active: true },
-        { id: 14, name: "Comuna 14", is_active: false },
-      ],
+      provider: { ...defaultProviderDiagnostic.provider, coverage_zones: [
+        { id: 6, name: "Comuna 6", enabled: true },
+        { id: 14, name: "Comuna 14", enabled: false },
+      ] },
     });
   },
 );
@@ -213,22 +167,7 @@ Given(
   async function (this: CustomWorld) {
     await this.stubGet("/admin/providers/201/diagnostic", {
       ...defaultProviderDiagnostic,
-      activity_summary: {
-        total_requests: 14,
-        active_orders: 2,
-        completed_orders: 10,
-        average_rating: 4.8,
-        reviews_count: 9,
-        recent_operations: [
-          {
-            id: 105,
-            category_name: "Plomería",
-            consumer_name: "Carlos López",
-            status: "in_progress",
-            created_at: "2026-09-21T09:30:00-03:00",
-          },
-        ],
-      },
+
     });
   },
 );
@@ -247,17 +186,11 @@ Then(
     await activitySummary.waitFor({ state: "visible" });
 
     const summaryText = await activitySummary.innerText();
-    assert.ok(
-      summaryText.includes("14") && summaryText.includes("10") && summaryText.includes("2"),
-      "Debe mostrar las métricas de solicitudes y órdenes",
-    );
-    assert.ok(
-      summaryText.includes("Carlos López"),
-      "Debe mostrar el nombre del cliente de la operación reciente",
-    );
+    assert.ok(summaryText.includes("Orden #105"), "Debe mostrar la actividad real por recurso");
+    assert.ok(summaryText.includes("No informado"), "No debe inventar totales históricos");
 
     const operationLink = activitySummary.locator(
-      `a[href="${ROUTES.operationDetail(105)}"]`,
+      `a[href="/operaciones?provider_id=201"]`,
     );
     await operationLink.waitFor({ state: "visible" });
     assert.ok(

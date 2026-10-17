@@ -5,26 +5,22 @@ import { ClaimsTable, type ClaimItem } from "./claims-table";
 
 const mockClaims: ClaimItem[] = [
   {
-    id: "clm-101",
+    id: "101",
     createdAt: "2026-09-24T10:00:00Z",
-    operationId: 42,
+    operationId: "sp-42",
     claimantType: "consumer",
-    claimantName: "Ana Gómez",
-    respondentName: "Carlos López",
+    claimantName: "ana@example.com",
     categoryName: "Plomería",
     status: "in_review",
-    urgency: "high",
   },
   {
-    id: "clm-102",
+    id: "102",
     createdAt: "2026-09-22T14:30:00Z",
-    operationId: 43,
+    operationId: "sp-43",
     claimantType: "provider",
-    claimantName: "Martín Pérez",
-    respondentName: "Laura López",
+    claimantName: "martin@example.com",
     categoryName: "Electricidad",
     status: "open",
-    urgency: "medium",
   },
 ];
 
@@ -43,21 +39,19 @@ describe("ClaimsTable", () => {
     expect(screen.getByText("Estado")).toBeInTheDocument();
     expect(screen.getByText("Urgencia")).toBeInTheDocument();
 
-    const row0 = screen.getByText("Ana Gómez").closest("tr")!;
+    const row0 = screen.getByText("ana@example.com").closest("tr")!;
     expect(within(row0).getByText("24/09/2026")).toBeInTheDocument();
     expect(within(row0).getByText("Consumidor")).toBeInTheDocument();
-    expect(within(row0).getByText("Carlos López")).toBeInTheDocument();
+    expect(within(row0).getAllByText("No informado")).toHaveLength(2);
     expect(within(row0).getByText("Plomería")).toBeInTheDocument();
     expect(within(row0).getByText("En revisión")).toBeInTheDocument();
-    expect(within(row0).getByText("Alta")).toBeInTheDocument();
 
-    const row1 = screen.getByText("Martín Pérez").closest("tr")!;
+    const row1 = screen.getByText("martin@example.com").closest("tr")!;
     expect(within(row1).getByText("22/09/2026")).toBeInTheDocument();
     expect(within(row1).getByText("Prestador")).toBeInTheDocument();
-    expect(within(row1).getByText("Laura López")).toBeInTheDocument();
+    expect(within(row1).getAllByText("No informado")).toHaveLength(2);
     expect(within(row1).getByText("Electricidad")).toBeInTheDocument();
     expect(within(row1).getByText("Abierto")).toBeInTheDocument();
-    expect(within(row1).getByText("Media")).toBeInTheDocument();
   });
 
   it("renders empty state when no claims exist", () => {
@@ -76,7 +70,7 @@ describe("ClaimsTable", () => {
 
     render(<ClaimsTable claims={mockClaims} onSelectClaim={handleSelect} />);
 
-    const row = screen.getByText("Ana Gómez").closest("tr")!;
+    const row = screen.getByText("ana@example.com").closest("tr")!;
     await user.click(row);
 
     expect(handleSelect).toHaveBeenCalledTimes(1);
@@ -89,7 +83,7 @@ describe("ClaimsTable", () => {
 
     render(<ClaimsTable claims={mockClaims} onSelectClaim={handleSelect} />);
 
-    const row = screen.getByText("Martín Pérez").closest("tr")!;
+    const row = screen.getByText("martin@example.com").closest("tr")!;
     row.focus();
     await user.keyboard("{Enter}");
 

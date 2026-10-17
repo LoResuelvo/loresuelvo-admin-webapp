@@ -1,40 +1,86 @@
 import type {
+  ReviewModerationDetail,
   ReviewModerationItem,
-  ModerationAudit,
+  ReviewModerationResult,
 } from "@/domain/reviews/review-moderation";
 import {
-  apiReviewModerationItemSchema,
-  type ApiReviewModerationItem,
+  apiReviewDetailSchema,
+  apiReviewModerationResultSchema,
+  apiReviewSummarySchema,
+  apiReviewsPageSchema,
 } from "@/infrastructure/api/types";
 
 export function mapReviewModerationItem(raw: unknown): ReviewModerationItem {
-  const parsed: ApiReviewModerationItem = apiReviewModerationItemSchema.parse(raw);
-  let moderation: ModerationAudit | null = null;
-  if (parsed.moderation) {
-    moderation = {
-      moderatedBy: parsed.moderation.moderated_by,
-      moderatedAt: parsed.moderation.moderated_at,
-      category: parsed.moderation.category,
-      reason: parsed.moderation.reason,
-    };
+  const parsed = apiReviewSummarySchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new Error("Invalid review summary data");
   }
+  const review = parsed.data;
   return {
-    id: parsed.id,
-    createdAt: parsed.created_at,
-    operationId: parsed.operation_id,
-    authorName: parsed.author_name,
-    providerName: parsed.provider_name,
-    rating: parsed.rating,
-    comment: parsed.comment,
-    status: parsed.status,
-    reportReason: parsed.report_reason ?? null,
-    moderation,
+    id: String(review.work_order_id),
+    consumerId: review.consumer_id,
+    providerId: review.provider_id,
+    operationId: review.operation_id,
+    rating: review.rating,
+    visibility: review.visibility,
+    version: review.version,
+    pendingReportCount: review.pending_report_count,
+    reportedOn: review.reported_on,
   };
 }
 
 export function mapReviewsList(raw: unknown): ReviewModerationItem[] {
-  if (!Array.isArray(raw)) {
-    throw new Error("Invalid reviews list payload: expected an array");
+  const parsed = apiReviewsPageSchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new Error("Invalid reviews page data");
   }
-  return raw.map(mapReviewModerationItem);
+  return parsed.data.items.map(mapReviewModerationItem);
+}
+
+export function mapReviewModerationDetail(raw: unknown): ReviewModerationDetail {
+  const parsed = apiReviewDetailSchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new Error("Invalid review detail data");
+  }
+  const data = parsed.data;
+  return {
+    review: mapReviewModerationItem(data.review),
+    description: data.description,
+    report: data.report ? {
+      id: data.report.id,
+      category: data.report.category,
+      explanation: data.report.explanation,
+      status: data.report.status,
+      createdOn: data.report.created_on,
+    } : null,
+    decisions: {
+      items: data.decisions.items.map((decision) => ({
+        id: decision.id,
+        operatorId: decision.operator_id,
+        action: decision.action,
+        category: decision.category,
+        reason: decision.reason,
+        reportId: decision.report_id,
+        previousHideId: decision.previous_hide_id,
+        createdOn: decision.created_on,
+      })),
+      page: data.decisions.page,
+      limit: data.decisions.limit,
+      total: data.decisions.total,
+      hasMore: data.decisions.has_more,
+    },
+  };
+}
+
+export function mapReviewModerationResult(raw: unknown): ReviewModerationResult {
+  const parsed = apiReviewModerationResultSchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new Error("Invalid review moderation result");
+  }
+  return {
+    id: String(parsed.data.work_order_id),
+    visibility: parsed.data.visibility,
+    version: parsed.data.version,
+    decisionId: parsed.data.decision_id,
+  };
 }

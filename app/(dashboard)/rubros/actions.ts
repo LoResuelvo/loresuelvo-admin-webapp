@@ -76,16 +76,23 @@ export async function createCategoryAction(name: string): Promise<CreateCategory
   }
 }
 
-export async function updateCategoryAction(id: number, name: string): Promise<UpdateCategoryResult> {
+export async function updateCategoryAction(
+  id: number,
+  name: string,
+  expectedVersion: number,
+): Promise<UpdateCategoryResult> {
 
   try {
     const token = await resolveAuthToken();
-    const category = await updateCategory(token, apiCategoryRepository, id, name);
+    const category = await updateCategory(token, apiCategoryRepository, id, name, expectedVersion);
     return { success: true, data: category };
   } catch (error: unknown) {
     if (error instanceof CategoryError) {
       if (error.code === "duplicate") {
         return { success: false, error: translations.categories.editModal.errors.duplicate };
+      }
+      if (error.code === "conflict") {
+        return { success: false, error: translations.categories.editModal.errors.conflict };
       }
       if (error.code === "forbidden") {
         return { success: false, error: translations.categories.editModal.errors.forbidden };
@@ -118,15 +125,36 @@ export async function getCategoryImpactAction(id: number): Promise<GetCategoryIm
   }
 }
 
-export async function deactivateCategoryAction(id: number): Promise<DeactivateCategoryResult> {
+export async function deactivateCategoryAction(
+  id: number,
+  expectedVersion: number,
+  reason: string,
+  confirmOngoingOrders: boolean,
+): Promise<DeactivateCategoryResult> {
   try {
     const token = await resolveAuthToken();
-    const category = await deactivateCategory(apiCategoryRepository, token, id);
+    const category = await deactivateCategory(
+      apiCategoryRepository,
+      token,
+      id,
+      expectedVersion,
+      reason,
+      confirmOngoingOrders,
+    );
     return { success: true, data: category };
   } catch (error: unknown) {
     if (error instanceof CategoryError) {
       if (error.code === "forbidden") {
         return { success: false, error: translations.categories.deactivateModal.errors.forbidden };
+      }
+      if (error.code === "confirmationRequired") {
+        return { success: false, error: translations.categories.deactivateModal.errors.confirmationRequired };
+      }
+      if (error.code === "conflict") {
+        return { success: false, error: translations.categories.deactivateModal.errors.conflict };
+      }
+      if (error.code === "invalid") {
+        return { success: false, error: translations.categories.deactivateModal.errors.invalid };
       }
       if (error.code === "unavailable") {
         return { success: false, error: translations.categories.deactivateModal.errors.serverError };

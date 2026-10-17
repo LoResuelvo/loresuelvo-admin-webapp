@@ -1,79 +1,95 @@
 import { describe, expect, it } from "vitest";
-import { mapReviewModerationItem, mapReviewsList } from "./review-mapper";
-import type { ApiReviewModerationItem } from "@/infrastructure/api/types";
+import {
+  mapReviewModerationDetail,
+  mapReviewModerationItem,
+  mapReviewModerationResult,
+  mapReviewsList,
+} from "./review-mapper";
+
+const summaryDto = {
+  work_order_id: 101,
+  consumer_id: 10,
+  provider_id: 20,
+  operation_id: "work_order-101",
+  rating: 1,
+  visibility: "visible",
+  version: 3,
+  pending_report_count: 1,
+  reported_on: "2026-09-25T14:00:00Z",
+};
 
 describe("review-mapper", () => {
-  const sampleDto: ApiReviewModerationItem = {
-    id: "rev-101",
-    created_at: "2026-09-25T14:00:00Z",
-    operation_id: 101,
-    author_name: "Lucía Fernández",
-    provider_name: "Roberto Gómez",
-    rating: 1,
-    comment: "El trabajo fue pésimo y además me insultó al retirarse.",
-    status: "reported",
-    report_reason: "Lenguaje agraviante y trato ofensivo",
-    moderation: null,
-  };
-
-  const sampleModeratedDto: ApiReviewModerationItem = {
-    id: "rev-102",
-    created_at: "2026-09-24T18:30:00Z",
-    operation_id: 102,
-    author_name: "Esteban Morales",
-    provider_name: "Clara Domínguez",
-    rating: 2,
-    comment: "Publicó mis datos personales.",
-    status: "hidden",
-    report_reason: "Divulgación de datos personales",
-    moderation: {
-      moderated_by: "Operador Admin",
-      moderated_at: "2026-09-24T19:00:00Z",
-      category: "personal_data",
-      reason: "Datos privados expuestos",
-    },
-  };
-
-  it("maps single ApiReviewModerationItem to ReviewModerationItem domain model", () => {
-    const domain = mapReviewModerationItem(sampleDto);
-
-    expect(domain.id).toBe("rev-101");
-    expect(domain.createdAt).toBe("2026-09-25T14:00:00Z");
-    expect(domain.operationId).toBe(101);
-    expect(domain.authorName).toBe("Lucía Fernández");
-    expect(domain.providerName).toBe("Roberto Gómez");
-    expect(domain.rating).toBe(1);
-    expect(domain.comment).toBe("El trabajo fue pésimo y además me insultó al retirarse.");
-    expect(domain.status).toBe("reported");
-    expect(domain.reportReason).toBe("Lenguaje agraviante y trato ofensivo");
-    expect(domain.moderation).toBeNull();
-  });
-
-  it("maps moderated review item with audit details", () => {
-    const domain = mapReviewModerationItem(sampleModeratedDto);
-
-    expect(domain.id).toBe("rev-102");
-    expect(domain.status).toBe("hidden");
-    expect(domain.moderation).toEqual({
-      moderatedBy: "Operador Admin",
-      moderatedAt: "2026-09-24T19:00:00Z",
-      category: "personal_data",
-      reason: "Datos privados expuestos",
+  it("maps actual API summary identifiers and independent visibility/report fields", () => {
+    expect(mapReviewModerationItem(summaryDto)).toEqual({
+      id: "101",
+      consumerId: 10,
+      providerId: 20,
+      operationId: "work_order-101",
+      rating: 1,
+      visibility: "visible",
+      version: 3,
+      pendingReportCount: 1,
+      reportedOn: "2026-09-25T14:00:00Z",
     });
   });
 
-  it("maps list of review DTOs", () => {
-    const list = mapReviewsList([sampleDto, sampleModeratedDto]);
-    expect(list).toHaveLength(2);
-    expect(list[0].id).toBe("rev-101");
-    expect(list[1].id).toBe("rev-102");
+  it("preserves pending reports on a hidden review", () => {
+    const hidden = mapReviewModerationItem({ ...summaryDto, visibility: "hidden" });
+    expect(hidden.visibility).toBe("hidden");
+    expect(hidden.pendingReportCount).toBe(1);
   });
 
-  it("throws error for non-array payload", () => {
-    expect(() => mapReviewsList({ invalid: true })).toThrow("Invalid reviews list payload");
+  it("maps paginated list payloads", () => {
+    expect(mapReviewsList({ items: [summaryDto], page: 1, limit: 20, total: 1 })).toHaveLength(1);
   });
 
-  it("throws validation error for invalid DTO structure", () => {
-    expect(() => mapReviewModerationItem({ id: "", rating: 10 })).toThrow();
+  it("maps detail report and moderation history", () => {
+    const detail = mapReviewModerationDetail({
+      review: summaryDto,
+      description: "Comentario visible en el detalle.",
+      report: {
+        id: 501,
+        category: "abusive_language",
+        explanation: "Reporte recibido",
+        status: "pending",
+        created_on: "2026-09-25T14:00:00Z",
+      },
+      decisions: {
+        items: [{
+          id: 88,
+          work_order_id: 101,
+          operator_id: 4,
+          action: "hide",
+          category: "abusive_language",
+          reason: "Motivo de la decisión",
+          report_id: 501,
+          previous_hide_id: null,
+          created_on: "2026-09-26T14:00:00Z",
+        }],
+        page: 1,
+        limit: 20,
+        total: 1,
+        has_more: false,
+      },
+    });
+
+    expect(detail.review.id).toBe("101");
+    expect(detail.description).toBe("Comentario visible en el detalle.");
+    expect(detail.report?.explanation).toBe("Reporte recibido");
+    expect(detail.decisions.items[0]).toMatchObject({ operatorId: 4, reportId: 501, reason: "Motivo de la decisión" });
+  });
+
+  it("maps moderation results independently from list DTOs", () => {
+    expect(mapReviewModerationResult({
+      work_order_id: 101,
+      visibility: "hidden",
+      version: 4,
+      decision_id: 89,
+    })).toEqual({ id: "101", visibility: "hidden", version: 4, decisionId: 89 });
+  });
+
+  it("rejects unpaginated or structurally invalid API payloads", () => {
+    expect(() => mapReviewsList([summaryDto])).toThrow("Invalid reviews page data");
+    expect(() => mapReviewModerationItem({ work_order_id: -1 })).toThrow("Invalid review summary data");
   });
 });

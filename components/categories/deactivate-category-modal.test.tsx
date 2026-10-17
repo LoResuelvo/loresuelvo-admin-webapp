@@ -4,20 +4,42 @@ import { describe, expect, it, vi } from "vitest";
 import { DeactivateCategoryModal } from "./deactivate-category-modal";
 
 describe("DeactivateCategoryModal", () => {
-  const sampleCategory = { id: 1, name: "Cerrajería", enabled: true };
+  const sampleCategory = { id: 1, name: "Cerrajería", enabled: true, version: 2 };
   const favorableImpact = {
     categoryId: 1,
     categoryName: "Cerrajería",
+    observedAt: "2026-10-15T12:00:00Z",
+    counts: {
+      assignedProviders: 3,
+      pendingRequests: 0,
+      acceptedRequestsWithoutProposal: 0,
+      pendingProposals: 0,
+      scheduledOrders: 0,
+      awaitingPaymentOrders: 0,
+    },
+    hasOngoingOrders: false,
+    requiresConfirmation: false,
+    existingOperationsCanContinue: true,
     providerCount: 3,
     activeOrdersCount: 0,
-    canDeactivate: true,
   };
   const blockedImpact = {
     categoryId: 2,
     categoryName: "Electricidad",
+    observedAt: "2026-10-15T12:00:00Z",
+    counts: {
+      assignedProviders: 5,
+      pendingRequests: 0,
+      acceptedRequestsWithoutProposal: 0,
+      pendingProposals: 0,
+      scheduledOrders: 1,
+      awaitingPaymentOrders: 1,
+    },
+    hasOngoingOrders: true,
+    requiresConfirmation: true,
+    existingOperationsCanContinue: true,
     providerCount: 5,
     activeOrdersCount: 2,
-    canDeactivate: false,
   };
 
   it("renders modal with favorable impact notice and enabled confirm button", () => {
@@ -54,11 +76,11 @@ describe("DeactivateCategoryModal", () => {
     );
   });
 
-  it("renders blocking alert and hides confirm button when active orders exist", () => {
+  it("warns about ongoing orders and requires explicit confirmation", async () => {
     render(
       <DeactivateCategoryModal
         isOpen={true}
-        category={{ id: 2, name: "Electricidad", enabled: true }}
+        category={{ id: 2, name: "Electricidad", enabled: true, version: 1 }}
         impact={blockedImpact}
         onClose={vi.fn()}
         onConfirm={vi.fn()}
@@ -66,12 +88,17 @@ describe("DeactivateCategoryModal", () => {
     );
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "No es posible desactivar este rubro porque registra 2 órdenes de trabajo activas en curso"
+      "Hay 2 órdenes programadas o pendientes de pago"
     );
-    expect(screen.queryByRole("button", { name: "Confirmar desactivación" })).not.toBeInTheDocument();
+    const confirmButton = screen.getByRole("button", { name: "Confirmar desactivación" });
+    expect(confirmButton).toBeDisabled();
+    await userEvent.type(screen.getByLabelText("Motivo de desactivación"), "Cierre solicitado");
+    expect(confirmButton).toBeDisabled();
+    await userEvent.click(screen.getByLabelText("Confirmo la desactivación aunque existan órdenes en curso"));
+    expect(confirmButton).toBeEnabled();
   });
 
-  it("calls onConfirm with category id when confirming", async () => {
+  it("sends version, reason and explicit confirmation when confirming", async () => {
     const onConfirm = vi.fn();
     render(
       <DeactivateCategoryModal
@@ -84,9 +111,10 @@ describe("DeactivateCategoryModal", () => {
     );
 
     const confirmButton = screen.getByRole("button", { name: "Confirmar desactivación" });
+    await userEvent.type(screen.getByLabelText("Motivo de desactivación"), "Cierre del rubro");
     await userEvent.click(confirmButton);
 
-    expect(onConfirm).toHaveBeenCalledWith(1);
+    expect(onConfirm).toHaveBeenCalledWith(1, 2, "Cierre del rubro", false);
   });
 
   it("closes modal on cancel click", async () => {

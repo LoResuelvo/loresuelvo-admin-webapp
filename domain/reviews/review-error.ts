@@ -1,4 +1,4 @@
-export type ReviewErrorCode = "forbidden" | "unavailable" | "unknown" | "notFound";
+export type ReviewErrorCode = "forbidden" | "unavailable" | "unknown" | "notFound" | "conflict" | "invalid";
 
 export class ReviewError extends Error {
   constructor(

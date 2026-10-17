@@ -139,7 +139,7 @@ describe("metric-mapper", () => {
     expect(result.from).toBe("2026-09-10T00:00:00Z");
     expect(result.to).toBe("2026-09-11T00:00:00Z");
     expect(result.globalConversionRate).toBe(0.6667);
-    expect(result.steps).toHaveLength(6);
+    expect(result.steps).toHaveLength(7);
 
     expect(result.steps[0]).toEqual({
       stepName: "ai_diagnostics",
@@ -182,6 +182,14 @@ describe("metric-mapper", () => {
     });
 
     expect(result.steps[5]).toEqual({
+      stepName: "full_payments",
+      label: "Pagos completos",
+      count: 1,
+      relativeConversion: 0.5,
+      avgDurationMinutes: 1,
+    });
+
+    expect(result.steps[6]).toEqual({
       stepName: "reviews_submitted",
       label: "Reseñas enviadas",
       count: 1,
@@ -229,7 +237,7 @@ describe("metric-mapper", () => {
     expect(result.from).toBe("2026-08-31T15:00:00Z");
     expect(result.to).toBe("2026-09-30T15:00:00Z");
     expect(result.globalConversionRate).toBe(0);
-    expect(result.steps).toHaveLength(6);
+    expect(result.steps).toHaveLength(7);
     expect(result.steps.every((s) => s.count === 0)).toBe(true);
     expect(result.steps.every((s) => s.relativeConversion === 0)).toBe(true);
     expect(result.steps.every((s) => s.avgDurationMinutes === null)).toBe(true);

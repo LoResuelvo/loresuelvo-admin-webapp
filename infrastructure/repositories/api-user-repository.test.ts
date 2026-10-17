@@ -137,6 +137,19 @@ describe("apiUserRepository", () => {
       expect(result[0].category.name).toBe("Plomería");
     });
 
+    it("filters the full directory by category name without sending an ignored API filter", async () => {
+      vi.stubEnv("APP_ENV", "production");
+      vi.stubEnv("API_URL", "https://api.example.com");
+      const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify([
+        ...sampleProviderDto,
+        { ...sampleProviderDto[0], id: 2, category: { id: 11, name: "Electricidad" } },
+      ])));
+      vi.stubGlobal("fetch", fetcher);
+      const result = await apiUserRepository.getProviders("token", { category: "Plomería" });
+      expect(fetcher).toHaveBeenCalledWith("https://api.example.com/admin/providers", expect.anything());
+      expect(result.map(provider => provider.id)).toEqual([1]);
+    });
+
     it("appends filters as query parameters", async () => {
       vi.stubEnv("API_URL", "https://api.example.com");
       const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify([])));

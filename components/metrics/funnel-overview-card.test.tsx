@@ -18,5 +18,7 @@ describe("FunnelOverviewCard", () => {
     expect(screen.getByTestId("global-conversion-rate")).toHaveTextContent("32%");
     expect(screen.getByText("250")).toBeInTheDocument();
     expect(screen.getByText("80")).toBeInTheDocument();
+    expect(screen.getByText(/Órdenes completadas:/)).toBeInTheDocument();
+    expect(screen.queryByText(/hasta la reseña del servicio/)).not.toBeInTheDocument();
   });
 });

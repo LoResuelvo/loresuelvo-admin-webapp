@@ -20,7 +20,7 @@ When("accedo a la sección de reclamos en {string}", async function (this: Custo
 });
 
 Then(
-  "visualizo el listado de quejas con la fecha, reclamante, rubro, estado y nivel de urgencia",
+  "visualizo el listado de quejas con la fecha, reclamante, rubro, estado y sin atribuir una urgencia no informada",
   async function (this: CustomWorld) {
     const table = this.page.getByRole("table");
     await table.waitFor();
@@ -30,17 +30,17 @@ Then(
 
     const row0 = rows.nth(0);
     const text0 = await row0.innerText();
-    assert.ok(text0.includes("Ana Gómez"));
+    assert.ok(text0.includes("ana@example.com"));
     assert.ok(text0.includes("Plomería"));
     assert.ok(text0.toLowerCase().includes("revisión") || text0.toLowerCase().includes("revision") || text0.includes("En revisión"));
-    assert.ok(text0.toLowerCase().includes("alta") || text0.includes("Alta"));
+    assert.ok(text0.includes("No informado"));
 
     const row1 = rows.nth(1);
     const text1 = await row1.innerText();
-    assert.ok(text1.includes("Martín Pérez"));
+    assert.ok(text1.includes("martin@example.com"));
     assert.ok(text1.includes("Electricidad"));
     assert.ok(text1.toLowerCase().includes("abierto") || text1.includes("Abierto"));
-    assert.ok(text1.toLowerCase().includes("media") || text1.includes("Media"));
+    assert.ok(text1.includes("No informado"));
   },
 );
 
@@ -52,7 +52,7 @@ Given(
 );
 
 When(
-  "filtro por estado {string} y busco el apellido {string}",
+  "filtro por estado {string} y busco el correo {string}",
   async function (this: CustomWorld, statusLabel: string, searchSurname: string) {
     const claimsPath = (ROUTES as unknown as Record<string, string>).claims ?? "/reclamos";
     await this.page.goto(new URL(claimsPath, this.appUrl).href);
@@ -81,7 +81,7 @@ Then(
     assert.equal(await rows.count(), 1);
 
     const rowText = await rows.first().innerText();
-    assert.ok(rowText.includes("López") || rowText.includes("Lopez"));
+    assert.ok(rowText.includes("lopez"));
     assert.ok(rowText.toLowerCase().includes("abierto") || rowText.includes("Abierto"));
     assert.ok(!rowText.includes("Pedro Martínez"));
     assert.ok(!rowText.includes("Juan Silva"));
@@ -121,7 +121,7 @@ Then(
     const opLink = this.page.locator('[data-testid="operation-link"]');
     await opLink.waitFor();
     const href = await opLink.getAttribute("href");
-    assert.ok(href?.includes("/operaciones/42"));
+    assert.ok(href?.includes("/operaciones/sp-42"));
   },
 );
 
@@ -130,7 +130,7 @@ Given(
   async function (this: CustomWorld) {
     await this.addApiStub({
       method: "GET",
-      endpoint: "/admin/claims/clm-101",
+      endpoint: "/admin/claims/101",
       status: 200,
       body: sampleClaimDetailResponse,
       delayMs: 3000,
@@ -141,7 +141,7 @@ Given(
 When(
   "accedo al detalle del reclamo",
   async function (this: CustomWorld) {
-    await this.page.goto(new URL("/reclamos/clm-101", this.appUrl).href);
+    await this.page.goto(new URL("/reclamos/101", this.appUrl).href);
   },
 );
 
@@ -157,9 +157,9 @@ Then(
 );
 
 Given("que me encuentro en el expediente de un reclamo abierto", async function (this: CustomWorld) {
-  await this.stubGet("/admin/claims/clm-101", sampleClaimDetailOpenResponse);
-  await this.stubPost("/admin/claims/clm-101/resolution", 200, sampleClaimResolutionResponse);
-  await this.page.goto(new URL("/reclamos/clm-101", this.appUrl).href);
+  await this.stubGet("/admin/claims/101", sampleClaimDetailOpenResponse);
+  await this.stubPost("/admin/claims/101/resolution", 200, sampleClaimResolutionResponse);
+  await this.page.goto(new URL("/reclamos/101", this.appUrl).href);
 });
 
 When(
@@ -229,3 +229,25 @@ When("intento ingresar a la sección de reclamos", async function (this: CustomW
 
 
 
+
+Given("que existen más reclamos que los incluidos en la primera página", async function (this: CustomWorld) {
+  const first = sampleClaimsListResponse.items[0];
+  await this.stubGet("/admin/claims?page=1", {
+    items: Array.from({ length: 20 }, (_, index) => ({ ...first, id: 301 + index, claimant_email: `claim${index}@example.com` })),
+    page: 1, limit: 20, total: 21,
+  });
+  await this.stubGet("/admin/claims?page=2", {
+    items: [{ ...first, id: 321, claimant_email: "second-page@example.com" }], page: 2, limit: 20, total: 21,
+  });
+  await this.page.goto(new URL(ROUTES.claims, this.appUrl).href);
+});
+
+When("avanzo a la página siguiente de reclamos", async function (this: CustomWorld) {
+  await this.page.getByRole("button", { name: "Página siguiente" }).click();
+});
+
+Then("visualizo los reclamos de la segunda página sin perder los filtros", async function (this: CustomWorld) {
+  await this.page.getByRole("cell", { name: /second-page@example.com/ }).waitFor();
+  assert.equal(await this.page.locator("tbody tr").count(), 1);
+  assert.equal(await this.page.getByLabel("Filtrar por estado").inputValue(), "");
+});

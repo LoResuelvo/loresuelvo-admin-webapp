@@ -1,17 +1,18 @@
 import type {
-  InfractionCategory,
+  ReviewListFilter,
+  ReviewModerationCommand,
+  ReviewModerationDetail,
   ReviewModerationItem,
-  ReviewStatus,
+  ReviewModerationResult,
 } from "@/domain/reviews/review-moderation";
 
 export interface ReviewRepository {
-  getReviews(token: string, status?: ReviewStatus): Promise<ReviewModerationItem[]>;
+  getReviews(token: string, status?: ReviewListFilter): Promise<ReviewModerationItem[]>;
+  getReviewById(token: string, id: string): Promise<ReviewModerationDetail>;
   moderate(
     token: string,
     id: string,
-    action: "hide" | "unhide",
-    category?: InfractionCategory,
-    reason?: string,
-  ): Promise<ReviewModerationItem>;
+    command: ReviewModerationCommand,
+  ): Promise<ReviewModerationResult>;
 }
 

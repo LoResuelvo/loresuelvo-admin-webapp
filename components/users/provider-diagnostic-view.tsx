@@ -1,3 +1,4 @@
+import { ProviderDiagnosticChecks } from "./provider-diagnostic-checks";
 import type { ProviderDiagnostic } from "@/domain/users/provider-diagnostic";
 import { ProviderProfileHeader } from "./provider-profile-header";
 import { OperationalConditionsPanel } from "./operational-conditions-panel";
@@ -29,6 +30,8 @@ export function ProviderDiagnosticView({ diagnostic }: ProviderDiagnosticViewPro
         coverageZones={diagnostic.coverageZones}
         calendarConnection={diagnostic.calendarConnection}
       />
+
+      <ProviderDiagnosticChecks checks={diagnostic.checks ?? []} />
 
       <ProviderActivitySummary
         activitySummary={diagnostic.activitySummary}

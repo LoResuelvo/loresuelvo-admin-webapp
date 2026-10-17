@@ -152,7 +152,7 @@ export function OperationsInboxClient({
     useOperationFilters(initialFilters);
   const { operations, nextCursor, isLoading, error, isForbidden, retry } = useOperations(filters);
   const categories = useCategories(initialCategories);
-  useEffect(() => { setCursorHistory([]); }, [filters.q, filters.categoryId, filters.bottleneck]);
+  useEffect(() => { setCursorHistory([]); }, [filters.q, filters.categoryId, filters.providerId, filters.bottleneck]);
 
   if (isLoading && operations.length === 0) return <OperationsSkeleton />;
   if (isForbidden) return <OperationsForbidden message={error ?? translations.operations.forbidden} />;

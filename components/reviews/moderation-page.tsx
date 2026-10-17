@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReviewModerationItem, ReviewStatus } from "@/domain/reviews/review-moderation";
+import type { ReviewListFilter, ReviewModerationItem } from "@/domain/reviews/review-moderation";
 import { translations } from "@/infrastructure/i18n/translations";
 import { ReviewModerationTable } from "./review-moderation-table";
 import { ReviewStatusTabs } from "./review-status-tabs";
@@ -66,7 +66,7 @@ function ModerationFeedbackBanner({
 
 export interface ModerationPageProps {
   initialReviews?: ReviewModerationItem[];
-  initialStatus?: ReviewStatus;
+  initialStatus?: ReviewListFilter;
 }
 
 export function ModerationPage(props: ModerationPageProps = {}) {
@@ -95,13 +95,15 @@ export function ModerationPage(props: ModerationPageProps = {}) {
           reviews={state.reviews}
           emptyMessage={state.statusFilter ? copy.table.emptyFiltered : copy.table.empty}
           onHideReview={state.openModerateModal}
-          onRestoreReview={state.restoreReview}
+          onRestoreReview={state.openRestoreModal}
         />
       )}
       <ModerateReviewModal
         isOpen={Boolean(state.reviewToModerate)}
         onClose={state.closeModerateModal}
-        review={state.reviewToModerate}
+        review={state.reviewDetail}
+        action={state.moderationAction ?? "hide"}
+        isLoadingDetail={state.isLoadingDetail}
         onSubmit={state.submitModerate}
         isSubmitting={state.isSubmitting}
         error={state.modalError}

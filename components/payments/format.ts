@@ -1,1 +1,1 @@
-export { formatMoneyArs } from "@/domain/payments/money";
+export { formatMoney, formatMoneyArs } from "@/domain/payments/money";

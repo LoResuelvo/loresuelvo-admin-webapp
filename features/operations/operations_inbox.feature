@@ -17,9 +17,9 @@ Feature: Bandeja transversal de operaciones y contrataciones
     Then se presenta una vista de carga con indicadores visuales mientras se obtiene la información
 
   Scenario: 03-OP Filtrar contrataciones por alertas de cuello de botella
-    Given que existen contrataciones con solicitudes demoradas por más de 24 horas y otras al día
-    When filtro las operaciones seleccionando la alerta "Estancada > 24h"
-    Then se presentan únicamente los trabajos que requieren atención por llevar más de un día sin avance
+    Given que existen solicitudes pendientes por más de 24 horas y otras al día
+    When filtro las operaciones seleccionando la alerta "Solicitud pendiente > 24h"
+    Then se presentan únicamente las solicitudes pendientes que superan las 24 horas
 
   Scenario: 04-OP Filtrar contrataciones por rubro y buscar por participante
     Given que existen contrataciones en diversos rubros y con distintos clientes

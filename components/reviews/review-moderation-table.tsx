@@ -16,7 +16,6 @@ export interface ReviewModerationTableProps {
 }
 
 const statusStyles: Record<ReviewStatus, string> = {
-  reported: "bg-amber-50 text-amber-700 border-amber-200",
   hidden: "bg-rose-50 text-rose-700 border-rose-200",
   visible: "bg-emerald-50 text-emerald-700 border-emerald-200",
 };
@@ -61,9 +60,9 @@ function ReviewModerationTableHeader() {
       <tr>
         <th scope="col" className="px-6 py-4 text-left">{copy.author}</th>
         <th scope="col" className="px-6 py-4 text-left">{copy.provider}</th>
+        <th scope="col" className="px-6 py-4 text-left">{copy.operation}</th>
         <th scope="col" className="px-6 py-4 text-left">{copy.rating}</th>
-        <th scope="col" className="px-6 py-4 text-left">{copy.comment}</th>
-        <th scope="col" className="px-6 py-4 text-left">{copy.reportReason}</th>
+        <th scope="col" className="px-6 py-4 text-left">{copy.pendingReports}</th>
         <th scope="col" className="px-6 py-4 text-left">{copy.status}</th>
         <th scope="col" className="px-6 py-4 text-left">{copy.date}</th>
         <th scope="col" className="px-6 py-4 text-left">{copy.actions}</th>
@@ -80,7 +79,7 @@ interface ReviewActionButtonsProps {
 
 function ReviewActionButtons({ review, onHide, onRestore }: ReviewActionButtonsProps) {
   const actions = translations.moderation.actions;
-  if (review.status === "hidden") {
+  if (review.visibility === "hidden") {
     return (
       <button
         type="button"
@@ -122,7 +121,7 @@ function ReviewModerationTableRow({
   onRestoreReview,
 }: ReviewModerationTableRowProps) {
   const copy = translations.moderation.table;
-  const reportReasonText = review.reportReason || copy.noReason;
+  const reportedOn = review.reportedOn ? formatDate(review.reportedOn) : "—";
 
   return (
     <tr
@@ -138,20 +137,20 @@ function ReviewModerationTableRow({
         onSelectReview ? "cursor-pointer focus:bg-[#F4F1EE]/50 focus:outline-none focus:ring-1 focus:ring-[#147560]" : ""
       }`.trim()}
     >
-      <td className="px-6 py-4 font-medium text-sm text-[#1A2B48]">{review.authorName}</td>
-      <td className="px-6 py-4 text-sm text-[#536176]">{review.providerName}</td>
+      <td className="px-6 py-4 font-medium text-sm text-[#1A2B48]">{review.consumerId}</td>
+      <td className="px-6 py-4 text-sm text-[#536176]">{review.providerId}</td>
+      <td className="px-6 py-4 text-sm text-[#536176] whitespace-nowrap">{review.operationId}</td>
       <td className="px-6 py-4 text-sm">
         <div className="flex items-center gap-1.5" aria-label={`Calificación: ${review.rating} de 5`}>
           <StarIcon />
           <span className="font-semibold text-[#1A2B48]">{review.rating}</span>
         </div>
       </td>
-      <td className="px-6 py-4 text-sm text-[#536176] max-w-xs break-words">{review.comment}</td>
-      <td className="px-6 py-4 text-sm text-[#536176] max-w-xs break-words">{reportReasonText}</td>
+      <td className="px-6 py-4 text-sm text-[#536176]">{review.pendingReportCount}</td>
       <td className="px-6 py-4 text-sm">
-        <ReviewStatusBadge status={review.status} />
+        <ReviewStatusBadge status={review.visibility} />
       </td>
-      <td className="px-6 py-4 text-sm text-[#536176] whitespace-nowrap">{formatDate(review.createdAt)}</td>
+      <td className="px-6 py-4 text-sm text-[#536176] whitespace-nowrap">{reportedOn}</td>
       <td className="px-6 py-4 text-sm whitespace-nowrap">
         <ReviewActionButtons review={review} onHide={onHideReview} onRestore={onRestoreReview} />
       </td>

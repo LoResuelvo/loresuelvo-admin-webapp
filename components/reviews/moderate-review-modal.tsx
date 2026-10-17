@@ -1,15 +1,21 @@
 "use client";
 
-import { useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
 import { Modal } from "@/components/ui/modal";
-import type { InfractionCategory, ReviewModerationItem } from "@/domain/reviews/review-moderation";
+import type {
+  InfractionCategory,
+  ReviewModerationCommand,
+  ReviewModerationDetail,
+} from "@/domain/reviews/review-moderation";
 import { translations } from "@/infrastructure/i18n/translations";
 
 export interface ModerateReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  review: ReviewModerationItem | null;
-  onSubmit: (data: { category: InfractionCategory; reason: string }) => Promise<void> | void;
+  review: ReviewModerationDetail | null;
+  action?: ReviewModerationCommand["action"];
+  isLoadingDetail?: boolean;
+  onSubmit: (data: { category?: InfractionCategory; reason: string }) => Promise<void> | void;
   isSubmitting?: boolean;
   error?: string | null;
   onRetry?: () => void;
@@ -18,16 +24,40 @@ export interface ModerateReviewModalProps {
 const infractionOptions = [
   { value: "abusive_language", labelKey: "abusive_language" },
   { value: "personal_data", labelKey: "personal_data" },
-  { value: "spam", labelKey: "spam" },
-  { value: "off_topic", labelKey: "off_topic" },
+  { value: "spam_advertising", labelKey: "spam_advertising" },
+  { value: "unrelated_content", labelKey: "unrelated_content" },
 ] as const;
 
-function ReviewSnippet({ review }: { review: ReviewModerationItem }) {
+function ReviewSnippet({ review }: { review: ReviewModerationDetail }) {
   const copy = translations.moderation;
   return (
     <div className="rounded-xl bg-[#F4F1EE]/60 p-3 text-xs text-[#536176] space-y-1">
-      <p><strong className="text-[#1A2B48]">{copy.table.author}:</strong> {review.authorName}</p>
-      <p className="line-clamp-2 italic">&ldquo;{review.comment}&rdquo;</p>
+      <p><strong className="text-[#1A2B48]">{copy.modal.consumerId}:</strong> {review.review.consumerId}</p>
+      <p><strong className="text-[#1A2B48]">{copy.modal.providerId}:</strong> {review.review.providerId}</p>
+      <p><strong className="text-[#1A2B48]">{copy.table.operation}:</strong> {review.review.operationId}</p>
+      <p><strong className="text-[#1A2B48]">{copy.modal.description}:</strong></p>
+      <p className="whitespace-pre-wrap italic">&ldquo;{review.description}&rdquo;</p>
+      {review.report && (
+        <div className="mt-2 border-t border-[#1A2B48]/10 pt-2">
+          <p><strong className="text-[#1A2B48]">{copy.modal.reportId}:</strong> {review.report.id}</p>
+          <p><strong className="text-[#1A2B48]">{copy.modal.reportCategory}:</strong> {review.report.category}</p>
+          <p><strong className="text-[#1A2B48]">{copy.modal.report}:</strong> {review.report.explanation}</p>
+        </div>
+      )}
+      <div className="mt-2 border-t border-[#1A2B48]/10 pt-2">
+        <p className="font-semibold text-[#1A2B48]">{copy.modal.history}</p>
+        {review.decisions.items.length === 0 ? (
+          <p>{copy.modal.noHistory}</p>
+        ) : (
+          <ul className="list-disc space-y-1 pl-4">
+            {review.decisions.items.map((decision) => (
+              <li key={decision.id}>
+                {decision.action}: {decision.reason}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
@@ -69,12 +99,14 @@ function CategorySelect({ id, errorId, value, error, disabled, onChange }: Categ
 
 interface ReasonTextareaProps {
   id: string;
+  errorId: string;
   value: string;
+  error: string | null;
   disabled: boolean;
   onChange: (val: string) => void;
 }
 
-function ReasonTextarea({ id, value, disabled, onChange }: ReasonTextareaProps) {
+function ReasonTextarea({ id, errorId, value, error, disabled, onChange }: ReasonTextareaProps) {
   const copy = translations.moderation;
   return (
     <div className="space-y-1.5">
@@ -86,18 +118,24 @@ function ReasonTextarea({ id, value, disabled, onChange }: ReasonTextareaProps) 
         disabled={disabled}
         rows={3}
         placeholder={copy.modal.reasonPlaceholder}
-        className="w-full rounded-xl border border-[#1A2B48]/20 bg-white px-3 py-2 text-sm text-[#1A2B48] placeholder-[#1A2B48]/40 transition-colors focus:outline-none focus:ring-2 focus:ring-[#147560] disabled:bg-gray-100 resize-none"
+        aria-invalid={error ? "true" : undefined}
+        aria-describedby={error ? errorId : undefined}
+        className={`w-full rounded-xl border bg-white px-3 py-2 text-sm text-[#1A2B48] placeholder-[#1A2B48]/40 transition-colors focus:outline-none focus:ring-2 focus:ring-[#147560] disabled:bg-gray-100 resize-none ${error ? "border-rose-500" : "border-[#1A2B48]/20"}`}
       />
+      {error && <p id={errorId} role="alert" className="text-xs font-medium text-rose-600">{error}</p>}
     </div>
   );
 }
 
 interface ModalFooterProps {
+  action: ReviewModerationCommand["action"];
   isSubmitting: boolean;
+  isLoadingDetail: boolean;
+  canSubmit: boolean;
   onCancel: () => void;
 }
 
-function ModalFooter({ isSubmitting, onCancel }: ModalFooterProps) {
+function ModalFooter({ action, isSubmitting, isLoadingDetail, canSubmit, onCancel }: ModalFooterProps) {
   const copy = translations.moderation;
   return (
     <div className="flex justify-end gap-3 pt-2">
@@ -111,54 +149,90 @@ function ModalFooter({ isSubmitting, onCancel }: ModalFooterProps) {
       </button>
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || isLoadingDetail || !canSubmit}
         className="rounded-xl bg-[#147560] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#105F4E] disabled:opacity-50"
       >
-        {isSubmitting ? copy.modal.submitting : copy.modal.confirm}
+        {isSubmitting
+          ? action === "hide" ? copy.modal.submitting : copy.modal.restoring
+          : action === "hide" ? copy.modal.confirm : copy.modal.restoreConfirm}
       </button>
     </div>
   );
 }
 
 function useModerateForm(
-  onSubmit: (data: { category: InfractionCategory; reason: string }) => Promise<void> | void,
+  action: ReviewModerationCommand["action"],
+  reviewId: string | undefined,
+  onSubmit: (data: { category?: InfractionCategory; reason: string }) => Promise<void> | void,
   onClose: () => void,
   isSubmitting: boolean,
 ) {
   const [category, setCategory] = useState<InfractionCategory | "">("");
   const [reason, setReason] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [validationTarget, setValidationTarget] = useState<"category" | "reason" | null>(null);
   const copy = translations.moderation;
+
+  useEffect(() => {
+    setCategory("");
+    setReason("");
+    setValidationError(null);
+    setValidationTarget(null);
+  }, [action, reviewId]);
 
   const handleCancel = () => {
     if (isSubmitting) return;
     setCategory("");
     setReason("");
     setValidationError(null);
+    setValidationTarget(null);
     onClose();
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!category) {
+    if (action === "hide" && !category) {
       setValidationError(copy.modal.errors.categoryRequired);
+      setValidationTarget("category");
+      return;
+    }
+    if (!reason.trim()) {
+      setValidationError(copy.modal.errors.reasonRequired);
+      setValidationTarget("reason");
       return;
     }
     setValidationError(null);
-    await onSubmit({ category, reason: reason.trim() });
+    setValidationTarget(null);
+    await onSubmit({
+      category: action === "hide" ? (category as InfractionCategory) : undefined,
+      reason: reason.trim(),
+    });
   };
 
   const handleCategoryChange = (val: string) => {
     setCategory(val as InfractionCategory | "");
-    if (validationError) setValidationError(null);
+    if (validationTarget === "category") {
+      setValidationError(null);
+      setValidationTarget(null);
+    }
   };
 
-  return { category, reason, setReason, validationError, handleCancel, handleSubmit, handleCategoryChange };
+  const handleReasonChange = (val: string) => {
+    setReason(val);
+    if (validationTarget === "reason") {
+      setValidationError(null);
+      setValidationTarget(null);
+    }
+  };
+
+  return { category, reason, validationError, validationTarget, handleCancel, handleSubmit, handleCategoryChange, handleReasonChange };
 }
 
 interface ModerateReviewFormProps {
-  review: ReviewModerationItem | null;
-  onSubmit: (data: { category: InfractionCategory; reason: string }) => Promise<void> | void;
+  review: ReviewModerationDetail | null;
+  action: ReviewModerationCommand["action"];
+  isLoadingDetail: boolean;
+  onSubmit: (data: { category?: InfractionCategory; reason: string }) => Promise<void> | void;
   onClose: () => void;
   isSubmitting: boolean;
   error: string | null;
@@ -167,6 +241,8 @@ interface ModerateReviewFormProps {
 
 function ModerateReviewForm({
   review,
+  action,
+  isLoadingDetail,
   onSubmit,
   onClose,
   isSubmitting,
@@ -176,7 +252,7 @@ function ModerateReviewForm({
   const categoryId = useId();
   const reasonId = useId();
   const errorId = useId();
-  const form = useModerateForm(onSubmit, onClose, isSubmitting);
+  const form = useModerateForm(action, review?.review.id, onSubmit, onClose, isSubmitting);
 
   return (
     <form onSubmit={form.handleSubmit} noValidate className="space-y-4">
@@ -186,32 +262,49 @@ function ModerateReviewForm({
           className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"
         >
           <span>{error}</span>
-          <button
-            type={onRetry ? "button" : "submit"}
-            onClick={onRetry}
-            disabled={isSubmitting}
-            className="inline-flex items-center justify-center rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-rose-700 disabled:opacity-50"
-          >
-            {translations.moderation.retry}
-          </button>
+          {onRetry || review ? (
+            <button
+              type={onRetry ? "button" : "submit"}
+              onClick={onRetry}
+              disabled={isSubmitting || isLoadingDetail}
+              className="inline-flex items-center justify-center rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-rose-700 disabled:opacity-50"
+            >
+              {translations.moderation.retry}
+            </button>
+          ) : null}
+        </div>
+      )}
+      {isLoadingDetail && (
+        <div role="status" className="rounded-xl bg-[#F4F1EE]/60 p-4 text-sm text-[#536176]">
+          {translations.moderation.modal.loadingDetail}
         </div>
       )}
       {review && <ReviewSnippet review={review} />}
-      <CategorySelect
-        id={categoryId}
-        errorId={errorId}
-        value={form.category}
-        error={form.validationError}
-        disabled={isSubmitting}
-        onChange={form.handleCategoryChange}
-      />
+      {action === "hide" && (
+        <CategorySelect
+          id={categoryId}
+          errorId={errorId}
+          value={form.category}
+          error={form.validationTarget === "category" ? form.validationError : null}
+          disabled={isSubmitting || isLoadingDetail}
+          onChange={form.handleCategoryChange}
+        />
+      )}
       <ReasonTextarea
         id={reasonId}
+        errorId={errorId}
         value={form.reason}
-        disabled={isSubmitting}
-        onChange={form.setReason}
+        error={form.validationTarget === "reason" ? form.validationError : null}
+        disabled={isSubmitting || isLoadingDetail}
+        onChange={form.handleReasonChange}
       />
-      <ModalFooter isSubmitting={isSubmitting} onCancel={form.handleCancel} />
+      <ModalFooter
+        action={action}
+        isSubmitting={isSubmitting}
+        isLoadingDetail={isLoadingDetail}
+        canSubmit={Boolean(review)}
+        onCancel={form.handleCancel}
+      />
     </form>
   );
 }
@@ -220,17 +313,22 @@ export function ModerateReviewModal({
   isOpen,
   onClose,
   review,
+  action = "hide",
+  isLoadingDetail = false,
   onSubmit,
   isSubmitting = false,
   error = null,
   onRetry,
 }: ModerateReviewModalProps) {
   const copy = translations.moderation;
+  const title = action === "hide" ? copy.modal.title : copy.modal.restoreTitle;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={copy.modal.title}>
+    <Modal isOpen={isOpen} onClose={onClose} title={title}>
       <ModerateReviewForm
         review={review}
+        action={action}
+        isLoadingDetail={isLoadingDetail}
         onSubmit={onSubmit}
         onClose={onClose}
         isSubmitting={isSubmitting}

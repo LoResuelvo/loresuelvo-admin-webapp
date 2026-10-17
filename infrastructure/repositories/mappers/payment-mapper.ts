@@ -11,54 +11,70 @@ import {
 
 export function mapPaymentItem(raw: unknown): PaymentIntentSummary {
   const parsed: ApiPaymentItemResponse = apiPaymentItemResponseSchema.parse(raw);
+
   return {
     id: parsed.id,
-    externalPaymentId: parsed.external_payment_id ?? null,
-    externalReference: parsed.external_reference ?? null,
+    serviceProposalId: parsed.service_proposal_id,
+    workOrderId: parsed.work_order_id,
+    consumerId: parsed.consumer_id,
+    providerId: parsed.provider_id,
     purpose: parsed.purpose,
-    status: parsed.status,
-    serviceProposalId: parsed.service_proposal_id ?? null,
-    workOrderId: parsed.work_order_id ?? null,
-    consumer: {
-      id: parsed.consumer.id,
-      name: parsed.consumer.name,
-      email: parsed.consumer.email,
-    },
-    provider: {
-      id: parsed.provider.id,
-      name: parsed.provider.name,
-      email: parsed.provider.email,
-    },
+    status: parsed.intent_status,
+    currency: parsed.currency,
+    sellerAmountCents: parsed.seller_amount_cents,
+    platformFeeCents: parsed.platform_fee_cents,
+    totalAmountCents: parsed.total_amount_cents,
+    createdOn: parsed.created_on,
+    updatedOn: parsed.updated_on,
+    transactions: parsed.transactions.map((transaction) => ({
+      id: transaction.id,
+      processor: transaction.processor,
+      externalPaymentId: transaction.external_payment_id,
+      status: transaction.status,
+      currency: transaction.currency,
+      amountCents: transaction.amount_cents,
+      verifiedOn: transaction.verified_on,
+      createdOn: transaction.created_on,
+      updatedOn: transaction.updated_on,
+      processorFeeCents: transaction.processor_fee_cents,
+      netSettlementCents: transaction.net_settlement_cents,
+    })),
     breakdown: {
-      serviceAmountCents: parsed.service_amount_cents,
-      sellerAmountCents: parsed.seller_amount_cents,
-      platformFeeCents: parsed.platform_fee_cents,
-      totalAmountCents: parsed.total_amount_cents,
-      currency: parsed.currency,
+      currency: parsed.breakdown.currency,
+      serviceTotalCents: parsed.breakdown.service_total_cents,
+      depositCents: parsed.breakdown.deposit_cents,
+      platformFeeTotalCents: parsed.breakdown.platform_fee_total_cents,
+      platformFeeDueNowCents: parsed.breakdown.platform_fee_due_now_cents,
+      bookingPaymentDeadline: parsed.breakdown.booking_payment_deadline,
+      amountDueNowCents: parsed.breakdown.amount_due_now_cents,
+      remainingServiceBalanceCents: parsed.breakdown.remaining_service_balance_cents,
+      remainingPlatformFeeCents: parsed.breakdown.remaining_platform_fee_cents,
+      remainingAmountDueCents: parsed.breakdown.remaining_amount_due_cents,
     },
-    createdAt: parsed.created_at,
-    verifiedAt: parsed.verified_at ?? null,
+    summary: {
+      approvedAmounts: parsed.summary.approved_amounts.map((amount) => ({
+        currency: amount.currency,
+        amountCents: amount.amount_cents,
+      })),
+      pendingAmount: parsed.summary.pending_amount
+        ? {
+            currency: parsed.summary.pending_amount.currency,
+            amountCents: parsed.summary.pending_amount.amount_cents,
+          }
+        : null,
+      anomalies: parsed.summary.anomalies,
+    },
+    anomalies: parsed.anomalies,
   };
 }
 
 export function mapPaymentList(raw: unknown): PaymentListResult {
-  if (Array.isArray(raw)) {
-    const items = raw.map(mapPaymentItem);
-    return {
-      items,
-      total: items.length,
-      page: 1,
-      limit: items.length || 10,
-      totalPages: 1,
-    };
-  }
-
   const parsed: ApiPaymentListResponse = apiPaymentListResponseSchema.parse(raw);
   return {
-    items: parsed.items.map(mapPaymentItem),
-    total: parsed.pagination.total,
-    page: parsed.pagination.page,
-    limit: parsed.pagination.limit,
-    totalPages: parsed.pagination.total_pages,
+    items: parsed.payments.map(mapPaymentItem),
+    page: {
+      limit: parsed.page.limit,
+      nextCursor: parsed.page.next_cursor,
+    },
   };
 }

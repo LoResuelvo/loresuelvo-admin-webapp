@@ -17,7 +17,7 @@ export interface ProviderIdentityVerification {
 export interface ProviderPaymentConnection {
   isConnected: boolean;
   accountId?: string;
-  canReceivePayments: boolean;
+  canReceivePayments: boolean | null;
 }
 
 export interface ProviderCalendarConnection {
@@ -26,27 +26,37 @@ export interface ProviderCalendarConnection {
 
 export interface ProviderRecentOperation {
   id: number;
-  categoryName: string;
-  consumerName: string;
+  categoryName?: string;
+  consumerName?: string;
+  resourceType?: string;
+  operationsHref?: string;
   status: string;
   createdAt: string;
 }
 
 export interface ProviderActivitySummary {
-  totalRequests: number;
-  activeOrders: number;
-  completedOrders: number;
+  totalRequests?: number;
+  activeOrders?: number;
+  completedOrders?: number;
   averageRating: number;
   reviewsCount: number;
   recentOperations: ProviderRecentOperation[];
 }
 
+export interface DiagnosticCheck {
+  control: string;
+  result: "pass" | "warning" | "unknown";
+  reasonCode: string;
+  evidenceOn?: string;
+}
+
 export interface ProviderDiagnostic {
+  checks?: DiagnosticCheck[];
   id: number;
   name: string;
   surname: string;
   email: string;
-  phone: string;
+  phone?: string;
   profilePhotoUrl?: string;
   category: ProviderCategory;
   coverageZones: ProviderCoverageZone[];

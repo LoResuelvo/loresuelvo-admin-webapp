@@ -5,9 +5,9 @@ import { CategoriesPage } from "./categories-page";
 
 describe("CategoriesPage", () => {
   const sampleCategories = [
-    { id: 1, name: "Albañilería" },
-    { id: 2, name: "Electricidad" },
-    { id: 3, name: "Plomería" },
+    { id: 1, name: "Albañilería", enabled: true, version: 1 },
+    { id: 2, name: "Electricidad", enabled: true, version: 1 },
+    { id: 3, name: "Plomería", enabled: true, version: 1 },
   ];
 
   it("renders category catalog with ID and Name columns and rows", () => {
@@ -109,7 +109,7 @@ describe("CategoriesPage", () => {
     const submitButton = screen.getByRole("button", { name: "Guardar cambios" });
     await userEvent.click(submitButton);
 
-    expect(onUpdateCategory).toHaveBeenCalledWith(3, "Instalaciones Sanitarias");
+    expect(onUpdateCategory).toHaveBeenCalledWith(3, "Instalaciones Sanitarias", 1);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Rubro actualizado exitosamente");
   });

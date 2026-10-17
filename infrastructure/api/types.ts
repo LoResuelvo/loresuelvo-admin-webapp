@@ -51,10 +51,17 @@ export const apiProviderCategorySchema = z.object({
 });
 
 export const apiVerificationStatusSchema = z.enum([
-  "approved",
-  "in_review",
-  "declined",
   "unverified",
+  "not_started",
+  "in_progress",
+  "awaiting_user",
+  "in_review",
+  "approved",
+  "declined",
+  "resubmitted",
+  "abandoned",
+  "expired",
+  "kyc_expired",
 ]);
 
 export const apiProviderListItemSchema = z.object({

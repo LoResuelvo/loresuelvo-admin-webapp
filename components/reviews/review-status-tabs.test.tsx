@@ -7,11 +7,11 @@ describe("ReviewStatusTabs", () => {
   it("renders all tabs in tablist", () => {
     render(<ReviewStatusTabs onStatusChange={vi.fn()} />);
 
-    expect(screen.getByRole("tablist", { name: "Filtrar por estado" })).toBeInTheDocument();
+    expect(screen.getByRole("tablist", { name: "Filtrar reseñas" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Todas" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Reportadas" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Con reportes pendientes" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Ocultadas" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Visibles" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Visibilidad pública" })).toBeInTheDocument();
   });
 
   it("marks the current active tab as selected", () => {
@@ -19,8 +19,8 @@ describe("ReviewStatusTabs", () => {
 
     expect(screen.getByRole("tab", { name: "Ocultadas" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("tab", { name: "Todas" })).toHaveAttribute("aria-selected", "false");
-    expect(screen.getByRole("tab", { name: "Reportadas" })).toHaveAttribute("aria-selected", "false");
-    expect(screen.getByRole("tab", { name: "Visibles" })).toHaveAttribute("aria-selected", "false");
+    expect(screen.getByRole("tab", { name: "Con reportes pendientes" })).toHaveAttribute("aria-selected", "false");
+    expect(screen.getByRole("tab", { name: "Visibilidad pública" })).toHaveAttribute("aria-selected", "false");
   });
 
   it("calls onStatusChange with corresponding status when clicking tabs", async () => {
@@ -32,10 +32,10 @@ describe("ReviewStatusTabs", () => {
     await user.click(screen.getByRole("tab", { name: "Ocultadas" }));
     expect(handleStatusChange).toHaveBeenCalledWith("hidden");
 
-    await user.click(screen.getByRole("tab", { name: "Reportadas" }));
+    await user.click(screen.getByRole("tab", { name: "Con reportes pendientes" }));
     expect(handleStatusChange).toHaveBeenCalledWith("reported");
 
-    await user.click(screen.getByRole("tab", { name: "Visibles" }));
+    await user.click(screen.getByRole("tab", { name: "Visibilidad pública" }));
     expect(handleStatusChange).toHaveBeenCalledWith("visible");
 
     await user.click(screen.getByRole("tab", { name: "Todas" }));

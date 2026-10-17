@@ -4,6 +4,7 @@ export type FunnelStepName =
   | "proposals_sent"
   | "deposits_paid"
   | "orders_completed"
+  | "full_payments"
   | "reviews_submitted";
 
 export type FunnelStepMetric = Readonly<{

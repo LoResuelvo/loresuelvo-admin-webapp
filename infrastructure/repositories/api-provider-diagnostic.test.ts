@@ -1,3 +1,4 @@
+import { providerDiagnosticFixture } from "../../features/users/provider_diagnostic_fixture";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { UserError } from "@/domain/users/user-error";
 import { fetchProviderDiagnostic } from "./api-provider-diagnostic";
@@ -8,30 +9,7 @@ describe("fetchProviderDiagnostic", () => {
     vi.unstubAllEnvs();
   });
 
-  const sampleDiagnosticDto = {
-    id: 201,
-    name: "Juan",
-    surname: "Gómez",
-    email: "juan@example.com",
-    phone: "+54 11 5555-0101",
-    profile_photo_url: "https://storage.loresuelvo.internal/profiles/201.jpg",
-    category: { id: 2, name: "Plomería" },
-    coverage_zones: [
-      { id: 6, name: "Comuna 6", is_active: true },
-    ],
-    identity_verification: {
-      status: "approved",
-      verified_at: "2026-09-15T12:00:00-03:00",
-    },
-    payment_connection: {
-      is_connected: true,
-      account_id: "mp-acc-8812",
-      can_receive_payments: true,
-    },
-    calendar_connection: {
-      status: "connected",
-    },
-  };
+  const sampleDiagnosticDto = providerDiagnosticFixture;
 
   it("requests /admin/providers/:id/diagnostic with bearer token and returns mapped entity", async () => {
     vi.stubEnv("API_URL", "https://api.example.com");

@@ -1,4 +1,15 @@
-export type VerificationStatus = "approved" | "in_review" | "declined" | "unverified";
+export type VerificationStatus =
+  | "unverified"
+  | "not_started"
+  | "in_progress"
+  | "awaiting_user"
+  | "in_review"
+  | "approved"
+  | "declined"
+  | "resubmitted"
+  | "abandoned"
+  | "expired"
+  | "kyc_expired";
 
 export type ProviderCoverageZone = Readonly<{
   id: number;

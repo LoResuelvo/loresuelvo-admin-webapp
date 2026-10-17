@@ -27,10 +27,15 @@ export type CategoriesPageProps = {
   onRetry?: () => void;
   onCreateCategory?: (name: string) => Promise<void>;
   createError?: string | null;
-  onUpdateCategory?: (id: number, name: string) => Promise<void>;
+  onUpdateCategory?: (id: number, name: string, expectedVersion: number) => Promise<void>;
   updateError?: string | null;
   onGetImpact?: (id: number) => Promise<CategoryImpact>;
-  onDeactivateCategory?: (id: number) => Promise<void>;
+  onDeactivateCategory?: (
+    id: number,
+    expectedVersion: number,
+    reason: string,
+    confirmOngoingOrders: boolean,
+  ) => Promise<void>;
   deactivateError?: string | null;
 };
 

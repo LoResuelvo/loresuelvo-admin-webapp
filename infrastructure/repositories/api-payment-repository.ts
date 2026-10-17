@@ -26,6 +26,7 @@ async function getE2EPaymentsStub(): Promise<ApiStub | null> {
 
 async function resolvePaymentsFromStub(
   stub: ApiStub,
+  filters?: PaymentFilters,
 ): Promise<PaymentListResult> {
   if (stub.delayMs) {
     await new Promise((resolve) => setTimeout(resolve, stub.delayMs));
@@ -39,16 +40,47 @@ async function resolvePaymentsFromStub(
   if (stub.status >= 400) {
     throw new Error(`Failed to fetch payments: ${stub.status}`);
   }
-  return mapPaymentList(stub.body);
+  const result = mapPaymentList(stub.body);
+  if (!filters) return result;
+
+  const items = result.items.filter((item) => {
+    if (filters.paymentIntentId && item.id !== filters.paymentIntentId) return false;
+    if (filters.externalPaymentId && !item.transactions.some(
+      (transaction) => transaction.externalPaymentId === filters.externalPaymentId,
+    )) return false;
+    if (filters.serviceProposalId && item.serviceProposalId !== filters.serviceProposalId) return false;
+    if (filters.purpose && item.purpose !== filters.purpose) return false;
+    if (filters.intentStatus && item.status !== filters.intentStatus) return false;
+    if (filters.createdFrom && Date.parse(item.createdOn) < Date.parse(filters.createdFrom)) return false;
+    if (filters.createdTo && Date.parse(item.createdOn) > Date.parse(filters.createdTo)) return false;
+    return true;
+  });
+
+  return { ...result, items, page: { ...result.page, nextCursor: null } };
 }
 
 function buildApiUrl(baseUrl: string, filters?: PaymentFilters): URL {
   const url = new URL(`${baseUrl.replace(/\/$/, "")}/admin/payments`);
-  if (filters?.query) url.searchParams.set("query", filters.query);
-  if (filters?.purpose) url.searchParams.set("purpose", filters.purpose);
-  if (filters?.status) url.searchParams.set("status", filters.status);
-  if (filters?.page) url.searchParams.set("page", String(filters.page));
-  if (filters?.limit) url.searchParams.set("limit", String(filters.limit));
+  const queryParameters: Array<[string, string | number | undefined]> = [
+    ["payment_intent_id", filters?.paymentIntentId],
+    ["external_reference", filters?.externalReference],
+    ["external_payment_id", filters?.externalPaymentId],
+    ["service_proposal_id", filters?.serviceProposalId],
+    ["consumer_email", filters?.consumerEmail],
+    ["provider_email", filters?.providerEmail],
+    ["purpose", filters?.purpose],
+    ["intent_status", filters?.intentStatus],
+    ["created_from", filters?.createdFrom],
+    ["created_to", filters?.createdTo],
+    ["limit", filters?.limit],
+    ["cursor", filters?.cursor],
+  ];
+
+  for (const [key, value] of queryParameters) {
+    if (value !== undefined && value !== "") {
+      url.searchParams.set(key, String(value));
+    }
+  }
   return url;
 }
 
@@ -62,7 +94,7 @@ export const apiPaymentRepository: PaymentRepository = {
 
     const stub = await getE2EPaymentsStub();
     if (stub) {
-      return resolvePaymentsFromStub(stub);
+      return resolvePaymentsFromStub(stub, filters);
     }
 
     const baseUrl = process.env.API_URL;

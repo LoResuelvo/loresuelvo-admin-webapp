@@ -1,3 +1,5 @@
+import { providerDiagnosticFixture } from "../../features/users/provider_diagnostic_fixture";
+import { mapProviderDiagnostic } from "../../infrastructure/repositories/mappers/user-mapper";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ProviderDiagnosticView } from "./provider-diagnostic-view";
@@ -65,4 +67,14 @@ describe("ProviderDiagnosticView", () => {
     expect(screen.getByTestId("provider-activity-summary")).toBeInTheDocument();
     expect(screen.getByText("Carlos López")).toBeInTheDocument();
   });
+});
+
+
+it("renders API diagnostic evidence without claiming payment eligibility", () => {
+  const diagnostic = mapProviderDiagnostic(providerDiagnosticFixture);
+  render(<ProviderDiagnosticView diagnostic={diagnostic} />);
+  expect(screen.getByRole("region", { name: "Evidencia del diagnóstico" })).toHaveTextContent("Cuenta de cobro conectada");
+  expect(screen.getByText("Capacidad de cobro no informada")).toBeInTheDocument();
+  expect(screen.getAllByText("No informado")).toHaveLength(3);
+  expect(screen.getByText("Programada")).toBeInTheDocument();
 });

@@ -1,61 +1,22 @@
 import { z } from "zod";
 
-export const apiProviderDiagnosticCategorySchema = z.object({
-  id: z.number().int().positive(),
-  name: z.string().trim().min(1),
-});
-
-export const apiProviderDiagnosticCoverageZoneSchema = z.object({
-  id: z.number().int().positive(),
-  name: z.string().trim().min(1),
-  is_active: z.boolean(),
-});
-
-export const apiProviderDiagnosticIdentityVerificationSchema = z.object({
-  status: z.string().trim().min(1),
-  verified_at: z.string().nullish(),
-});
-
-export const apiProviderDiagnosticPaymentConnectionSchema = z.object({
-  is_connected: z.boolean(),
-  account_id: z.string().nullish(),
-  can_receive_payments: z.boolean(),
-});
-
-export const apiProviderDiagnosticCalendarConnectionSchema = z.object({
-  status: z.string().trim().min(1),
-});
-
-export const apiProviderDiagnosticRecentOperationSchema = z.object({
-  id: z.number().int().positive(),
-  category_name: z.string().trim().min(1),
-  consumer_name: z.string().trim().min(1),
-  status: z.string().trim().min(1),
-  created_at: z.string().trim().min(1),
-});
-
-export const apiProviderDiagnosticActivitySummarySchema = z.object({
-  total_requests: z.number().int().nonnegative(),
-  active_orders: z.number().int().nonnegative(),
-  completed_orders: z.number().int().nonnegative(),
-  average_rating: z.number().nonnegative(),
-  reviews_count: z.number().int().nonnegative(),
-  recent_operations: z.array(apiProviderDiagnosticRecentOperationSchema),
+const diagnosticProviderSchema = z.object({
+  id: z.number().int().positive(), name: z.string(), surname: z.string(), email: z.email(),
+  profile_photo_url: z.string().nullish(),
+  category: z.object({ id: z.number().int().positive(), name: z.string() }),
+  coverage_zones: z.array(z.object({ id: z.number().int().positive(), name: z.string(), enabled: z.boolean() })),
+  identity_verification_status: z.string(), identity_verified_on: z.string().nullable(),
 });
 
 export const apiProviderDiagnosticResponseSchema = z.object({
-  id: z.number().int().positive(),
-  name: z.string().trim().min(1),
-  surname: z.string().trim().min(1),
-  email: z.string().email(),
-  phone: z.string().trim().min(1),
-  profile_photo_url: z.string().nullish(),
-  category: apiProviderDiagnosticCategorySchema,
-  coverage_zones: z.array(apiProviderDiagnosticCoverageZoneSchema),
-  identity_verification: apiProviderDiagnosticIdentityVerificationSchema,
-  payment_connection: apiProviderDiagnosticPaymentConnectionSchema,
-  calendar_connection: apiProviderDiagnosticCalendarConnectionSchema,
-  activity_summary: apiProviderDiagnosticActivitySummarySchema.nullish(),
+  provider: diagnosticProviderSchema,
+  checks: z.array(z.object({ control: z.string(), result: z.enum(["pass", "warning", "unknown"]), reason_code: z.string(), evidence_on: z.string().nullable() })),
+  payment: z.object({ state: z.enum(["connected", "disconnected"]), token_expires_on: z.string().nullable() }),
+  calendar: z.object({ calendar_connection_status: z.string(), order_sync: z.array(z.object({ work_order_id: z.number().int().positive(), synced_on: z.string().nullable() })) }),
+  activity: z.array(z.object({ type: z.enum(["job_request", "service_proposal", "work_order"]), id: z.number().int().positive(), status: z.string(), occurred_on: z.string() })),
+  reviews: z.array(z.object({ work_order_id: z.number().int().positive(), rating: z.number(), description: z.string() })),
+  reputation: z.object({ count: z.number().int().nonnegative(), average: z.number().nonnegative() }),
+  navigation: z.object({ operations_url: z.string(), required_permission: z.literal("read:admin_operations") }),
 });
 
 export type ApiProviderDiagnosticResponse = z.infer<typeof apiProviderDiagnosticResponseSchema>;

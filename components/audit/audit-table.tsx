@@ -1,60 +1,14 @@
+import type { AuditLogEntry } from "@/domain/audit/audit-log";
 import { translations } from "@/infrastructure/i18n/translations";
+import { formatAuditDateTime, formatAuditResource } from "./audit-formatters";
 
-export interface AuditTableItem {
-  id: string;
-  timestamp: string;
-  operatorId: string;
-  operatorEmail: string;
-  action: string;
-  actionLabel?: string;
-  resourceType: string;
-  resourceId: string;
-  reason: string;
-  ipAddress?: string;
-  userAgent?: string;
-  status?: "success" | "failure";
-  metadata?: Record<string, unknown> | null;
-}
+export type AuditTableItem = AuditLogEntry;
 
 export interface AuditTableProps {
   entries: readonly AuditTableItem[];
   emptyMessage?: string;
   className?: string;
   onSelectEntry?: (entry: AuditTableItem) => void;
-}
-
-function formatDateTime(iso: string): string {
-  try {
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return iso;
-    const day = String(d.getUTCDate()).padStart(2, "0");
-    const month = String(d.getUTCMonth() + 1).padStart(2, "0");
-    const year = d.getUTCFullYear();
-    const hours = String(d.getUTCHours()).padStart(2, "0");
-    const minutes = String(d.getUTCMinutes()).padStart(2, "0");
-    return `${day}/${month}/${year} ${hours}:${minutes}`;
-  } catch {
-    return iso;
-  }
-}
-
-function formatResource(resourceType: string, resourceId: string): string {
-  if (resourceType === "operation" || resourceType === "hiring") {
-    return `Contratación #${resourceId}`;
-  }
-  if (resourceType === "claim") {
-    return `Reclamo #${resourceId}`;
-  }
-  if (resourceType === "payment") {
-    return `Pago #${resourceId}`;
-  }
-  if (resourceType === "category") {
-    return `Categoría #${resourceId}`;
-  }
-  if (resourceType === "provider") {
-    return `Prestador #${resourceId}`;
-  }
-  return `${resourceType} #${resourceId}`;
 }
 
 function AuditTableEmpty({
@@ -82,10 +36,8 @@ function AuditTableRow({
   onSelectEntry?: (entry: AuditTableItem) => void;
 }) {
   const copy = translations.audit;
-  const actionLabel =
-    entry.actionLabel ||
-    copy.actions[entry.action as keyof typeof copy.actions] ||
-    entry.action;
+  const actionLabel = copy.actions[entry.action];
+  const resultLabel = copy.results[entry.result];
 
   const handleKeyDown = onSelectEntry
     ? (e: React.KeyboardEvent) => {
@@ -104,21 +56,24 @@ function AuditTableRow({
       className={`transition-colors hover:bg-[#F9F8F6] ${onSelectEntry ? "cursor-pointer focus:bg-[#F9F8F6] focus:outline-hidden" : ""}`}
     >
       <td className="whitespace-nowrap px-4 py-3.5 text-[#536176]">
-        {formatDateTime(entry.timestamp)}
+        {formatAuditDateTime(entry.occurredOn)}
       </td>
       <td className="px-4 py-3.5 font-medium text-[#1A2B48]">
-        {entry.operatorEmail}
+        {entry.operatorId}
       </td>
       <td className="whitespace-nowrap px-4 py-3.5 text-[#1A2B48]">
-        {formatResource(entry.resourceType, entry.resourceId)}
+        {formatAuditResource(entry.resourceType, entry.resourceId, copy.notAvailable)}
       </td>
       <td className="whitespace-nowrap px-4 py-3.5">
         <span className="inline-flex items-center rounded-md border border-[#1A2B48]/15 bg-[#F4F1EE] px-2 py-0.5 text-xs font-medium text-[#1A2B48]">
           {actionLabel}
         </span>
       </td>
+      <td className="whitespace-nowrap px-4 py-3.5 text-[#1A2B48]">
+        {resultLabel}
+      </td>
       <td className="max-w-md px-4 py-3.5 text-[#536176] break-words">
-        {entry.reason}
+        {entry.reason || copy.notAvailable}
       </td>
     </tr>
   );
@@ -145,6 +100,7 @@ export function AuditTable({
             <th scope="col" className="px-4 py-3.5">{copy.table.operator}</th>
             <th scope="col" className="px-4 py-3.5">{copy.table.resource}</th>
             <th scope="col" className="px-4 py-3.5">{copy.table.action}</th>
+            <th scope="col" className="px-4 py-3.5">{copy.table.result}</th>
             <th scope="col" className="px-4 py-3.5">{copy.table.reason}</th>
           </tr>
         </thead>

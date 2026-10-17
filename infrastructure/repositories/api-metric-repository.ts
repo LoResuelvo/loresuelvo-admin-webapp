@@ -75,18 +75,14 @@ async function resolveFunnelFromStub(stub: ApiStub): Promise<ConversionFunnel> {
 }
 
 export function formatToRfc3339(dateStr: string, isEnd = false): string {
-  if (dateStr.includes("T")) {
-    return dateStr;
-  }
-  if (isEnd) {
-    const now = new Date();
-    const todayPrefix = now.toISOString().slice(0, 10);
-    if (dateStr >= todayPrefix) {
-      return now.toISOString();
-    }
-    return `${dateStr}T23:59:59Z`;
-  }
-  return `${dateStr}T00:00:00Z`;
+  if (dateStr.includes("T")) return dateStr;
+  // Calendar filters use Buenos Aires days; the API's upper bound is exclusive.
+  if (!isEnd) return `${dateStr}T00:00:00-03:00`;
+  const nextDay = new Date(`${dateStr}T00:00:00Z`);
+  nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+  const exclusiveEnd = `${nextDay.toISOString().slice(0, 10)}T00:00:00-03:00`;
+  const now = new Date();
+  return new Date(exclusiveEnd) > now ? now.toISOString() : exclusiveEnd;
 }
 
 export function buildApiUrl(baseUrl: string, filters?: FunnelFilters): URL {

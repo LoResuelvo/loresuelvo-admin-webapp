@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { AuditAction, AuditFilters, AuditLogEntry } from "@/domain/audit/audit-log";
+import type { AuditFilters, AuditLogEntry } from "@/domain/audit/audit-log";
 import { translations } from "@/infrastructure/i18n/translations";
 import { getAuditLogsAction } from "@/app/(dashboard)/auditoria/actions";
 import { AuditFiltersBar, type AuditFiltersState } from "./audit-filters-bar";
@@ -37,9 +37,10 @@ function AuditErrorView({ error, onRetry }: { error: string; onRetry: () => void
 }
 
 function buildApiFilters(filters: AuditFiltersState): AuditFilters {
+  const operatorId = Number(filters.operatorId);
   return {
-    ...(filters.action ? { action: filters.action as AuditAction } : {}),
-    ...(filters.operator?.trim() ? { operator: filters.operator.trim() } : {}),
+    ...(filters.action ? { action: filters.action } : {}),
+    ...(Number.isInteger(operatorId) && operatorId > 0 ? { operatorId } : {}),
     ...(filters.from?.trim() ? { from: filters.from.trim() } : {}),
     ...(filters.to?.trim() ? { to: filters.to.trim() } : {}),
   };
@@ -59,10 +60,14 @@ export function AuditConsolePage({ initialFilters }: AuditConsolePageProps) {
   const copy = translations.audit;
   const requestGeneration = useRef(0);
   const [entries, setEntries] = useState<AuditLogEntry[]>([]);
+  const [pagination, setPagination] = useState<{ cursor: string | null; loading: boolean; error: string | null }>({
+    cursor: null, loading: false, error: null,
+  });
+  const { cursor: nextCursor, loading: isLoadingMore, error: loadMoreError } = pagination;
   const [selectedEntry, setSelectedEntry] = useState<AuditLogEntry | null>(null);
   const [filters, setFilters] = useState<AuditFiltersState>({
     action: initialFilters?.action ?? "",
-    operator: initialFilters?.operator ?? "",
+    operatorId: initialFilters?.operatorId ? String(initialFilters.operatorId) : "",
     from: initialFilters?.from ?? "",
     to: initialFilters?.to ?? "",
   });
@@ -70,12 +75,14 @@ export function AuditConsolePage({ initialFilters }: AuditConsolePageProps) {
 
   const loadAuditLogs = useCallback(async (activeFilters: AuditFiltersState) => {
     const generation = ++requestGeneration.current;
+    setPagination({ cursor: null, loading: false, error: null });
     setStatus({ loading: true, error: null, forbidden: false });
     try {
       const res = await getAuditLogsAction(buildApiFilters(activeFilters));
       if (generation !== requestGeneration.current) return;
       if (res.success) {
-        setEntries(res.data);
+        setEntries([...res.data.events]);
+        setPagination(current => ({ ...current, cursor: res.data.nextCursor }));
         setStatus({ loading: false, error: null, forbidden: false });
       } else {
         setStatus({ loading: false, error: res.error, forbidden: Boolean(res.isForbidden) });
@@ -86,13 +93,36 @@ export function AuditConsolePage({ initialFilters }: AuditConsolePageProps) {
     }
   }, [copy.error]);
 
+  const loadNextPage = useCallback(async (
+    activeFilters: AuditFiltersState,
+    cursor: string,
+  ) => {
+    const generation = requestGeneration.current;
+    setPagination(current => ({ ...current, loading: true, error: null }));
+    try {
+      const res = await getAuditLogsAction(buildApiFilters(activeFilters), cursor);
+      if (generation !== requestGeneration.current) return;
+      if (res.success) {
+        setEntries((current) => [...current, ...res.data.events]);
+        setPagination(current => ({ ...current, cursor: res.data.nextCursor }));
+      } else {
+        setPagination(current => ({ ...current, error: res.error }));
+      }
+    } catch {
+      if (generation !== requestGeneration.current) return;
+      setPagination(current => ({ ...current, error: copy.error }));
+    } finally {
+      if (generation === requestGeneration.current) setPagination(current => ({ ...current, loading: false }));
+    }
+  }, [copy.error]);
+
   useEffect(() => {
     void loadAuditLogs(filters);
     return () => { requestGeneration.current += 1; };
   }, [filters, loadAuditLogs]);
 
   const hasActiveFilters = Boolean(
-    filters.action || filters.operator || filters.from || filters.to,
+    filters.action || filters.operatorId || filters.from || filters.to,
   );
 
   return (
@@ -108,8 +138,26 @@ export function AuditConsolePage({ initialFilters }: AuditConsolePageProps) {
         <AuditTable
           entries={entries}
           emptyMessage={hasActiveFilters ? copy.table.emptyFiltered : undefined}
-          onSelectEntry={(entry) => setSelectedEntry(entry as AuditLogEntry)}
+          onSelectEntry={setSelectedEntry}
         />
+      )}
+      {!status.loading && !status.error && !status.forbidden && nextCursor && (
+        <div className="flex flex-col items-center gap-2">
+          {loadMoreError && <p role="alert" className="text-sm text-red-700">{loadMoreError}</p>}
+          <button
+            type="button"
+            onClick={() => void loadNextPage(filters, nextCursor)}
+            disabled={isLoadingMore}
+            aria-busy={isLoadingMore}
+            className="inline-flex items-center rounded-lg border border-[#147560] px-4 py-2 text-sm font-medium text-[#147560] transition-colors hover:bg-[#147560]/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560] disabled:cursor-wait disabled:opacity-60"
+          >
+            {isLoadingMore
+              ? copy.loadingMore
+              : loadMoreError
+                ? copy.retry
+                : copy.loadMore}
+          </button>
+        </div>
       )}
       <AuditDetailModal
         isOpen={Boolean(selectedEntry)}
