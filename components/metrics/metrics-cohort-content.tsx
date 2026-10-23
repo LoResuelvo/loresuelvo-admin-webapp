@@ -36,7 +36,12 @@ export function FunnelMetadataBar({
 }) {
   const t = translations.metrics;
   if (!from || !to) return null;
-  const effectivePeriod = formatEffectivePeriod(from, to, metadata?.timezone);
+  const effectivePeriod = formatEffectivePeriod(
+    from,
+    to,
+    metadata?.timezone,
+    t.effectivePeriodExclusiveSuffix,
+  );
   const observation = formatObservationDate(metadata?.observedAt, metadata?.timezone);
 
   return (

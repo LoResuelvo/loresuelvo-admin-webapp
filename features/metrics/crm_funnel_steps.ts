@@ -8,6 +8,7 @@ import {
   crmAiFunnelFixture,
   crmComparisonFiltersFixture,
   crmComparisonFunnelFixture,
+  crmComparisonPeriodFiltersFixture,
   crmDelaysAndObservationFixture,
   crmZeroBaseAndZeroProgressFixture,
 } from "./crm_funnel_fixtures";
@@ -22,6 +23,38 @@ function funnelEndpoint(from: string, to: string, categoryId?: number): string {
 function defaultFunnelEndpoint(preset: PeriodOption = "7d", categoryId?: number): string {
   const { from, to } = computeDateRange(preset);
   return funnelEndpoint(from, to, categoryId);
+}
+
+function periodResponseForFilters(
+  from: string,
+  to: string,
+  asOf: Date,
+): { from: string; to: string } {
+  const nextDay = new Date(`${to}T00:00:00Z`);
+  nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+  const exclusiveEnd = `${nextDay.toISOString().slice(0, 10)}T00:00:00-03:00`;
+
+  return {
+    from: `${from}T00:00:00-03:00`,
+    to: new Date(exclusiveEnd) > asOf ? asOf.toISOString() : exclusiveEnd,
+  };
+}
+
+function formatFilterDate(date: string): string {
+  const [year, month, day] = date.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function formatBuenosAiresTimestampForAssertion(value: string): string {
+  const localDate = new Date(Date.parse(value) - 3 * 60 * 60 * 1000);
+  const year = localDate.getUTCFullYear();
+  const month = String(localDate.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(localDate.getUTCDate()).padStart(2, "0");
+  const hour = String(localDate.getUTCHours()).padStart(2, "0");
+  const minute = String(localDate.getUTCMinutes()).padStart(2, "0");
+  const second = String(localDate.getUTCSeconds()).padStart(2, "0");
+
+  return `${formatFilterDate(`${year}-${month}-${day}`)}, ${hour}:${minute}:${second}`;
 }
 
 Given(
@@ -392,8 +425,10 @@ Then(
     const period = this.page.getByTestId("funnel-effective-period");
     await period.waitFor({ state: "visible", timeout: 10000 });
     const periodText = await period.textContent();
-    assert.ok(periodText?.includes("15/10/2026"));
-    assert.ok(periodText?.includes("23/10/2026"));
+    assert.match(
+      periodText ?? "",
+      /15\/10\/2026,?\s00:00:00.*23\/10\/2026,?\s00:00:00 \(hasta exclusivo\)/,
+    );
 
     const observed = this.page.getByTestId("funnel-observation-date");
     await observed.waitFor({ state: "visible", timeout: 10000 });
@@ -460,27 +495,65 @@ Given(
     await source.selectOption("comparison");
     const aiPanel = this.page.getByTestId("funnel-comparison-panel-ai");
     await aiPanel.waitFor({ state: "visible", timeout: 10000 });
+    await aiPanel
+      .getByTestId("funnel-step-requests_created")
+      .getByText("2", { exact: true })
+      .waitFor({ state: "visible", timeout: 10000 });
+    await this.page
+      .getByTestId("funnel-comparison-panel-manual")
+      .getByTestId("funnel-step-requests_created")
+      .getByText("3", { exact: true })
+      .waitFor({ state: "visible", timeout: 10000 });
   },
 );
 
 When(
   "aplico un período y un rubro",
   async function (this: CustomWorld) {
-    const { from, to } = computeDateRange("30d");
-    await this.stubGet(funnelEndpoint(from, to), crmComparisonFiltersFixture);
-    await this.stubGet(funnelEndpoint(from, to, 47), crmComparisonFiltersFixture);
+    const asOf = new Date();
+    const { from, to } = computeDateRange("30d", asOf);
+    const period = periodResponseForFilters(from, to, asOf);
+    await this.stubGet(funnelEndpoint(from, to), {
+      ...crmComparisonPeriodFiltersFixture,
+      period,
+      observed_at: asOf.toISOString(),
+    });
+    await this.stubGet(funnelEndpoint(from, to, 47), {
+      ...crmComparisonFiltersFixture,
+      period,
+      observed_at: asOf.toISOString(),
+    });
+
+    const aiPanel = this.page.getByTestId("funnel-comparison-panel-ai");
+    const manualPanel = this.page.getByTestId("funnel-comparison-panel-manual");
 
     const periodSelect = this.page
       .getByRole("combobox", { name: /rango temporal|período/i })
       .or(this.page.getByTestId("metrics-period-select"));
     await periodSelect.waitFor({ state: "visible", timeout: 10000 });
     await periodSelect.selectOption("30d");
+    await aiPanel
+      .getByTestId("funnel-step-requests_created")
+      .getByText("10", { exact: true })
+      .waitFor({ state: "visible", timeout: 10000 });
+    await manualPanel
+      .getByTestId("funnel-step-requests_created")
+      .getByText("15", { exact: true })
+      .waitFor({ state: "visible", timeout: 10000 });
 
     const categorySelect = this.page
       .getByRole("combobox", { name: /rubro|oficio/i })
       .or(this.page.getByTestId("metrics-category-select"));
     await categorySelect.waitFor({ state: "visible", timeout: 10000 });
     await categorySelect.selectOption("47");
+    await aiPanel
+      .getByTestId("funnel-step-requests_created")
+      .getByText("8", { exact: true })
+      .waitFor({ state: "visible", timeout: 10000 });
+    await manualPanel
+      .getByTestId("funnel-step-requests_created")
+      .getByText("12", { exact: true })
+      .waitFor({ state: "visible", timeout: 10000 });
   },
 );
 
@@ -495,13 +568,66 @@ Then(
 
     const aiPeriod = this.page.getByTestId("funnel-effective-period-ai");
     const manualPeriod = this.page.getByTestId("funnel-effective-period-manual");
+    const aiPanel = this.page.getByTestId("funnel-comparison-panel-ai");
+    const manualPanel = this.page.getByTestId("funnel-comparison-panel-manual");
     await aiPeriod.waitFor({ state: "visible", timeout: 10000 });
     await manualPeriod.waitFor({ state: "visible", timeout: 10000 });
 
+    const categoryStub = (await this.getStubs()).find((stub) => {
+      if (
+        stub.method !== "GET" ||
+        !stub.endpoint.includes("category_id=47")
+      ) return false;
+      const response = stub.body as { category_id?: number };
+      return response.category_id === 47;
+    });
+    assert.ok(categoryStub, "Expected the filtered funnel response fixture");
+    const response = categoryStub.body as {
+      period: { from: string; to: string };
+      observed_at: string;
+    };
+    assert.equal(response.period.to, response.observed_at);
+    assert.equal(
+      response.period.from.slice(0, 10),
+      new URLSearchParams(categoryStub.endpoint.split("?")[1]).get("from"),
+    );
+
+    const expectedFrom = formatBuenosAiresTimestampForAssertion(response.period.from);
+    const expectedTo = formatBuenosAiresTimestampForAssertion(response.period.to);
+    const [expectedFromDate, expectedFromTime] = expectedFrom.split(", ");
+    const [expectedToDate, expectedToTime] = expectedTo.split(", ");
     const aiText = await aiPeriod.textContent();
     const manualText = await manualPeriod.textContent();
-    assert.ok(aiText?.includes("24/09/2026") || aiText?.includes("24/10/2026"));
-    assert.ok(manualText?.includes("24/09/2026") || manualText?.includes("24/10/2026"));
+    for (const periodText of [aiText, manualText]) {
+      assert.match(periodText ?? "", /Período efectivo:/);
+      assert.match(
+        periodText ?? "",
+        new RegExp(`${expectedFromDate},?\\s+${expectedFromTime}`),
+      );
+      assert.match(
+        periodText ?? "",
+        new RegExp(`${expectedToDate},?\\s+${expectedToTime}`),
+      );
+      assert.ok(periodText?.endsWith("(hasta exclusivo)"));
+    }
+
+    const observed = this.page.getByTestId("funnel-observation-date");
+    await observed.waitFor({ state: "visible", timeout: 10000 });
+    const observedText = await observed.textContent();
+    const expectedObservedAt = formatBuenosAiresTimestampForAssertion(response.observed_at);
+    const [expectedObservedDate, expectedObservedTime] = expectedObservedAt.split(", ");
+    assert.match(
+      observedText ?? "",
+      new RegExp(`${expectedObservedDate},?\\s+${expectedObservedTime.slice(0, 5)}`),
+    );
+    assert.ok(observedText?.includes("America/Argentina/Buenos_Aires"));
+
+    for (const [panel, expectedCount] of [[aiPanel, "8"], [manualPanel, "12"]] as const) {
+      const requestCount = panel
+        .getByTestId("funnel-step-requests_created")
+        .getByText(expectedCount, { exact: true });
+      assert.equal(await requestCount.count(), 1);
+    }
   },
 );
 

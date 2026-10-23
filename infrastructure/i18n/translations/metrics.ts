@@ -38,6 +38,7 @@ export const metricsTranslations = {
   },
   initialUnitLabel: "Unidad inicial",
   effectivePeriod: "Período efectivo",
+  effectivePeriodExclusiveSuffix: "(hasta exclusivo)",
   observedAt: "Fecha de observación",
   delays: {
     notice: "Tiempos calculados sobre transiciones realizadas, no representan espera de casos pendientes",

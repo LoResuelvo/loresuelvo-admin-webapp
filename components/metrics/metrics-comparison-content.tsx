@@ -108,6 +108,7 @@ export function MetricsComparisonContent({
     effectiveFrom,
     effectiveTo,
     metadata?.timezone,
+    t.effectivePeriodExclusiveSuffix,
   );
 
   return (

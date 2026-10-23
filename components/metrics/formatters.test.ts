@@ -49,14 +49,39 @@ describe("formatPercentage", () => {
 });
 
 describe("formatEffectivePeriod", () => {
-  it("formats period range in short date style", () => {
+  it("shows the exclusive end boundary in the backend timezone", () => {
     const formatted = formatEffectivePeriod(
       "2026-10-15T03:00:00Z",
       "2026-10-23T03:00:00Z",
       "America/Argentina/Buenos_Aires",
+      "(hasta exclusivo)",
     );
-    expect(formatted).toContain("15/10/2026");
+    expect(formatted).toMatch(
+      /15\/10\/2026,?\s00:00:00.*23\/10\/2026,?\s00:00:00 \(hasta exclusivo\)$/,
+    );
+  });
+
+  it("keeps intraday boundaries exact after timezone conversion", () => {
+    const formatted = formatEffectivePeriod(
+      "2026-10-23T18:30:00Z",
+      "2026-10-23T18:45:37Z",
+      "America/Argentina/Buenos_Aires",
+      "(hasta exclusivo)",
+    );
     expect(formatted).toContain("23/10/2026");
+    expect(formatted).toContain("15:30:00");
+    expect(formatted).toContain("15:45:37");
+    expect(formatted).toContain("(hasta exclusivo)");
+  });
+
+  it("keeps date-only legacy boundaries as calendar dates", () => {
+    const formatted = formatEffectivePeriod(
+      "2026-10-15",
+      "2026-10-23",
+      "America/Argentina/Buenos_Aires",
+      "(hasta exclusivo)",
+    );
+    expect(formatted).toBe("15/10/2026 – 23/10/2026");
   });
 
   it("handles null or undefined dates", () => {
@@ -67,10 +92,11 @@ describe("formatEffectivePeriod", () => {
 describe("formatObservationDate", () => {
   it("formats observation date with timezone", () => {
     const formatted = formatObservationDate(
-      "2026-10-23T12:00:00Z",
+      "2026-10-23T21:00:00Z",
       "America/Argentina/Buenos_Aires",
     );
     expect(formatted).toContain("23/10/2026");
+    expect(formatted).toMatch(/23\/10\/2026,?\s18:00/);
     expect(formatted).toContain("America/Argentina/Buenos_Aires");
   });
 

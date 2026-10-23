@@ -262,3 +262,84 @@ export const crmComparisonFiltersFixture: ApiAdminFunnelMetricsResponse = {
   },
 };
 
+type FunnelStage = ApiAdminFunnelMetricsResponse["cohorts"]["ai"]["stages"][number]["stage"];
+type FunnelStageCounts = Partial<Record<FunnelStage, number>>;
+
+function withStageCounts(
+  cohort: ApiAdminFunnelMetricsResponse["cohorts"]["ai"],
+  counts: FunnelStageCounts,
+) {
+  const conversionPercentage = (numerator: number, denominator: number) =>
+    denominator > 0 ? Number(((numerator / denominator) * 100).toFixed(2)) : null;
+  const stages = cohort.stages.map((stage) => ({
+    ...stage,
+    count: counts[stage.stage] ?? stage.count,
+  }));
+  const initialCount = stages[0]?.count ?? 0;
+  const completionCount =
+    stages.find((stage) => stage.stage === "reported_completion")?.count ?? 0;
+
+  return {
+    ...cohort,
+    stages: stages.map((stage, index) => ({
+      ...stage,
+      conversion_percentage: index === 0
+        ? null
+        : conversionPercentage(stage.count, initialCount),
+    })),
+    global_completion_conversion_percentage: conversionPercentage(
+      completionCount,
+      initialCount,
+    ),
+  };
+}
+
+function withComparisonStageCounts(
+  fixture: ApiAdminFunnelMetricsResponse,
+  aiCounts: FunnelStageCounts,
+  manualCounts: FunnelStageCounts,
+): ApiAdminFunnelMetricsResponse {
+  const requestComparison = fixture.request_comparison;
+  if (!requestComparison) {
+    throw new Error("CRM comparison fixture requires request comparison data");
+  }
+
+  return {
+    ...fixture,
+    category_id: null,
+    cohorts: {
+      ...fixture.cohorts,
+      ai: withStageCounts(fixture.cohorts.ai, aiCounts),
+      ...(fixture.cohorts.manual
+        ? { manual: withStageCounts(fixture.cohorts.manual, manualCounts) }
+        : {}),
+    },
+    request_comparison: {
+      ...requestComparison,
+      ai: withStageCounts(requestComparison.ai, aiCounts),
+      manual: withStageCounts(requestComparison.manual, manualCounts),
+    },
+  };
+}
+
+export const crmComparisonPeriodFiltersFixture = withComparisonStageCounts(
+  crmComparisonFiltersFixture,
+  {
+    professional_assessment: 10,
+    request: 10,
+    proposal: 6,
+    confirmed_hiring: 5,
+    reported_completion: 5,
+    full_payment: 3,
+    review: 2,
+  },
+  {
+    request: 15,
+    proposal: 10,
+    confirmed_hiring: 7,
+    reported_completion: 7,
+    full_payment: 4,
+    review: 3,
+  },
+);
+
