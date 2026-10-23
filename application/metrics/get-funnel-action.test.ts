@@ -25,8 +25,18 @@ describe("getFunnelAction", () => {
     const mockData = {
       from: "2026-08-25",
       to: "2026-09-24",
-      globalConversionRate: 0.32,
-      steps: [],
+      cohorts: {
+        ai: {
+          source: "ai" as const,
+          initialUnit: "professional_assessment" as const,
+          categorySource: null,
+          globalConversionRate: 0.32,
+          globalConversionNumerator: 0,
+          globalConversionDenominator: 0,
+          delays: {},
+          steps: [],
+        },
+      },
     };
     vi.mocked(apiMetricRepository.getFunnel).mockResolvedValue(mockData);
 

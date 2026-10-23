@@ -147,6 +147,11 @@ Then("puedo cerrar el menú colapsable", async function (this: CustomWorld) {
   await this.page.keyboard.press("Escape");
   await drawer.waitFor({ state: "hidden" });
   assert.equal(await menuButton.getAttribute("aria-expanded"), "false");
-  assert.equal(await menuButton.evaluate((element) => element === document.activeElement), true);
+  const menuButtonHandle = await menuButton.elementHandle();
+  assert.ok(menuButtonHandle);
+  await this.page.waitForFunction(
+    (button) => button === document.activeElement,
+    menuButtonHandle,
+  );
 });
 

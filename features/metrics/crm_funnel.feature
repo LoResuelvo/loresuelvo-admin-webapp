@@ -6,7 +6,6 @@ Feature: Lectura y comparación de embudos de contratación
   Background:
     Given que he iniciado sesión en el panel de administración
 
-  @wip
   Scenario: 09-MET Comprender las dos bases porcentuales del recorrido IA
     Given que una cohorte IA contiene 100 evaluaciones profesionales, 60 con solicitud y 30 con propuesta
     When consulto el recorrido Origen IA
@@ -15,7 +14,6 @@ Feature: Lectura y comparación de embudos de contratación
     And las barras usan exclusivamente el porcentaje sobre el inicio
     And se identifica que la unidad contada es la evaluación profesional
 
-  @wip
   Scenario: 10-MET Consultar el recorrido manual de forma independiente
     Given que la respuesta contiene solicitudes manuales y evaluaciones de origen IA
     When selecciono el recorrido Manual

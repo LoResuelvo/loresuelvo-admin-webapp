@@ -1,12 +1,13 @@
 import type { FunnelStepData } from "./types";
 import { formatDurationMinutes, formatPercentage } from "./formatters";
+import { translations } from "@/infrastructure/i18n/translations";
 
 export interface FunnelChartProps {
-  steps: FunnelStepData[];
+  steps: readonly FunnelStepData[];
 }
 
 export function FunnelChart({ steps }: FunnelChartProps) {
-  const maxCount = steps.length > 0 ? Math.max(...steps.map((s) => s.count), 1) : 1;
+  const t = translations.metrics;
 
   return (
     <section
@@ -18,8 +19,10 @@ export function FunnelChart({ steps }: FunnelChartProps) {
       </h2>
 
       <div className="space-y-4">
-        {steps.map((step, idx) => {
-          const widthPercent = Math.max(8, Math.round((step.count / maxCount) * 100));
+        {steps.map((step) => {
+          const widthPercent = step.count === 0
+            ? 0
+            : Math.max(0, Math.min(100, Math.round((step.conversionFromStart ?? 0) * 100)));
           return (
             <div
               key={step.stepName}
@@ -35,7 +38,7 @@ export function FunnelChart({ steps }: FunnelChartProps) {
                     {step.count.toLocaleString("es-AR")}
                   </span>
                   <span>
-                    ({idx === 0 ? "100%" : `${formatPercentage(step.relativeConversion)} ret.`})
+                    ({formatPercentage(step.conversionFromStart)} {t.fromInitialBase})
                   </span>
                   {step.avgDurationMinutes ? (
                     <span className="text-[11px] text-[#536176]/80">
@@ -47,10 +50,16 @@ export function FunnelChart({ steps }: FunnelChartProps) {
 
               <div className="w-full bg-[#F4F1EE] rounded-lg h-7 p-1 flex items-center">
                 <div
-                  className="bg-gradient-to-r from-[#147560] to-[#1A2B48] h-full rounded-md transition-all duration-300 flex items-center px-2 text-[11px] font-semibold text-white justify-end"
+                  data-testid={`funnel-chart-bar-${step.stepName}`}
+                  role="progressbar"
+                  aria-valuenow={widthPercent}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`${step.label}: ${formatPercentage(step.conversionFromStart)} ${t.fromInitialBase}`}
+                  className={`min-w-0 bg-gradient-to-r from-[#147560] to-[#1A2B48] h-full rounded-md transition-all duration-300 flex items-center text-[11px] font-semibold text-white justify-end ${widthPercent > 0 ? "px-2" : "px-0"}`}
                   style={{ width: `${widthPercent}%` }}
                 >
-                  {widthPercent >= 20 ? `${widthPercent}%` : ""}
+                  {widthPercent >= 20 ? formatPercentage(step.conversionFromStart) : ""}
                 </div>
               </div>
             </div>

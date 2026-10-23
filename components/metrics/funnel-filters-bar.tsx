@@ -1,4 +1,5 @@
 import { translations } from "@/infrastructure/i18n/translations";
+import type { FunnelSource } from "@/domain/metrics/funnel";
 
 import type { PeriodOption } from "@/domain/metrics/funnel-date-range";
 export { computeDateRange, type PeriodOption } from "@/domain/metrics/funnel-date-range";
@@ -9,6 +10,9 @@ export interface CategoryOption {
 }
 
 export interface FunnelFiltersBarProps {
+  availableSources?: readonly FunnelSource[];
+  selectedSource?: FunnelSource;
+  onSourceChange?: (source: FunnelSource) => void;
   selectedPeriod?: PeriodOption;
   onPeriodChange?: (period: PeriodOption) => void;
   selectedCategoryId?: number | "";
@@ -20,6 +24,40 @@ export interface FunnelFiltersBarProps {
   onToDateChange?: (date: string) => void;
   onApplyFilters?: () => void;
   className?: string;
+}
+
+function FunnelSourceSelect({
+  availableSources,
+  selectedSource,
+  onSourceChange,
+}: {
+  availableSources: readonly FunnelSource[];
+  selectedSource: FunnelSource;
+  onSourceChange?: (source: FunnelSource) => void;
+}) {
+  const { source } = translations.metrics;
+  return (
+    <div className="flex items-center gap-2">
+      <label htmlFor="metrics-source-select" className="text-sm font-medium text-[#1A2B48]">
+        {source.label}
+      </label>
+      <select
+        id="metrics-source-select"
+        data-testid="metrics-source-select"
+        aria-label={source.label}
+        value={selectedSource}
+        onChange={(event) => {
+          const nextSource = availableSources.find((item) => item === event.target.value);
+          if (nextSource) onSourceChange?.(nextSource);
+        }}
+        className="rounded-xl border border-[#1A2B48]/15 bg-white px-3 py-2 text-sm text-[#1A2B48] transition-colors focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
+      >
+        {availableSources.map((item) => (
+          <option key={item} value={item}>{source[item]}</option>
+        ))}
+      </select>
+    </div>
+  );
 }
 
 function PeriodFilterSelect({
@@ -160,6 +198,9 @@ function ApplyFiltersButton({ onApply }: { onApply?: () => void }) {
 }
 
 export function FunnelFiltersBar({
+  availableSources = ["ai"],
+  selectedSource = "ai",
+  onSourceChange,
   selectedPeriod = "7d",
   onPeriodChange,
   selectedCategoryId = "",
@@ -178,6 +219,11 @@ export function FunnelFiltersBar({
       className={`flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#1A2B48]/10 bg-white p-4 shadow-xs ${className}`.trim()}
     >
       <div className="flex flex-wrap items-center gap-4">
+        <FunnelSourceSelect
+          availableSources={availableSources}
+          selectedSource={selectedSource}
+          onSourceChange={onSourceChange}
+        />
         <PeriodFilterSelect
           selectedPeriod={selectedPeriod}
           onPeriodChange={onPeriodChange}

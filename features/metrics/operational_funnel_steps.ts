@@ -71,7 +71,7 @@ Then(
     const retention = stepElement.getByTestId("retention-proposals_sent");
     await retention.waitFor({ state: "visible", timeout: 10000 });
     const retentionText = await retention.textContent();
-    assert.match(retentionText ?? "", /77%/);
+    assert.match(retentionText ?? "", /78% \(140 de 180\)/);
 
     const duration = stepElement.getByTestId("duration-proposals_sent");
     await duration.waitFor({ state: "visible", timeout: 10000 });

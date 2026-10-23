@@ -26,7 +26,7 @@ function funnelFixture(counts: number[], percentages: number[], globalPercentage
   };
 }
 
-export const mockFunnelData = funnelFixture([250, 180, 140, 105, 88, 84, 80], [100, 72, 77, 75, 83, 95.45, 95.24], 35.2, [240, 360, 2880, 60]);
+export const mockFunnelData = funnelFixture([250, 180, 140, 105, 88, 84, 80], [100, 72, 77.78, 75, 83, 95.45, 95.24], 35.2, [240, 360, 2880, 60]);
 export const mockFunnel30Days = funnelFixture([320, 240, 190, 160, 150, 147, 144], [100, 75, 79, 84, 94, 98, 97.96], 46.88, [200, 300, 2400, 60]);
 export const mockFunnelPlomeria = funnelFixture([95, 70, 52, 38, 30, 28, 27], [100, 74, 74, 73, 79, 93.33, 96.43], 31.58, [180, 250, 2100, 60]);
 export const mockEmptyFunnel = funnelFixture([0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], 0, [0, 0, 0, 0]);

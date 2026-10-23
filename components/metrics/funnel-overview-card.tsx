@@ -1,19 +1,25 @@
 import { translations } from "@/infrastructure/i18n/translations";
+import type { FunnelInitialUnit, FunnelSource } from "@/domain/metrics/funnel";
 import { formatPercentage } from "./formatters";
 
 export interface FunnelOverviewCardProps {
-  globalConversionRate: number;
-  initialCount?: number;
-  finalCount?: number;
+  source: FunnelSource;
+  initialUnit: FunnelInitialUnit;
+  globalConversionRate: number | null;
+  globalConversionNumerator: number;
+  globalConversionDenominator: number;
 }
 
 export function FunnelOverviewCard({
+  source,
+  initialUnit,
   globalConversionRate,
-  initialCount,
-  finalCount,
+  globalConversionNumerator,
+  globalConversionDenominator,
 }: FunnelOverviewCardProps) {
   const t = translations.metrics;
   const formattedRate = formatPercentage(globalConversionRate);
+  const initialUnitLabel = t.source.initialUnits[initialUnit];
 
   return (
     <section
@@ -28,7 +34,7 @@ export function FunnelOverviewCard({
           {t.globalConversionRate}
         </h2>
         <p className="text-xs text-white/80 mt-1 max-w-md">
-          {t.overview.description}
+          {t.overview.description[source]}
         </p>
       </div>
 
@@ -45,12 +51,10 @@ export function FunnelOverviewCard({
           </span>
         </div>
 
-        {initialCount !== undefined && finalCount !== undefined ? (
-          <div className="hidden sm:block text-xs text-white/80 space-y-1">
-            <p>{t.overview.origins}: <strong className="text-white">{initialCount}</strong></p>
-            <p>{t.overview.completed}: <strong className="text-white">{finalCount}</strong></p>
-          </div>
-        ) : null}
+        <div className="text-xs text-white/80 space-y-1">
+          <p>{t.overview.numerator}: <strong className="text-white">{globalConversionNumerator}</strong></p>
+          <p>{t.overview.denominator}: <strong className="text-white">{globalConversionDenominator} {initialUnitLabel}</strong></p>
+        </div>
       </div>
     </section>
   );

@@ -6,17 +6,19 @@ export interface FunnelStepCardProps {
   step: FunnelStepData;
   index: number;
   totalSteps: number;
-  maxCount: number;
 }
 
 function StepMetricsFooter({
   step,
-  isFirstStep,
 }: {
   step: FunnelStepData;
-  isFirstStep: boolean;
 }) {
   const t = translations.metrics;
+  const previousStep = step.conversionFromPrevious;
+  const previousStepRate = previousStep
+    ? `${formatPercentage(previousStep.rate)} (${previousStep.numerator} de ${previousStep.denominator})`
+    : t.unavailable;
+
   return (
     <div className="mt-4 pt-4 border-t border-[#1A2B48]/10 grid grid-cols-2 gap-3 text-xs">
       <div>
@@ -25,7 +27,7 @@ function StepMetricsFooter({
           data-testid={`retention-${step.stepName}`}
           className="font-semibold text-sm text-[#1A2B48]"
         >
-          {isFirstStep ? "100%" : formatPercentage(step.relativeConversion)}
+          {previousStepRate}
         </span>
       </div>
       <div>
@@ -45,12 +47,11 @@ export function FunnelStepCard({
   step,
   index,
   totalSteps,
-  maxCount,
 }: FunnelStepCardProps) {
   const t = translations.metrics;
-  const isFirstStep = index === 0;
-  const progressPercent =
-    maxCount > 0 ? Math.min(100, Math.round((step.count / maxCount) * 100)) : 0;
+  const progressPercent = step.count === 0
+    ? 0
+    : Math.min(100, Math.round((step.conversionFromStart ?? 0) * 100));
 
   return (
     <article
@@ -63,7 +64,7 @@ export function FunnelStepCard({
             {t.stepIndex} {index + 1} {t.stepOf} {totalSteps}
           </span>
           <span className="text-xs text-[#536176] font-medium">
-            {progressPercent}% del inicial
+            {formatPercentage(step.conversionFromStart)} {t.fromInitialBase}
           </span>
         </div>
 
@@ -76,24 +77,25 @@ export function FunnelStepCard({
             {step.count.toLocaleString("es-AR")}
           </span>
           <span className="text-xs text-[#536176]">
-            operaciones
+            {t.volume}
           </span>
         </div>
 
         <div className="w-full bg-[#F4F1EE] rounded-full h-2 mt-3 overflow-hidden">
           <div
             className="bg-[#147560] h-2 rounded-full transition-all duration-300"
+            data-testid={`funnel-step-progress-${step.stepName}`}
             style={{ width: `${progressPercent}%` }}
             role="progressbar"
             aria-valuenow={progressPercent}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label={`${step.label}: ${progressPercent}%`}
+            aria-label={`${step.label}: ${formatPercentage(step.conversionFromStart)} ${t.fromInitialBase}`}
           />
         </div>
       </div>
 
-      <StepMetricsFooter step={step} isFirstStep={isFirstStep} />
+      <StepMetricsFooter step={step} />
     </article>
   );
 }

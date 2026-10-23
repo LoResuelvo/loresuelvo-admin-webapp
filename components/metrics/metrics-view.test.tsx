@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MetricsView } from "./metrics-view";
-import type { ConversionFunnel } from "@/domain/metrics/funnel";
+import type { ConversionFunnel, FunnelStepMetric } from "@/domain/metrics/funnel";
 import { getFunnelAction } from "@/app/(dashboard)/metricas/actions";
 
 vi.mock("@/app/(dashboard)/metricas/actions", () => ({
@@ -10,55 +10,88 @@ vi.mock("@/app/(dashboard)/metricas/actions", () => ({
     data: {
       from: "2026-08-25",
       to: "2026-09-24",
-      globalConversionRate: 0.32,
-      steps: [],
+      cohorts: {
+        ai: {
+          source: "ai",
+          initialUnit: "professional_assessment",
+          categorySource: null,
+          globalConversionRate: 0.32,
+          globalConversionNumerator: 0,
+          globalConversionDenominator: 0,
+          delays: {},
+          steps: [],
+        },
+      },
     },
   }),
 }));
 
-const mockFunnel: ConversionFunnel = {
-  from: "2026-08-25",
-  to: "2026-09-24",
-  globalConversionRate: 0.32,
-  steps: [
+function aiFunnel(
+  from: string,
+  to: string,
+  steps: FunnelStepMetric[],
+  globalConversionRate: number | null,
+  globalConversionNumerator = 0,
+): ConversionFunnel {
+  return {
+    from,
+    to,
+    cohorts: {
+      ai: {
+        source: "ai",
+        initialUnit: "professional_assessment",
+        categorySource: "assessment.problem_category_id",
+        globalConversionRate,
+        globalConversionNumerator,
+        globalConversionDenominator: steps[0]?.count ?? 0,
+        delays: {},
+        steps,
+      },
+    },
+  };
+}
+
+const mockFunnel = aiFunnel(
+  "2026-08-25",
+  "2026-09-24",
+  [
     {
       stepName: "ai_diagnostics",
       label: "Diagnósticos IA",
       count: 250,
-      relativeConversion: 1.0,
+      conversionFromStart: 1,
+      conversionFromPrevious: null,
       avgDurationMinutes: null,
     },
     {
       stepName: "requests_created",
       label: "Solicitudes publicadas",
       count: 180,
-      relativeConversion: 0.72,
+      conversionFromStart: 0.72,
+      conversionFromPrevious: { rate: 0.72, numerator: 180, denominator: 250 },
       avgDurationMinutes: 15,
     },
   ],
-};
+  0.32,
+);
 
-const emptyFunnel: ConversionFunnel = {
-  from: "2020-01-01",
-  to: "2020-01-31",
-  globalConversionRate: 0,
-  steps: [],
-};
+const emptyFunnel = aiFunnel("2020-01-01", "2020-01-31", [], null);
 
-const zeroCountsFunnel: ConversionFunnel = {
-  from: "2020-01-01",
-  to: "2020-01-31",
-  globalConversionRate: 0,
-  steps: [
+const zeroCountsFunnel = aiFunnel(
+  "2020-01-01",
+  "2020-01-31",
+  [
     {
       stepName: "ai_diagnostics",
       label: "Diagnósticos IA",
       count: 0,
-      relativeConversion: 0,
+      conversionFromStart: null,
+      conversionFromPrevious: null,
       avgDurationMinutes: null,
     },
   ],
-};
+  null,
+);
 
 describe("MetricsView", () => {
   beforeEach(() => {
@@ -184,16 +217,37 @@ describe("MetricsView", () => {
 
 
 it("uses completed orders rather than reviews for the API completion conversion", () => {
-  const data: ConversionFunnel = {
-    from: "2026-09-01", to: "2026-09-02", globalConversionRate: 0.6667,
-    steps: [
-      { stepName: "ai_diagnostics", label: "Diagnósticos IA", count: 3, relativeConversion: 1 },
-      { stepName: "orders_completed", label: "Órdenes concluidas", count: 2, relativeConversion: 0.6667 },
-      { stepName: "reviews_submitted", label: "Reseñas enviadas", count: 1, relativeConversion: 0.5 },
+  const data = aiFunnel(
+    "2026-09-01",
+    "2026-09-02",
+    [
+      {
+        stepName: "ai_diagnostics",
+        label: "Diagnósticos IA",
+        count: 3,
+        conversionFromStart: 1,
+        conversionFromPrevious: null,
+      },
+      {
+        stepName: "orders_completed",
+        label: "Órdenes concluidas",
+        count: 2,
+        conversionFromStart: 0.6667,
+        conversionFromPrevious: { rate: 0.6667, numerator: 2, denominator: 3 },
+      },
+      {
+        stepName: "reviews_submitted",
+        label: "Reseñas enviadas",
+        count: 1,
+        conversionFromStart: 0.3333,
+        conversionFromPrevious: { rate: 0.5, numerator: 1, denominator: 2 },
+      },
     ],
-  };
+    0.6667,
+    2,
+  );
   render(<MetricsView data={data} />);
   const overview = screen.getByRole("region", { name: "Resumen de conversión global" });
-  expect(overview).toHaveTextContent("Órdenes completadas: 2");
-  expect(overview).not.toHaveTextContent("Órdenes completadas: 1");
+  expect(overview).toHaveTextContent("Finalizaciones reportadas: 2");
+  expect(overview).toHaveTextContent("Base inicial: 3 evaluaciones profesionales");
 });

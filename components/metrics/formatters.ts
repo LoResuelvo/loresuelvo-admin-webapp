@@ -21,6 +21,7 @@ export function formatDurationMinutes(minutes: number | null | undefined): strin
   return `${days} d ${remainingHours} h`;
 }
 
-export function formatPercentage(value: number): string {
+export function formatPercentage(value: number | null): string {
+  if (value === null) return "—";
   return `${Math.round(value * 100)}%`;
 }

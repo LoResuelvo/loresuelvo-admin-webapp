@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import type { ConversionFunnel, FunnelFilters } from "@/domain/metrics/funnel";
+import type { ConversionFunnel, FunnelFilters, FunnelSource } from "@/domain/metrics/funnel";
 import {
   getFunnelAction,
   type GetFunnelActionResult,
@@ -18,6 +18,8 @@ export interface UseMetricsFunnelParams {
   error?: string | null;
   initialForbidden?: boolean;
   isForbidden?: boolean;
+  selectedSource?: FunnelSource;
+  onSourceChange?: (source: FunnelSource) => void;
   selectedPeriod?: PeriodOption;
   onPeriodChange?: (period: PeriodOption) => void;
   selectedCategoryId?: number | "";
@@ -75,6 +77,21 @@ function resolveInitialDataState(params: UseMetricsFunnelParams) {
 function useDataState(params: UseMetricsFunnelParams) {
   const [state, setState] = useState<FunnelDataValues>(() => resolveInitialDataState(params));
   return { state, setState };
+}
+
+function useSourceState(params: UseMetricsFunnelParams) {
+  const [selectedSource, setSelectedSource] = useState<FunnelSource>(
+    params.selectedSource ?? "ai",
+  );
+  const handleSourceChange = useCallback(
+    (source: FunnelSource) => {
+      setSelectedSource(source);
+      params.onSourceChange?.(source);
+    },
+    [params.onSourceChange],
+  );
+
+  return { selectedSource, handleSourceChange };
 }
 
 function useFunnelFetch(
@@ -149,6 +166,7 @@ function useFunnelActions({
 export function useMetricsFunnel(params: UseMetricsFunnelParams) {
   const { filters, setFilters } = useFilterState(params);
   const { state, setState } = useDataState(params);
+  const source = useSourceState(params);
   const actions = useFunnelActions({
     filters,
     setFilters,
@@ -166,6 +184,8 @@ export function useMetricsFunnel(params: UseMetricsFunnelParams) {
     error: resolvedError,
     isForbidden: resolvedForbidden,
     isLoading: state.isLoading,
+    selectedSource: source.selectedSource,
+    handleSourceChange: source.handleSourceChange,
     selectedPeriod: filters.period,
     handlePeriodChange: actions.handlePeriodChange,
     selectedCategoryId: filters.categoryId,

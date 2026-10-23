@@ -1,6 +1,6 @@
 "use client";
 
-import type { ConversionFunnel } from "@/domain/metrics/funnel";
+import type { ConversionFunnel, FunnelCohort, FunnelSource } from "@/domain/metrics/funnel";
 import type { GetFunnelActionResult } from "@/app/(dashboard)/metricas/actions";
 import { translations } from "@/infrastructure/i18n/translations";
 import { FunnelOverviewCard } from "./funnel-overview-card";
@@ -49,10 +49,8 @@ function MetricsHeader({
 
 function MetricsStepsGrid({
   steps,
-  maxCount,
 }: {
-  steps: ConversionFunnel["steps"];
-  maxCount: number;
+  steps: FunnelCohort["steps"];
 }) {
   return (
     <section aria-label="Detalle de etapas del embudo" className="space-y-3">
@@ -66,7 +64,6 @@ function MetricsStepsGrid({
             step={step}
             index={index}
             totalSteps={steps.length}
-            maxCount={maxCount}
           />
         ))}
       </div>
@@ -75,7 +72,11 @@ function MetricsStepsGrid({
 }
 
 interface MetricsFunnelContentProps {
-  data: ConversionFunnel;
+  data: FunnelCohort;
+  source: FunnelSource;
+  availableSources: readonly FunnelSource[];
+  selectedSource: FunnelSource;
+  onSourceChange: (source: FunnelSource) => void;
   selectedPeriod: PeriodOption;
   onPeriodChange: (period: PeriodOption) => void;
   selectedCategoryId: number | "";
@@ -90,6 +91,10 @@ interface MetricsFunnelContentProps {
 
 function MetricsFunnelContent({
   data,
+  source,
+  availableSources,
+  selectedSource,
+  onSourceChange,
   selectedPeriod,
   onPeriodChange,
   selectedCategoryId,
@@ -103,13 +108,14 @@ function MetricsFunnelContent({
 }: MetricsFunnelContentProps) {
   const hasInsufficientVolume =
     data.steps.length === 0 || data.steps.every((s) => s.count === 0);
-
-  const maxCount =
-    data.steps.length > 0 ? Math.max(...data.steps.map((s) => s.count), 1) : 1;
+  const t = translations.metrics;
 
   return (
     <div className="space-y-6">
       <FunnelFiltersBar
+        availableSources={availableSources}
+        selectedSource={selectedSource}
+        onSourceChange={onSourceChange}
         selectedPeriod={selectedPeriod}
         onPeriodChange={onPeriodChange}
         selectedCategoryId={selectedCategoryId}
@@ -121,17 +127,22 @@ function MetricsFunnelContent({
         onToDateChange={onToDateChange}
         onApplyFilters={onApplyFilters}
       />
+      <p data-testid="funnel-initial-unit" className="text-xs text-[#536176]">
+        {t.initialUnitLabel}: {t.source.initialUnit[data.initialUnit]}
+      </p>
       {hasInsufficientVolume ? (
         <FunnelEmptyState />
       ) : (
         <>
           <FunnelOverviewCard
+            source={source}
+            initialUnit={data.initialUnit}
             globalConversionRate={data.globalConversionRate}
-            initialCount={data.steps[0]?.count}
-            finalCount={data.steps.find(step => step.stepName === "orders_completed")?.count}
+            globalConversionNumerator={data.globalConversionNumerator}
+            globalConversionDenominator={data.globalConversionDenominator}
           />
           <FunnelChart steps={data.steps} />
-          <MetricsStepsGrid steps={data.steps} maxCount={maxCount} />
+          <MetricsStepsGrid steps={data.steps} />
         </>
       )}
     </div>
@@ -160,11 +171,28 @@ export function MetricsView(props: MetricsViewProps) {
     return null;
   }
 
+  const sourceOptions: readonly FunnelSource[] = ["ai", "manual"];
+  const availableSources = sourceOptions.filter(
+    (source) => funnel.data?.cohorts[source] !== undefined,
+  );
+  const selectedSource = availableSources.includes(funnel.selectedSource)
+    ? funnel.selectedSource
+    : availableSources[0];
+  const cohort = selectedSource
+    ? funnel.data.cohorts[selectedSource]
+    : undefined;
+
+  if (!selectedSource || !cohort) return null;
+
   return (
     <div className="space-y-6">
       <MetricsHeader title={t.title} subtitle={t.subtitle} />
       <MetricsFunnelContent
-        data={funnel.data}
+        data={cohort}
+        source={selectedSource}
+        availableSources={availableSources}
+        selectedSource={selectedSource}
+        onSourceChange={funnel.handleSourceChange}
         selectedPeriod={funnel.selectedPeriod}
         onPeriodChange={funnel.handlePeriodChange}
         selectedCategoryId={funnel.selectedCategoryId}

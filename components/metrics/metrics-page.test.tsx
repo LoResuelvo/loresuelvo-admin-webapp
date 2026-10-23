@@ -27,8 +27,18 @@ describe("MetricasPage", () => {
       data: {
         from: "2026-09-24",
         to: "2026-10-01",
-        globalConversionRate: 0.32,
-        steps: [],
+        cohorts: {
+          ai: {
+            source: "ai",
+            initialUnit: "professional_assessment",
+            categorySource: null,
+            globalConversionRate: 0.32,
+            globalConversionNumerator: 0,
+            globalConversionDenominator: 0,
+            delays: {},
+            steps: [],
+          },
+        },
       },
     });
     vi.mocked(getCategoriesAction).mockResolvedValue({

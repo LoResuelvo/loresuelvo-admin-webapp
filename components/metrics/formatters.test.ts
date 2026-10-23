@@ -39,5 +39,6 @@ describe("formatPercentage", () => {
     expect(formatPercentage(0.77)).toBe("77%");
     expect(formatPercentage(1.0)).toBe("100%");
     expect(formatPercentage(0)).toBe("0%");
+    expect(formatPercentage(null)).toBe("—");
   });
 });

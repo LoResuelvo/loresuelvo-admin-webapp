@@ -50,8 +50,8 @@ describe("apiMetricRepository", () => {
         },
       }),
     );
-    expect(result.globalConversionRate).toBe(0.32);
-    expect(result.steps).toHaveLength(2);
+    expect(result.cohorts.ai?.globalConversionRate).toBe(0.32);
+    expect(result.cohorts.ai?.steps).toHaveLength(2);
   });
 
   it("omits date bounds when only one parameter is supplied", async () => {
@@ -110,12 +110,12 @@ describe("apiMetricRepository", () => {
 
     expect(result.from).toBe("2026-09-10T00:00:00Z");
     expect(result.to).toBe("2026-09-11T00:00:00Z");
-    expect(result.globalConversionRate).toBe(0.6667);
-    expect(result.steps).toHaveLength(7);
-    expect(result.steps[0].stepName).toBe("ai_diagnostics");
-    expect(result.steps[0].count).toBe(3);
-    expect(result.steps[4].stepName).toBe("orders_completed");
-    expect(result.steps[4].avgDurationMinutes).toBe(2880);
+    expect(result.cohorts.ai?.globalConversionRate).toBe(0.6667);
+    expect(result.cohorts.ai?.steps).toHaveLength(7);
+    expect(result.cohorts.ai?.steps[0]?.stepName).toBe("ai_diagnostics");
+    expect(result.cohorts.ai?.steps[0]?.count).toBe(3);
+    expect(result.cohorts.ai?.steps[4]?.stepName).toBe("orders_completed");
+    expect(result.cohorts.ai?.steps[4]?.avgDurationMinutes).toBe(2880);
   });
   it("throws forbidden MetricError on 403 response", async () => {
     vi.stubEnv("API_URL", "https://api.example.com");

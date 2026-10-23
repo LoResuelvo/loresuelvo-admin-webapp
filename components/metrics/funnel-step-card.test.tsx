@@ -7,7 +7,8 @@ const mockStep: FunnelStepData = {
   stepName: "proposals_sent",
   label: "Propuestas comerciales",
   count: 140,
-  relativeConversion: 0.77,
+  conversionFromStart: 0.56,
+  conversionFromPrevious: { rate: 0.77, numerator: 140, denominator: 180 },
   avgDurationMinutes: 240,
 };
 
@@ -18,7 +19,6 @@ describe("FunnelStepCard", () => {
         step={mockStep}
         index={2}
         totalSteps={6}
-        maxCount={250}
       />,
     );
 
@@ -27,16 +27,21 @@ describe("FunnelStepCard", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("140")).toBeInTheDocument();
     expect(screen.getByText("Paso 3 de 6")).toBeInTheDocument();
-    expect(screen.getByTestId("retention-proposals_sent")).toHaveTextContent("77%");
+    expect(screen.getByTestId("retention-proposals_sent")).toHaveTextContent("77% (140 de 180)");
+    expect(screen.getByTestId("funnel-step-progress-proposals_sent")).toHaveAttribute(
+      "aria-valuenow",
+      "56",
+    );
     expect(screen.getByTestId("duration-proposals_sent")).toHaveTextContent("4 h");
   });
 
-  it("renders 100% retention for the first step", () => {
+  it("marks the first step as having no previous transition", () => {
     const firstStep: FunnelStepData = {
       stepName: "ai_diagnostics",
       label: "Diagnósticos IA",
       count: 250,
-      relativeConversion: 1.0,
+      conversionFromStart: 1.0,
+      conversionFromPrevious: null,
       avgDurationMinutes: null,
     };
 
@@ -45,11 +50,10 @@ describe("FunnelStepCard", () => {
         step={firstStep}
         index={0}
         totalSteps={6}
-        maxCount={250}
       />,
     );
 
-    expect(screen.getByTestId("retention-ai_diagnostics")).toHaveTextContent("100%");
+    expect(screen.getByTestId("retention-ai_diagnostics")).toHaveTextContent("No disponible");
     expect(screen.getByTestId("duration-ai_diagnostics")).toHaveTextContent("-");
   });
 });
