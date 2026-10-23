@@ -46,6 +46,12 @@ export const apiAdminFunnelMetricsResponseSchema = z.object({
     ai: apiFunnelCohortSchema,
     manual: apiFunnelCohortSchema.optional(),
   }),
+  request_comparison: z
+    .object({
+      ai: apiFunnelCohortSchema,
+      manual: apiFunnelCohortSchema,
+    })
+    .optional(),
 });
 
 export const apiFunnelStepMetricSchema = z.object({

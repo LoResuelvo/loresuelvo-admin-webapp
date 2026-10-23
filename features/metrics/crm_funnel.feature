@@ -21,7 +21,6 @@ Feature: Lectura y comparación de embudos de contratación
     And sus porcentajes usan sus propias solicitudes como base inicial
     And el indicador global identifica su numerador y denominador
 
-  @wip
   Scenario: 11-MET Comparar orígenes sobre solicitudes equivalentes
     Given que una evaluación origina dos solicitudes y existen tres solicitudes manuales creadas en el mismo período
     And existen avances posteriores al fin del período y varias propuestas para una misma solicitud

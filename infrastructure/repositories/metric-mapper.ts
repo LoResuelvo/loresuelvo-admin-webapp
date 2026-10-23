@@ -49,26 +49,10 @@ type StepConfig = Readonly<{
 const AI_STEPS: readonly StepConfig[] = [
   { stageKey: "professional_assessment", stepName: "ai_diagnostics" },
   { stageKey: "request", stepName: "requests_created" },
-  {
-    stageKey: "proposal",
-    stepName: "proposals_sent",
-    delayKey: "request_to_first_proposal",
-  },
-  {
-    stageKey: "confirmed_hiring",
-    stepName: "deposits_paid",
-    delayKey: "proposal_to_confirmed_hiring",
-  },
-  {
-    stageKey: "reported_completion",
-    stepName: "orders_completed",
-    delayKey: "confirmed_hiring_to_reported_completion",
-  },
-  {
-    stageKey: "full_payment",
-    stepName: "full_payments",
-    delayKey: "reported_completion_to_full_payment",
-  },
+  { stageKey: "proposal", stepName: "proposals_sent", delayKey: "request_to_first_proposal" },
+  { stageKey: "confirmed_hiring", stepName: "deposits_paid", delayKey: "proposal_to_confirmed_hiring" },
+  { stageKey: "reported_completion", stepName: "orders_completed", delayKey: "confirmed_hiring_to_reported_completion" },
+  { stageKey: "full_payment", stepName: "full_payments", delayKey: "reported_completion_to_full_payment" },
   { stageKey: "review", stepName: "reviews_submitted" },
 ];
 
@@ -90,32 +74,25 @@ function secondsToMinutes(meanSeconds: number | null | undefined): number | null
 }
 
 function mapDelay(delay: ApiFunnelDelay): FunnelDelayMetric {
-  return {
-    observations: delay.observations,
-    meanSeconds: delay.mean_seconds ?? null,
-  };
+  return { observations: delay.observations, meanSeconds: delay.mean_seconds ?? null };
 }
 
 function mapDelays(cohort: ApiFunnelCohort): FunnelCohort["delays"] {
   return {
     requestToFirstProposal: mapDelay(cohort.delays.request_to_first_proposal),
     proposalToConfirmedHiring: mapDelay(cohort.delays.proposal_to_confirmed_hiring),
-    confirmedHiringToReportedCompletion: mapDelay(
-      cohort.delays.confirmed_hiring_to_reported_completion,
-    ),
-    reportedCompletionToFullPayment: mapDelay(
-      cohort.delays.reported_completion_to_full_payment,
-    ),
+    confirmedHiringToReportedCompletion: mapDelay(cohort.delays.confirmed_hiring_to_reported_completion),
+    reportedCompletionToFullPayment: mapDelay(cohort.delays.reported_completion_to_full_payment),
   };
 }
 
-function mapModernSteps(
+function mapStepsWithConfig(
   cohort: ApiFunnelCohort,
-  source: FunnelSource,
+  stepsConfig: readonly StepConfig[],
+  initialStage: string,
 ): FunnelStepMetric[] {
-  const stepsConfig = source === "ai" ? AI_STEPS : MANUAL_STEPS;
   const stageMap = new Map(cohort.stages.map((stage) => [stage.stage, stage]));
-  const initialCount = stageMap.get(INITIAL_STAGE[source])?.count ?? 0;
+  const initialCount = stageMap.get(initialStage)?.count ?? 0;
 
   return stepsConfig.map((config, index) => {
     const stage = stageMap.get(config.stageKey);
@@ -144,25 +121,39 @@ function mapModernSteps(
   });
 }
 
-function mapModernCohort(
-  dto: ApiFunnelCohort,
+function mapModernSteps(
+  cohort: ApiFunnelCohort,
   source: FunnelSource,
-): FunnelCohort {
-  const stages = new Map(dto.stages.map((stage) => [stage.stage, stage]));
-  const globalConversionNumerator = stages.get("reported_completion")?.count ?? 0;
-  const globalConversionDenominator = stages.get(INITIAL_STAGE[source])?.count ?? 0;
+): FunnelStepMetric[] {
+  const stepsConfig = source === "ai" ? AI_STEPS : MANUAL_STEPS;
+  return mapStepsWithConfig(cohort, stepsConfig, INITIAL_STAGE[source]);
+}
 
+function mapModernCohort(dto: ApiFunnelCohort, source: FunnelSource): FunnelCohort {
+  const stages = new Map(dto.stages.map((stage) => [stage.stage, stage]));
   return {
     source,
     initialUnit: source === "ai" ? "professional_assessment" : "request",
     categorySource: dto.category_source,
-    globalConversionRate: percentageToRate(
-      dto.global_completion_conversion_percentage,
-    ),
-    globalConversionNumerator,
-    globalConversionDenominator,
+    globalConversionRate: percentageToRate(dto.global_completion_conversion_percentage),
+    globalConversionNumerator: stages.get("reported_completion")?.count ?? 0,
+    globalConversionDenominator: stages.get(INITIAL_STAGE[source])?.count ?? 0,
     delays: mapDelays(dto),
     steps: mapModernSteps(dto, source),
+  };
+}
+
+function mapModernRequestComparisonCohort(dto: ApiFunnelCohort, source: FunnelSource): FunnelCohort {
+  const stages = new Map(dto.stages.map((stage) => [stage.stage, stage]));
+  return {
+    source,
+    initialUnit: "request",
+    categorySource: dto.category_source,
+    globalConversionRate: percentageToRate(dto.global_completion_conversion_percentage),
+    globalConversionNumerator: stages.get("reported_completion")?.count ?? 0,
+    globalConversionDenominator: stages.get("request")?.count ?? 0,
+    delays: mapDelays(dto),
+    steps: mapStepsWithConfig(dto, MANUAL_STEPS, "request"),
   };
 }
 
@@ -183,10 +174,16 @@ function mapOpenApiFunnel(dto: ApiAdminFunnelMetricsResponse): ConversionFunnel 
     metadata: mapMetadata(dto),
     cohorts: {
       ai: mapModernCohort(dto.cohorts.ai, "ai"),
-      ...(dto.cohorts.manual
-        ? { manual: mapModernCohort(dto.cohorts.manual, "manual") }
-        : {}),
+      ...(dto.cohorts.manual ? { manual: mapModernCohort(dto.cohorts.manual, "manual") } : {}),
     },
+    ...(dto.request_comparison
+      ? {
+          requestComparison: {
+            ai: mapModernRequestComparisonCohort(dto.request_comparison.ai, "ai"),
+            manual: mapModernRequestComparisonCohort(dto.request_comparison.manual, "manual"),
+          },
+        }
+      : {}),
   };
 }
 

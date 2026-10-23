@@ -6,6 +6,7 @@ import { CustomWorld } from "../support/world";
 import {
   crmAiAndManualFunnelFixture,
   crmAiFunnelFixture,
+  crmComparisonFunnelFixture,
 } from "./crm_funnel_fixtures";
 
 function funnelEndpoint(from: string, to: string, categoryId?: number): string {
@@ -156,3 +157,126 @@ Then(
     assert.ok(text?.includes("Base inicial: 3 solicitudes manuales"));
   },
 );
+
+Given(
+  "que una evaluación origina dos solicitudes y existen tres solicitudes manuales creadas en el mismo período",
+  async function (this: CustomWorld) {
+    await this.stubGet(defaultFunnelEndpoint(), crmComparisonFunnelFixture);
+  },
+);
+
+Given(
+  "existen avances posteriores al fin del período y varias propuestas para una misma solicitud",
+  async function (this: CustomWorld) {
+    // Advancements and proposal counts are encapsulated in the fixture
+  },
+);
+
+When("selecciono Comparar", async function (this: CustomWorld) {
+  await this.page.goto(new URL(ROUTES.metrics, this.appUrl).href);
+  const source = this.page.getByRole("combobox", { name: "Origen" });
+  await source.waitFor({ state: "visible", timeout: 10000 });
+  await source.selectOption("comparison");
+});
+
+Then(
+  "veo bases de dos solicitudes IA y tres manuales con las mismas etapas y criterio de rubro",
+  async function (this: CustomWorld) {
+    const aiPanel = this.page.getByTestId("funnel-comparison-panel-ai");
+    const manualPanel = this.page.getByTestId("funnel-comparison-panel-manual");
+    await aiPanel.waitFor({ state: "visible", timeout: 10000 });
+    await manualPanel.waitFor({ state: "visible", timeout: 10000 });
+
+    const aiOverview = aiPanel.getByRole("region", {
+      name: "Resumen de conversión global",
+    });
+    const manualOverview = manualPanel.getByRole("region", {
+      name: "Resumen de conversión global",
+    });
+    assert.ok((await aiOverview.textContent())?.includes("Base inicial: 2 solicitudes IA"));
+    assert.ok((await manualOverview.textContent())?.includes("Base inicial: 3 solicitudes manuales"));
+
+    const expectedStages = [
+      "requests_created",
+      "proposals_sent",
+      "deposits_paid",
+      "orders_completed",
+      "full_payments",
+      "reviews_submitted",
+    ];
+
+    assert.equal(await aiPanel.getByTestId("funnel-step-ai_diagnostics").count(), 0);
+    assert.equal(await manualPanel.getByTestId("funnel-step-ai_diagnostics").count(), 0);
+
+    for (const stage of expectedStages) {
+      await aiPanel.getByTestId(`funnel-step-${stage}`).waitFor({ state: "visible", timeout: 10000 });
+      await manualPanel.getByTestId(`funnel-step-${stage}`).waitFor({ state: "visible", timeout: 10000 });
+    }
+
+    const aiCriterion = aiPanel.getByTestId("funnel-category-criterion-ai");
+    const manualCriterion = manualPanel.getByTestId("funnel-category-criterion-manual");
+    assert.match((await aiCriterion.textContent()) ?? "", /rubro actual del prestador/i);
+    assert.match((await manualCriterion.textContent()) ?? "", /rubro actual del prestador/i);
+  },
+);
+
+Then(
+  "cada solicitud cuenta una sola vez por etapa con sus avances vinculados observados al consultar",
+  async function (this: CustomWorld) {
+    const aiPanel = this.page.getByTestId("funnel-comparison-panel-ai");
+    const manualPanel = this.page.getByTestId("funnel-comparison-panel-manual");
+
+    const aiRequests = aiPanel.getByTestId("funnel-step-requests_created");
+    const aiProposals = aiPanel.getByTestId("funnel-step-proposals_sent");
+    assert.ok((await aiRequests.textContent())?.includes("2"));
+    assert.ok((await aiProposals.textContent())?.includes("1"));
+
+    const manualRequests = manualPanel.getByTestId("funnel-step-requests_created");
+    const manualProposals = manualPanel.getByTestId("funnel-step-proposals_sent");
+    assert.ok((await manualRequests.textContent())?.includes("3"));
+    assert.ok((await manualProposals.textContent())?.includes("2"));
+  },
+);
+
+Then(
+  "cada origen muestra sus propias tasas sobre solicitudes sin mezclar denominadores",
+  async function (this: CustomWorld) {
+    const aiPanel = this.page.getByTestId("funnel-comparison-panel-ai");
+    const manualPanel = this.page.getByTestId("funnel-comparison-panel-manual");
+
+    const aiBarRequests = aiPanel.getByTestId("funnel-chart-bar-requests_created");
+    const aiBarProposals = aiPanel.getByTestId("funnel-chart-bar-proposals_sent");
+    await aiBarRequests.waitFor({ state: "visible", timeout: 10000 });
+    await aiBarProposals.waitFor({ state: "visible", timeout: 10000 });
+    assert.equal(await aiBarRequests.getAttribute("aria-valuenow"), "100");
+    assert.equal(await aiBarProposals.getAttribute("aria-valuenow"), "50");
+    assert.ok(
+      (await aiPanel.getByTestId("retention-proposals_sent").textContent())
+        ?.includes("1 de 2"),
+    );
+
+    const manualBarRequests = manualPanel.getByTestId("funnel-chart-bar-requests_created");
+    const manualBarProposals = manualPanel.getByTestId("funnel-chart-bar-proposals_sent");
+    await manualBarRequests.waitFor({ state: "visible", timeout: 10000 });
+    await manualBarProposals.waitFor({ state: "visible", timeout: 10000 });
+    assert.equal(await manualBarRequests.getAttribute("aria-valuenow"), "100");
+    assert.equal(await manualBarProposals.getAttribute("aria-valuenow"), "67");
+    assert.ok(
+      (await manualPanel.getByTestId("retention-proposals_sent").textContent())
+        ?.includes("2 de 3"),
+    );
+  },
+);
+
+Then(
+  "se informa que el período selecciona la creación de las solicitudes",
+  async function (this: CustomWorld) {
+    const notice = this.page.getByTestId("funnel-comparison-notice");
+    await notice.waitFor({ state: "visible", timeout: 10000 });
+    assert.match(
+      (await notice.textContent()) ?? "",
+      /período.*creación de las solicitudes/i,
+    );
+  },
+);
+

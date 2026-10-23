@@ -14,6 +14,8 @@ import {
   type CategoryOption,
   type PeriodOption,
 } from "./funnel-filters-bar";
+import { MetricsComparisonSection } from "./metrics-comparison-content";
+import type { FunnelView } from "./types";
 import { useMetricsFunnel } from "./use-metrics-funnel";
 
 export interface MetricsViewProps {
@@ -23,6 +25,10 @@ export interface MetricsViewProps {
   isForbidden?: boolean;
   isLoading?: boolean;
   onRetry?: () => void;
+  selectedSource?: FunnelSource;
+  onSourceChange?: (source: FunnelSource) => void;
+  selectedView?: FunnelView;
+  onViewChange?: (view: FunnelView) => void;
   selectedPeriod?: PeriodOption;
   onPeriodChange?: (period: PeriodOption) => void;
   selectedCategoryId?: number | "";
@@ -32,13 +38,7 @@ export interface MetricsViewProps {
   initialToDate?: string;
 }
 
-function MetricsHeader({
-  title,
-  subtitle,
-}: {
-  title: string;
-  subtitle: string;
-}) {
+function MetricsHeader({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <header>
       <h1 className="text-2xl font-bold tracking-tight text-[#1A2B48]">{title}</h1>
@@ -47,24 +47,13 @@ function MetricsHeader({
   );
 }
 
-function MetricsStepsGrid({
-  steps,
-}: {
-  steps: FunnelCohort["steps"];
-}) {
+function MetricsStepsGrid({ steps }: { steps: FunnelCohort["steps"] }) {
   return (
     <section aria-label="Detalle de etapas del embudo" className="space-y-3">
-      <h2 className="text-base font-semibold text-[#1A2B48]">
-        Etapas del Embudo y Conversión Relativa
-      </h2>
+      <h2 className="text-base font-semibold text-[#1A2B48]">Etapas del Embudo y Conversión Relativa</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {steps.map((step, index) => (
-          <FunnelStepCard
-            key={step.stepName}
-            step={step}
-            index={index}
-            totalSteps={steps.length}
-          />
+          <FunnelStepCard key={step.stepName} step={step} index={index} totalSteps={steps.length} />
         ))}
       </div>
     </section>
@@ -74,9 +63,9 @@ function MetricsStepsGrid({
 interface MetricsFunnelContentProps {
   data: FunnelCohort;
   source: FunnelSource;
-  availableSources: readonly FunnelSource[];
-  selectedSource: FunnelSource;
-  onSourceChange: (source: FunnelSource) => void;
+  availableViews: readonly FunnelView[];
+  selectedView: FunnelView;
+  onViewChange: (view: FunnelView) => void;
   selectedPeriod: PeriodOption;
   onPeriodChange: (period: PeriodOption) => void;
   selectedCategoryId: number | "";
@@ -92,9 +81,9 @@ interface MetricsFunnelContentProps {
 function MetricsFunnelContent({
   data,
   source,
-  availableSources,
-  selectedSource,
-  onSourceChange,
+  availableViews,
+  selectedView,
+  onViewChange,
   selectedPeriod,
   onPeriodChange,
   selectedCategoryId,
@@ -113,9 +102,9 @@ function MetricsFunnelContent({
   return (
     <div className="space-y-6">
       <FunnelFiltersBar
-        availableSources={availableSources}
-        selectedSource={selectedSource}
-        onSourceChange={onSourceChange}
+        availableViews={availableViews}
+        selectedView={selectedView}
+        onViewChange={onViewChange}
         selectedPeriod={selectedPeriod}
         onPeriodChange={onPeriodChange}
         selectedCategoryId={selectedCategoryId}
@@ -149,40 +138,42 @@ function MetricsFunnelContent({
   );
 }
 
-export function MetricsView(props: MetricsViewProps) {
+function resolveSelectedView(
+  availableViews: readonly FunnelView[],
+  currentView: FunnelView,
+): FunnelView {
+  return availableViews.includes(currentView)
+    ? currentView
+    : (availableViews[0] ?? "ai");
+}
+
+function resolveSelectedSource(
+  selectedView: FunnelView,
+  availableSources: readonly FunnelSource[],
+): FunnelSource {
+  return selectedView === "ai" || selectedView === "manual"
+    ? selectedView
+    : (availableSources[0] ?? "ai");
+}
+
+function MetricsCohortSection({
+  funnel,
+  props,
+  availableViews,
+  selectedView,
+  availableSources,
+}: {
+  funnel: ReturnType<typeof useMetricsFunnel>;
+  props: MetricsViewProps;
+  availableViews: readonly FunnelView[];
+  selectedView: FunnelView;
+  availableSources: readonly FunnelSource[];
+}) {
+  if (!funnel.data) return null;
+  const selectedSource = resolveSelectedSource(selectedView, availableSources);
+  const cohort = funnel.data.cohorts[selectedSource];
+  if (!cohort) return null;
   const t = translations.metrics;
-  const funnel = useMetricsFunnel(props);
-
-  if (props.isLoading || funnel.isLoading) {
-    return <FunnelSkeleton />;
-  }
-
-  if (funnel.isForbidden || funnel.error) {
-    return (
-      <MetricsAlertState
-        isForbidden={funnel.isForbidden}
-        error={funnel.error}
-        onRetry={props.onRetry ?? funnel.handleRetry}
-      />
-    );
-  }
-
-  if (!funnel.data) {
-    return null;
-  }
-
-  const sourceOptions: readonly FunnelSource[] = ["ai", "manual"];
-  const availableSources = sourceOptions.filter(
-    (source) => funnel.data?.cohorts[source] !== undefined,
-  );
-  const selectedSource = availableSources.includes(funnel.selectedSource)
-    ? funnel.selectedSource
-    : availableSources[0];
-  const cohort = selectedSource
-    ? funnel.data.cohorts[selectedSource]
-    : undefined;
-
-  if (!selectedSource || !cohort) return null;
 
   return (
     <div className="space-y-6">
@@ -190,9 +181,9 @@ export function MetricsView(props: MetricsViewProps) {
       <MetricsFunnelContent
         data={cohort}
         source={selectedSource}
-        availableSources={availableSources}
-        selectedSource={selectedSource}
-        onSourceChange={funnel.handleSourceChange}
+        availableViews={availableViews}
+        selectedView={selectedView}
+        onViewChange={funnel.handleViewChange}
         selectedPeriod={funnel.selectedPeriod}
         onPeriodChange={funnel.handlePeriodChange}
         selectedCategoryId={funnel.selectedCategoryId}
@@ -205,5 +196,53 @@ export function MetricsView(props: MetricsViewProps) {
         onApplyFilters={funnel.handleApplyFilters}
       />
     </div>
+  );
+}
+
+export function MetricsView(props: MetricsViewProps) {
+  const funnel = useMetricsFunnel(props);
+
+  if (props.isLoading || funnel.isLoading) return <FunnelSkeleton />;
+  if (funnel.isForbidden || funnel.error) {
+    return (
+      <MetricsAlertState
+        isForbidden={funnel.isForbidden}
+        error={funnel.error}
+        onRetry={props.onRetry ?? funnel.handleRetry}
+      />
+    );
+  }
+
+  if (!funnel.data) return null;
+
+  const sourceOptions: readonly FunnelSource[] = ["ai", "manual"];
+  const availableSources = sourceOptions.filter(
+    (source) => funnel.data?.cohorts[source] !== undefined,
+  );
+  const availableViews: readonly FunnelView[] = [
+    ...availableSources,
+    ...(funnel.data.requestComparison ? (["comparison"] as const) : []),
+  ];
+  const selectedView = resolveSelectedView(availableViews, funnel.selectedView);
+
+  if (selectedView === "comparison" && funnel.data.requestComparison) {
+    return (
+      <MetricsComparisonSection
+        funnel={funnel}
+        props={props}
+        availableViews={availableViews}
+        selectedView={selectedView}
+      />
+    );
+  }
+
+  return (
+    <MetricsCohortSection
+      funnel={funnel}
+      props={props}
+      availableViews={availableViews}
+      selectedView={selectedView}
+      availableSources={availableSources}
+    />
   );
 }

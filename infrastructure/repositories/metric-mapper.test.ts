@@ -397,5 +397,101 @@ describe("metric-mapper", () => {
       denominator: 0,
     });
   });
+
+  it("maps request_comparison with equivalent request-based cohorts for both AI and manual", () => {
+    const payload = {
+      period: { from: "2026-10-15T03:00:00Z", to: "2026-10-23T03:00:00Z" },
+      cohorts: {
+        ai: {
+          category_source: "assessment.problem_category_id",
+          stages: [
+            { stage: "professional_assessment", count: 1, conversion_percentage: null },
+            { stage: "request", count: 2, conversion_percentage: 200 },
+          ],
+          global_completion_conversion_percentage: null,
+          delays: {
+            request_to_first_proposal: { observations: 0, mean_seconds: null },
+            proposal_to_confirmed_hiring: { observations: 0, mean_seconds: null },
+            confirmed_hiring_to_reported_completion: { observations: 0, mean_seconds: null },
+            reported_completion_to_full_payment: { observations: 0, mean_seconds: null },
+          },
+        },
+      },
+      request_comparison: {
+        ai: {
+          category_source: "provider.current_category_id",
+          stages: [
+            { stage: "request", count: 2, conversion_percentage: null },
+            { stage: "proposal", count: 1, conversion_percentage: 50 },
+            { stage: "confirmed_hiring", count: 1, conversion_percentage: 100 },
+            { stage: "reported_completion", count: 1, conversion_percentage: 100 },
+            { stage: "full_payment", count: 0, conversion_percentage: 0 },
+            { stage: "review", count: 0, conversion_percentage: null },
+          ],
+          global_completion_conversion_percentage: 50,
+          delays: {
+            request_to_first_proposal: { observations: 1, mean_seconds: 180 },
+            proposal_to_confirmed_hiring: { observations: 1, mean_seconds: 90 },
+            confirmed_hiring_to_reported_completion: { observations: 1, mean_seconds: 400 },
+            reported_completion_to_full_payment: { observations: 0, mean_seconds: null },
+          },
+        },
+        manual: {
+          category_source: "provider.current_category_id",
+          stages: [
+            { stage: "request", count: 3, conversion_percentage: null },
+            { stage: "proposal", count: 2, conversion_percentage: 66.67 },
+            { stage: "confirmed_hiring", count: 1, conversion_percentage: 50 },
+            { stage: "reported_completion", count: 1, conversion_percentage: 100 },
+            { stage: "full_payment", count: 0, conversion_percentage: 0 },
+            { stage: "review", count: 0, conversion_percentage: null },
+          ],
+          global_completion_conversion_percentage: 33.33,
+          delays: {
+            request_to_first_proposal: { observations: 2, mean_seconds: 120 },
+            proposal_to_confirmed_hiring: { observations: 1, mean_seconds: 60 },
+            confirmed_hiring_to_reported_completion: { observations: 1, mean_seconds: 300 },
+            reported_completion_to_full_payment: { observations: 0, mean_seconds: null },
+          },
+        },
+      },
+    };
+
+    const result = mapConversionFunnel(payload);
+
+    expect(result.requestComparison).toBeDefined();
+    const aiComp = result.requestComparison?.ai;
+    const manualComp = result.requestComparison?.manual;
+
+    expect(aiComp?.initialUnit).toBe("request");
+    expect(aiComp?.globalConversionDenominator).toBe(2);
+    expect(aiComp?.globalConversionNumerator).toBe(1);
+    expect(aiComp?.globalConversionRate).toBe(0.5);
+    expect(aiComp?.steps).toHaveLength(6);
+    expect(aiComp?.steps[0]?.stepName).toBe("requests_created");
+    expect(aiComp?.steps[0]?.count).toBe(2);
+    expect(aiComp?.steps[0]?.conversionFromStart).toBe(1);
+    expect(aiComp?.steps[1]?.stepName).toBe("proposals_sent");
+    expect(aiComp?.steps[1]?.count).toBe(1);
+    expect(aiComp?.steps[1]?.conversionFromStart).toBe(0.5);
+    expect(aiComp?.steps[1]?.conversionFromPrevious).toEqual({
+      rate: 0.5,
+      numerator: 1,
+      denominator: 2,
+    });
+    expect(aiComp?.categorySource).toBe("provider.current_category_id");
+
+    expect(manualComp?.initialUnit).toBe("request");
+    expect(manualComp?.globalConversionDenominator).toBe(3);
+    expect(manualComp?.globalConversionNumerator).toBe(1);
+    expect(manualComp?.globalConversionRate).toBe(0.3333);
+    expect(manualComp?.steps).toHaveLength(6);
+    expect(manualComp?.steps[0]?.stepName).toBe("requests_created");
+    expect(manualComp?.steps[0]?.count).toBe(3);
+    expect(manualComp?.steps[1]?.stepName).toBe("proposals_sent");
+    expect(manualComp?.steps[1]?.count).toBe(2);
+    expect(manualComp?.steps[1]?.conversionFromStart).toBe(0.6667);
+    expect(manualComp?.categorySource).toBe("provider.current_category_id");
+  });
 });
 

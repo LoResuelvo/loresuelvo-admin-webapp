@@ -61,6 +61,7 @@ export type ConversionFunnel = Readonly<{
   to: string;
   metadata?: FunnelMetadata;
   cohorts: Readonly<Partial<Record<FunnelSource, FunnelCohort>>>;
+  requestComparison?: Readonly<Record<FunnelSource, FunnelCohort>>;
 }>;
 
 export type FunnelFilters = Readonly<{

@@ -1,5 +1,6 @@
 import { translations } from "@/infrastructure/i18n/translations";
 import type { FunnelSource } from "@/domain/metrics/funnel";
+import type { FunnelView } from "./types";
 
 import type { PeriodOption } from "@/domain/metrics/funnel-date-range";
 export { computeDateRange, type PeriodOption } from "@/domain/metrics/funnel-date-range";
@@ -11,8 +12,11 @@ export interface CategoryOption {
 
 export interface FunnelFiltersBarProps {
   availableSources?: readonly FunnelSource[];
+  availableViews?: readonly FunnelView[];
   selectedSource?: FunnelSource;
+  selectedView?: FunnelView;
   onSourceChange?: (source: FunnelSource) => void;
+  onViewChange?: (view: FunnelView) => void;
   selectedPeriod?: PeriodOption;
   onPeriodChange?: (period: PeriodOption) => void;
   selectedCategoryId?: number | "";
@@ -27,13 +31,13 @@ export interface FunnelFiltersBarProps {
 }
 
 function FunnelSourceSelect({
-  availableSources,
-  selectedSource,
-  onSourceChange,
+  availableViews,
+  selectedView,
+  onViewChange,
 }: {
-  availableSources: readonly FunnelSource[];
-  selectedSource: FunnelSource;
-  onSourceChange?: (source: FunnelSource) => void;
+  availableViews: readonly FunnelView[];
+  selectedView: FunnelView;
+  onViewChange?: (view: FunnelView) => void;
 }) {
   const { source } = translations.metrics;
   return (
@@ -45,14 +49,14 @@ function FunnelSourceSelect({
         id="metrics-source-select"
         data-testid="metrics-source-select"
         aria-label={source.label}
-        value={selectedSource}
+        value={selectedView}
         onChange={(event) => {
-          const nextSource = availableSources.find((item) => item === event.target.value);
-          if (nextSource) onSourceChange?.(nextSource);
+          const nextView = availableViews.find((item) => item === event.target.value);
+          if (nextView) onViewChange?.(nextView);
         }}
         className="rounded-xl border border-[#1A2B48]/15 bg-white px-3 py-2 text-sm text-[#1A2B48] transition-colors focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
       >
-        {availableSources.map((item) => (
+        {availableViews.map((item) => (
           <option key={item} value={item}>{source[item]}</option>
         ))}
       </select>
@@ -70,10 +74,7 @@ function PeriodFilterSelect({
   const { filters } = translations.metrics;
   return (
     <div className="flex items-center gap-2">
-      <label
-        htmlFor="metrics-period-select"
-        className="text-sm font-medium text-[#1A2B48]"
-      >
+      <label htmlFor="metrics-period-select" className="text-sm font-medium text-[#1A2B48]">
         {filters.period.label}
       </label>
       <select
@@ -105,10 +106,7 @@ function CategoryFilterSelect({
   const allLabel = "Todos los rubros";
   return (
     <div className="flex items-center gap-2">
-      <label
-        htmlFor="metrics-category-select"
-        className="text-sm font-medium text-[#1A2B48]"
-      >
+      <label htmlFor="metrics-category-select" className="text-sm font-medium text-[#1A2B48]">
         {categoryLabel}
       </label>
       <select
@@ -116,16 +114,12 @@ function CategoryFilterSelect({
         data-testid="metrics-category-select"
         aria-label={categoryLabel}
         value={selectedCategoryId ?? ""}
-        onChange={(e) =>
-          onCategoryChange?.(e.target.value ? Number(e.target.value) : "")
-        }
+        onChange={(e) => onCategoryChange?.(e.target.value ? Number(e.target.value) : "")}
         className="rounded-xl border border-[#1A2B48]/15 bg-white px-3 py-2 text-sm text-[#1A2B48] transition-colors focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
       >
         <option value="">{allLabel}</option>
         {categoryOptions.map((cat) => (
-          <option key={cat.id} value={cat.id}>
-            {cat.name}
-          </option>
+          <option key={cat.id} value={cat.id}>{cat.name}</option>
         ))}
       </select>
     </div>
@@ -146,12 +140,7 @@ function DateRangeInputs({
   return (
     <div className="flex flex-wrap items-center gap-3">
       <div className="flex items-center gap-1.5">
-        <label
-          htmlFor="metrics-from-date"
-          className="text-sm font-medium text-[#1A2B48]"
-        >
-          Desde
-        </label>
+        <label htmlFor="metrics-from-date" className="text-sm font-medium text-[#1A2B48]">Desde</label>
         <input
           id="metrics-from-date"
           data-testid="metrics-from-date"
@@ -163,12 +152,7 @@ function DateRangeInputs({
         />
       </div>
       <div className="flex items-center gap-1.5">
-        <label
-          htmlFor="metrics-to-date"
-          className="text-sm font-medium text-[#1A2B48]"
-        >
-          Hasta
-        </label>
+        <label htmlFor="metrics-to-date" className="text-sm font-medium text-[#1A2B48]">Hasta</label>
         <input
           id="metrics-to-date"
           data-testid="metrics-to-date"
@@ -199,8 +183,11 @@ function ApplyFiltersButton({ onApply }: { onApply?: () => void }) {
 
 export function FunnelFiltersBar({
   availableSources = ["ai"],
+  availableViews,
   selectedSource = "ai",
+  selectedView,
   onSourceChange,
+  onViewChange,
   selectedPeriod = "7d",
   onPeriodChange,
   selectedCategoryId = "",
@@ -213,6 +200,15 @@ export function FunnelFiltersBar({
   onApplyFilters,
   className = "",
 }: FunnelFiltersBarProps) {
+  const views: readonly FunnelView[] = availableViews ?? availableSources;
+  const currentView: FunnelView = selectedView ?? selectedSource;
+  const handleViewChange = (nextView: FunnelView) => {
+    onViewChange?.(nextView);
+    if (nextView === "ai" || nextView === "manual") {
+      onSourceChange?.(nextView);
+    }
+  };
+
   return (
     <div
       data-testid="funnel-filters-bar"
@@ -220,9 +216,9 @@ export function FunnelFiltersBar({
     >
       <div className="flex flex-wrap items-center gap-4">
         <FunnelSourceSelect
-          availableSources={availableSources}
-          selectedSource={selectedSource}
-          onSourceChange={onSourceChange}
+          availableViews={views}
+          selectedView={currentView}
+          onViewChange={handleViewChange}
         />
         <PeriodFilterSelect
           selectedPeriod={selectedPeriod}

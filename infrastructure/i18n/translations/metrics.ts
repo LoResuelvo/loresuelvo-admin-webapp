@@ -7,6 +7,7 @@ export const metricsTranslations = {
     description: {
       ai: "La tasa compara las finalizaciones reportadas con las evaluaciones profesionales iniciales. Las reseñas aparecen como una etapa posterior.",
       manual: "La tasa compara las finalizaciones reportadas con las solicitudes manuales iniciales. Las reseñas aparecen como una etapa posterior.",
+      aiComparison: "La tasa compara las finalizaciones reportadas con las solicitudes originadas por IA. Las reseñas aparecen como una etapa posterior.",
     },
     rate: "Tasa global",
     numerator: "Finalizaciones reportadas",
@@ -16,14 +17,24 @@ export const metricsTranslations = {
     label: "Origen",
     ai: "Origen IA",
     manual: "Manual",
+    comparison: "Comparar",
     initialUnit: {
       professional_assessment: "evaluación profesional",
       request: "solicitud manual",
+      ai_request: "solicitud IA",
     },
     initialUnits: {
       professional_assessment: "evaluaciones profesionales",
       request: "solicitudes manuales",
+      ai_request: "solicitudes IA",
     },
+  },
+  comparison: {
+    title: "Comparación sobre solicitudes equivalentes",
+    aiTitle: "Solicitudes de Origen IA",
+    manualTitle: "Solicitudes Manuales",
+    periodNotice: "El período selecciona la creación de las solicitudes. Los avances posteriores observados se reflejan al consultar.",
+    categoryCriterion: "Criterio de rubro: Rubro actual del prestador",
   },
   initialUnitLabel: "Unidad inicial",
   globalConversionRate: "Tasa de conversión global",

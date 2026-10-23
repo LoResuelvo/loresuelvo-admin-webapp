@@ -19,7 +19,13 @@ export function FunnelOverviewCard({
 }: FunnelOverviewCardProps) {
   const t = translations.metrics;
   const formattedRate = formatPercentage(globalConversionRate);
-  const initialUnitLabel = t.source.initialUnits[initialUnit];
+  const isAiRequest = source === "ai" && initialUnit === "request";
+  const initialUnitLabel = isAiRequest
+    ? t.source.initialUnits.ai_request
+    : t.source.initialUnits[initialUnit];
+  const description = isAiRequest
+    ? t.overview.description.aiComparison
+    : t.overview.description[source];
 
   return (
     <section
@@ -34,7 +40,7 @@ export function FunnelOverviewCard({
           {t.globalConversionRate}
         </h2>
         <p className="text-xs text-white/80 mt-1 max-w-md">
-          {t.overview.description[source]}
+          {description}
         </p>
       </div>
 

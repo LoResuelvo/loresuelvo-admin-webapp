@@ -141,4 +141,93 @@ describe("CRM funnel source selection", () => {
     expect(screen.getByTestId("funnel-initial-unit")).toHaveTextContent("solicitud manual");
     expect(screen.getByTestId("retention-proposals_sent")).toHaveTextContent("2 de 3");
   });
+
+  it("switches to the comparison view showing AI and manual request cohorts with period notice and separate denominators", () => {
+    const comparisonFunnel: ConversionFunnel = {
+      ...funnel,
+      requestComparison: {
+        ai: aCohort(
+          "ai",
+          "request",
+          [
+            {
+              stepName: "requests_created",
+              label: "Solicitudes publicadas",
+              count: 2,
+              conversionFromStart: 1,
+              conversionFromPrevious: null,
+              avgDurationMinutes: null,
+            },
+            {
+              stepName: "proposals_sent",
+              label: "Propuestas comerciales",
+              count: 1,
+              conversionFromStart: 0.5,
+              conversionFromPrevious: { rate: 0.5, numerator: 1, denominator: 2 },
+              avgDurationMinutes: null,
+            },
+            {
+              stepName: "deposits_paid",
+              label: "Señas pagadas",
+              count: 1,
+              conversionFromStart: 0.5,
+              conversionFromPrevious: { rate: 1, numerator: 1, denominator: 1 },
+              avgDurationMinutes: null,
+            },
+            {
+              stepName: "orders_completed",
+              label: "Órdenes concluidas",
+              count: 1,
+              conversionFromStart: 0.5,
+              conversionFromPrevious: { rate: 1, numerator: 1, denominator: 1 },
+              avgDurationMinutes: null,
+            },
+            {
+              stepName: "full_payments",
+              label: "Pagos completos",
+              count: 0,
+              conversionFromStart: 0,
+              conversionFromPrevious: { rate: 0, numerator: 0, denominator: 1 },
+              avgDurationMinutes: null,
+            },
+            {
+              stepName: "reviews_submitted",
+              label: "Reseñas enviadas",
+              count: 0,
+              conversionFromStart: 0,
+              conversionFromPrevious: { rate: null, numerator: 0, denominator: 0 },
+              avgDurationMinutes: null,
+            },
+          ],
+          0.5,
+          1,
+          2,
+        ),
+        manual: funnel.cohorts.manual!,
+      },
+    };
+
+    render(<MetricsView data={comparisonFunnel} />);
+
+    const source = screen.getByRole("combobox", { name: "Origen" });
+    fireEvent.change(source, { target: { value: "comparison" } });
+
+    expect(screen.getByTestId("funnel-comparison-notice")).toBeInTheDocument();
+    expect(screen.getByTestId("funnel-comparison-notice")).toHaveTextContent(/período selecciona la creación de las solicitudes/i);
+
+    const aiPanel = screen.getByTestId("funnel-comparison-panel-ai");
+    const manualPanel = screen.getByTestId("funnel-comparison-panel-manual");
+
+    expect(aiPanel).toBeInTheDocument();
+    expect(manualPanel).toBeInTheDocument();
+
+    expect(aiPanel).toHaveTextContent("Base inicial: 2 solicitudes IA");
+    expect(manualPanel).toHaveTextContent("Base inicial: 3 solicitudes manuales");
+
+    expect(aiPanel.querySelector('[data-testid="funnel-step-ai_diagnostics"]')).toBeNull();
+    expect(manualPanel.querySelector('[data-testid="funnel-step-ai_diagnostics"]')).toBeNull();
+
+    expect(screen.getByTestId("funnel-category-criterion-ai")).toHaveTextContent(/rubro actual del prestador/i);
+    expect(screen.getByTestId("funnel-category-criterion-manual")).toHaveTextContent(/rubro actual del prestador/i);
+  });
 });

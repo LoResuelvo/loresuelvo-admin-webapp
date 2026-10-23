@@ -59,3 +59,63 @@ export const crmAiAndManualFunnelFixture: ApiAdminFunnelMetricsResponse = {
     },
   },
 };
+
+export const crmComparisonFunnelFixture: ApiAdminFunnelMetricsResponse = {
+  ...crmAiAndManualFunnelFixture,
+  cohorts: {
+    ai: {
+      category_source: "assessment.problem_category_id",
+      stages: [
+        { stage: "professional_assessment", count: 1, conversion_percentage: null },
+        { stage: "request", count: 2, conversion_percentage: 200 },
+        { stage: "proposal", count: 1, conversion_percentage: 50 },
+        { stage: "confirmed_hiring", count: 1, conversion_percentage: 100 },
+        { stage: "reported_completion", count: 1, conversion_percentage: 100 },
+        { stage: "full_payment", count: 0, conversion_percentage: 0 },
+        { stage: "review", count: 0, conversion_percentage: null },
+      ],
+      global_completion_conversion_percentage: 100,
+      delays: funnelDelays,
+    },
+    manual: crmAiAndManualFunnelFixture.cohorts.manual!,
+  },
+  request_comparison: {
+    ai: {
+      category_source: "provider.current_category_id",
+      stages: [
+        { stage: "request", count: 2, conversion_percentage: null },
+        { stage: "proposal", count: 1, conversion_percentage: 50 },
+        { stage: "confirmed_hiring", count: 1, conversion_percentage: 100 },
+        { stage: "reported_completion", count: 1, conversion_percentage: 100 },
+        { stage: "full_payment", count: 0, conversion_percentage: 0 },
+        { stage: "review", count: 0, conversion_percentage: null },
+      ],
+      global_completion_conversion_percentage: 50,
+      delays: {
+        request_to_first_proposal: { observations: 1, mean_seconds: 180 },
+        proposal_to_confirmed_hiring: { observations: 1, mean_seconds: 90 },
+        confirmed_hiring_to_reported_completion: { observations: 1, mean_seconds: 400 },
+        reported_completion_to_full_payment: { observations: 0, mean_seconds: null },
+      },
+    },
+    manual: {
+      category_source: "provider.current_category_id",
+      stages: [
+        { stage: "request", count: 3, conversion_percentage: null },
+        { stage: "proposal", count: 2, conversion_percentage: 66.67 },
+        { stage: "confirmed_hiring", count: 1, conversion_percentage: 50 },
+        { stage: "reported_completion", count: 1, conversion_percentage: 100 },
+        { stage: "full_payment", count: 0, conversion_percentage: 0 },
+        { stage: "review", count: 0, conversion_percentage: null },
+      ],
+      global_completion_conversion_percentage: 33.33,
+      delays: {
+        request_to_first_proposal: { observations: 2, mean_seconds: 120 },
+        proposal_to_confirmed_hiring: { observations: 1, mean_seconds: 60 },
+        confirmed_hiring_to_reported_completion: { observations: 1, mean_seconds: 300 },
+        reported_completion_to_full_payment: { observations: 0, mean_seconds: null },
+      },
+    },
+  },
+};
+

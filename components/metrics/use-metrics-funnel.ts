@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import type { ConversionFunnel, FunnelFilters, FunnelSource } from "@/domain/metrics/funnel";
+import type { FunnelView } from "./types";
 import {
   getFunnelAction,
   type GetFunnelActionResult,
@@ -19,7 +20,9 @@ export interface UseMetricsFunnelParams {
   initialForbidden?: boolean;
   isForbidden?: boolean;
   selectedSource?: FunnelSource;
+  selectedView?: FunnelView;
   onSourceChange?: (source: FunnelSource) => void;
+  onViewChange?: (view: FunnelView) => void;
   selectedPeriod?: PeriodOption;
   onPeriodChange?: (period: PeriodOption) => void;
   selectedCategoryId?: number | "";
@@ -79,19 +82,31 @@ function useDataState(params: UseMetricsFunnelParams) {
   return { state, setState };
 }
 
-function useSourceState(params: UseMetricsFunnelParams) {
-  const [selectedSource, setSelectedSource] = useState<FunnelSource>(
-    params.selectedSource ?? "ai",
+function useViewState(params: UseMetricsFunnelParams) {
+  const [selectedView, setSelectedView] = useState<FunnelView>(
+    params.selectedView ?? params.selectedSource ?? "ai",
   );
-  const handleSourceChange = useCallback(
-    (source: FunnelSource) => {
-      setSelectedSource(source);
-      params.onSourceChange?.(source);
+  const { onViewChange, onSourceChange } = params;
+  const handleViewChange = useCallback(
+    (view: FunnelView) => {
+      setSelectedView(view);
+      onViewChange?.(view);
+      if (view === "ai" || view === "manual") {
+        onSourceChange?.(view);
+      }
     },
-    [params.onSourceChange],
+    [onViewChange, onSourceChange],
   );
 
-  return { selectedSource, handleSourceChange };
+  const selectedSource: FunnelSource =
+    selectedView === "comparison" ? "ai" : selectedView;
+
+  return {
+    selectedView,
+    handleViewChange,
+    selectedSource,
+    handleSourceChange: handleViewChange,
+  };
 }
 
 function useFunnelFetch(
@@ -166,7 +181,7 @@ function useFunnelActions({
 export function useMetricsFunnel(params: UseMetricsFunnelParams) {
   const { filters, setFilters } = useFilterState(params);
   const { state, setState } = useDataState(params);
-  const source = useSourceState(params);
+  const view = useViewState(params);
   const actions = useFunnelActions({
     filters,
     setFilters,
@@ -184,8 +199,10 @@ export function useMetricsFunnel(params: UseMetricsFunnelParams) {
     error: resolvedError,
     isForbidden: resolvedForbidden,
     isLoading: state.isLoading,
-    selectedSource: source.selectedSource,
-    handleSourceChange: source.handleSourceChange,
+    selectedView: view.selectedView,
+    handleViewChange: view.handleViewChange,
+    selectedSource: view.selectedSource,
+    handleSourceChange: view.handleSourceChange,
     selectedPeriod: filters.period,
     handlePeriodChange: actions.handlePeriodChange,
     selectedCategoryId: filters.categoryId,
