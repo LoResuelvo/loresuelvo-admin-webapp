@@ -30,7 +30,6 @@ Feature: Lectura y comparación de embudos de contratación
     And cada origen muestra sus propias tasas sobre solicitudes sin mezclar denominadores
     And se informa que el período selecciona la creación de las solicitudes
 
-  @wip
   Scenario: 12-MET Diferenciar ausencia de base y ausencia de avance
     Given que una cohorte no tiene casos iniciales y otra tiene casos iniciales sin avances
     When consulto sus indicadores

@@ -16,7 +16,9 @@ function StepMetricsFooter({
   const t = translations.metrics;
   const previousStep = step.conversionFromPrevious;
   const previousStepRate = previousStep
-    ? `${formatPercentage(previousStep.rate)} (${previousStep.numerator} de ${previousStep.denominator})`
+    ? previousStep.rate === null
+      ? `${t.unavailable} (${previousStep.numerator} de ${previousStep.denominator})`
+      : `${formatPercentage(previousStep.rate)} (${previousStep.numerator} de ${previousStep.denominator})`
     : t.unavailable;
 
   return (
@@ -64,7 +66,9 @@ export function FunnelStepCard({
             {t.stepIndex} {index + 1} {t.stepOf} {totalSteps}
           </span>
           <span className="text-xs text-[#536176] font-medium">
-            {formatPercentage(step.conversionFromStart)} {t.fromInitialBase}
+            {step.conversionFromStart === null
+              ? t.unavailable
+              : `${formatPercentage(step.conversionFromStart)} ${t.fromInitialBase}`}
           </span>
         </div>
 
@@ -90,7 +94,7 @@ export function FunnelStepCard({
             aria-valuenow={progressPercent}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label={`${step.label}: ${formatPercentage(step.conversionFromStart)} ${t.fromInitialBase}`}
+            aria-label={`${step.label}: ${step.conversionFromStart === null ? t.unavailable : `${formatPercentage(step.conversionFromStart)} ${t.fromInitialBase}`}`}
           />
         </div>
       </div>

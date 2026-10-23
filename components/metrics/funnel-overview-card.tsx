@@ -18,7 +18,8 @@ export function FunnelOverviewCard({
   globalConversionDenominator,
 }: FunnelOverviewCardProps) {
   const t = translations.metrics;
-  const formattedRate = formatPercentage(globalConversionRate);
+  const formattedRate =
+    globalConversionRate === null ? t.unavailable : formatPercentage(globalConversionRate);
   const isAiRequest = source === "ai" && initialUnit === "request";
   const initialUnitLabel = isAiRequest
     ? t.source.initialUnits.ai_request

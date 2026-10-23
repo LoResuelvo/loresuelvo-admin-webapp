@@ -119,3 +119,44 @@ export const crmComparisonFunnelFixture: ApiAdminFunnelMetricsResponse = {
   },
 };
 
+export const crmZeroBaseAndZeroProgressFixture: ApiAdminFunnelMetricsResponse = {
+  period: {
+    from: "2026-10-15T03:00:00Z",
+    to: "2026-10-23T03:00:00Z",
+  },
+  timezone: "America/Argentina/Buenos_Aires",
+  observed_at: "2026-10-23T12:00:00Z",
+  category_id: null,
+  rounding: "half_up",
+  decimal_places: 2,
+  cohorts: {
+    ai: {
+      category_source: "assessment.problem_category_id",
+      stages: [
+        { stage: "professional_assessment", count: 100, conversion_percentage: null },
+        { stage: "request", count: 0, conversion_percentage: 0 },
+        { stage: "proposal", count: 0, conversion_percentage: 0 },
+        { stage: "confirmed_hiring", count: 0, conversion_percentage: 0 },
+        { stage: "reported_completion", count: 0, conversion_percentage: 0 },
+        { stage: "full_payment", count: 0, conversion_percentage: 0 },
+        { stage: "review", count: 0, conversion_percentage: null },
+      ],
+      global_completion_conversion_percentage: 0,
+      delays: funnelDelays,
+    },
+    manual: {
+      category_source: "provider.current_category_id",
+      stages: [
+        { stage: "request", count: 0, conversion_percentage: null },
+        { stage: "proposal", count: 0, conversion_percentage: null },
+        { stage: "confirmed_hiring", count: 0, conversion_percentage: null },
+        { stage: "reported_completion", count: 0, conversion_percentage: null },
+        { stage: "full_payment", count: 0, conversion_percentage: null },
+        { stage: "review", count: 0, conversion_percentage: null },
+      ],
+      global_completion_conversion_percentage: null,
+      delays: funnelDelays,
+    },
+  },
+};
+

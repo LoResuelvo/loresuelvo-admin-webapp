@@ -7,6 +7,7 @@ import {
   crmAiAndManualFunnelFixture,
   crmAiFunnelFixture,
   crmComparisonFunnelFixture,
+  crmZeroBaseAndZeroProgressFixture,
 } from "./crm_funnel_fixtures";
 
 function funnelEndpoint(from: string, to: string, categoryId?: number): string {
@@ -277,6 +278,97 @@ Then(
       (await notice.textContent()) ?? "",
       /período.*creación de las solicitudes/i,
     );
+  },
+);
+
+Given(
+  "que una cohorte no tiene casos iniciales y otra tiene casos iniciales sin avances",
+  async function (this: CustomWorld) {
+    await this.stubGet(defaultFunnelEndpoint(), crmZeroBaseAndZeroProgressFixture);
+  },
+);
+
+When("consulto sus indicadores", async function (this: CustomWorld) {
+  await this.page.goto(new URL(ROUTES.metrics, this.appUrl).href);
+});
+
+Then(
+  "la cohorte vacía muestra conteos cero y porcentajes sin base como no disponibles",
+  async function (this: CustomWorld) {
+    const source = this.page.getByRole("combobox", { name: "Origen" });
+    await source.waitFor({ state: "visible", timeout: 10000 });
+    await source.selectOption("manual");
+
+    const emptyState = this.page.getByTestId("funnel-empty-state");
+    await emptyState.waitFor({ state: "visible", timeout: 10000 });
+    assert.match(
+      (await emptyState.textContent()) ?? "",
+      /no hay suficiente volumen para generar el embudo/i,
+    );
+
+    for (const stepName of [
+      "requests_created",
+      "proposals_sent",
+      "deposits_paid",
+      "orders_completed",
+      "full_payments",
+      "reviews_submitted",
+    ]) {
+      const step = this.page.getByTestId(`funnel-step-${stepName}`);
+      await step.waitFor({ state: "visible", timeout: 10000 });
+      const text = (await step.textContent()) ?? "";
+      assert.ok(text.includes("0"), `Step ${stepName} should show count 0`);
+      assert.match(text, /no disponible/i, `Step ${stepName} should indicate unavailable conversion`);
+    }
+  },
+);
+
+Then(
+  "la cohorte con base positiva muestra cero por ciento para las etapas sin avances",
+  async function (this: CustomWorld) {
+    const source = this.page.getByRole("combobox", { name: "Origen" });
+    await source.waitFor({ state: "visible", timeout: 10000 });
+    await source.selectOption("ai");
+
+    const initialStep = this.page.getByTestId("funnel-step-ai_diagnostics");
+    await initialStep.waitFor({ state: "visible", timeout: 10000 });
+    assert.ok((await initialStep.textContent())?.includes("100"));
+
+    for (const stepName of [
+      "requests_created",
+      "proposals_sent",
+      "deposits_paid",
+      "orders_completed",
+      "full_payments",
+      "reviews_submitted",
+    ]) {
+      const step = this.page.getByTestId(`funnel-step-${stepName}`);
+      await step.waitFor({ state: "visible", timeout: 10000 });
+      const text = (await step.textContent()) ?? "";
+      assert.ok(text.includes("0%"), `Step ${stepName} should show 0%`);
+    }
+  },
+);
+
+Then(
+  "ninguna barra representa volumen positivo para una etapa con cero casos",
+  async function (this: CustomWorld) {
+    for (const stepName of [
+      "requests_created",
+      "proposals_sent",
+      "deposits_paid",
+      "orders_completed",
+      "full_payments",
+      "reviews_submitted",
+    ]) {
+      const chartBar = this.page.getByTestId(`funnel-chart-bar-${stepName}`);
+      await chartBar.waitFor({ state: "attached", timeout: 10000 });
+      assert.equal(await chartBar.getAttribute("aria-valuenow"), "0");
+
+      const progressBar = this.page.getByTestId(`funnel-step-progress-${stepName}`);
+      await progressBar.waitFor({ state: "attached", timeout: 10000 });
+      assert.equal(await progressBar.getAttribute("aria-valuenow"), "0");
+    }
   },
 );
 
