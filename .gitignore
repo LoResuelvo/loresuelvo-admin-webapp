@@ -19,3 +19,6 @@ reports/
 *.tsbuildinfo
 
 .agents/local/
+
+# Generated test coverage
+coverage/
