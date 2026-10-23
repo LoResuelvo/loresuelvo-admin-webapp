@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { formatDurationMinutes, formatPercentage } from "./formatters";
+import {
+  formatDurationMinutes,
+  formatEffectivePeriod,
+  formatObservationDate,
+  formatPercentage,
+} from "./formatters";
 
 describe("formatDurationMinutes", () => {
   it("formats null or undefined as dash", () => {
@@ -40,5 +45,36 @@ describe("formatPercentage", () => {
     expect(formatPercentage(1.0)).toBe("100%");
     expect(formatPercentage(0)).toBe("0%");
     expect(formatPercentage(null)).toBe("—");
+  });
+});
+
+describe("formatEffectivePeriod", () => {
+  it("formats period range in short date style", () => {
+    const formatted = formatEffectivePeriod(
+      "2026-10-15T03:00:00Z",
+      "2026-10-23T03:00:00Z",
+      "America/Argentina/Buenos_Aires",
+    );
+    expect(formatted).toContain("15/10/2026");
+    expect(formatted).toContain("23/10/2026");
+  });
+
+  it("handles null or undefined dates", () => {
+    expect(formatEffectivePeriod(null, null)).toBe("-");
+  });
+});
+
+describe("formatObservationDate", () => {
+  it("formats observation date with timezone", () => {
+    const formatted = formatObservationDate(
+      "2026-10-23T12:00:00Z",
+      "America/Argentina/Buenos_Aires",
+    );
+    expect(formatted).toContain("23/10/2026");
+    expect(formatted).toContain("America/Argentina/Buenos_Aires");
+  });
+
+  it("handles null or undefined observation date", () => {
+    expect(formatObservationDate(null)).toBe("");
   });
 });

@@ -37,6 +37,13 @@ export const metricsTranslations = {
     categoryCriterion: "Criterio de rubro: Rubro actual del prestador",
   },
   initialUnitLabel: "Unidad inicial",
+  effectivePeriod: "Período efectivo",
+  observedAt: "Fecha de observación",
+  delays: {
+    notice: "Tiempos calculados sobre transiciones realizadas, no representan espera de casos pendientes",
+    observationSingular: "observación",
+    observationPlural: "observaciones",
+  },
   globalConversionRate: "Tasa de conversión global",
   fromInitialBase: "de la base inicial",
   relativeRetention: "Conversión desde la etapa anterior",

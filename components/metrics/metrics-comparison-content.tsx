@@ -1,10 +1,10 @@
 "use client";
 
-import type { FunnelCohort, FunnelSource } from "@/domain/metrics/funnel";
+import type { ConversionFunnel, FunnelCohort, FunnelSource } from "@/domain/metrics/funnel";
 import { translations } from "@/infrastructure/i18n/translations";
-import { FunnelOverviewCard } from "./funnel-overview-card";
-import { FunnelChart } from "./funnel-chart";
-import { FunnelStepCard } from "./funnel-step-card";
+import { formatEffectivePeriod } from "./formatters";
+import { FunnelMetadataBar } from "./metrics-cohort-content";
+import { FunnelComparisonPanel } from "./funnel-comparison-panel";
 import {
   FunnelFiltersBar,
   type CategoryOption,
@@ -13,85 +13,6 @@ import {
 import type { FunnelView } from "./types";
 import type { MetricsViewProps } from "./metrics-view";
 import type { useMetricsFunnel } from "./use-metrics-funnel";
-
-interface FunnelComparisonPanelProps {
-  source: FunnelSource;
-  title: string;
-  criterionText: string;
-  initialUnitText: string;
-  cohort: FunnelCohort;
-  panelTestId: string;
-  criterionTestId: string;
-  initialUnitTestId: string;
-}
-
-function PanelSteps({ steps }: { steps: FunnelCohort["steps"] }) {
-  return (
-    <section aria-label="Detalle de etapas del embudo" className="space-y-3">
-      <h3 className="text-base font-semibold text-[#1A2B48]">
-        Etapas del Embudo y Conversión Relativa
-      </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {steps.map((step, index) => (
-          <FunnelStepCard
-            key={step.stepName}
-            step={step}
-            index={index}
-            totalSteps={steps.length}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function FunnelComparisonPanel({
-  source,
-  title,
-  criterionText,
-  initialUnitText,
-  cohort,
-  panelTestId,
-  criterionTestId,
-  initialUnitTestId,
-}: FunnelComparisonPanelProps) {
-  const t = translations.metrics;
-
-  return (
-    <section
-      data-testid={panelTestId}
-      aria-label={title}
-      className="space-y-6 rounded-2xl border border-[#1A2B48]/10 bg-[#FAFAFA] p-4 lg:p-6 shadow-xs"
-    >
-      <div className="space-y-1">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-bold text-[#1A2B48]">{title}</h2>
-          <span
-            data-testid={criterionTestId}
-            className="text-xs font-medium text-[#536176] bg-white px-2.5 py-1 rounded-md border border-[#1A2B48]/10"
-          >
-            {criterionText}
-          </span>
-        </div>
-        <p data-testid={initialUnitTestId} className="text-xs text-[#536176]">
-          {t.initialUnitLabel}: {initialUnitText}
-        </p>
-      </div>
-
-      <FunnelOverviewCard
-        source={source}
-        initialUnit="request"
-        globalConversionRate={cohort.globalConversionRate}
-        globalConversionNumerator={cohort.globalConversionNumerator}
-        globalConversionDenominator={cohort.globalConversionDenominator}
-      />
-
-      <FunnelChart steps={cohort.steps} />
-
-      <PanelSteps steps={cohort.steps} />
-    </section>
-  );
-}
 
 function ComparisonNotice({ notice }: { notice: string }) {
   return (
@@ -109,8 +30,10 @@ function ComparisonNotice({ notice }: { notice: string }) {
 
 function ComparisonPanels({
   comparison,
+  effectivePeriod,
 }: {
   comparison: Readonly<Record<FunnelSource, FunnelCohort>>;
+  effectivePeriod?: string;
 }) {
   const t = translations.metrics;
   return (
@@ -120,6 +43,7 @@ function ComparisonPanels({
         title={t.comparison.aiTitle}
         criterionText={t.comparison.categoryCriterion}
         initialUnitText={t.source.initialUnits.ai_request}
+        effectivePeriod={effectivePeriod}
         cohort={comparison.ai}
         panelTestId="funnel-comparison-panel-ai"
         criterionTestId="funnel-category-criterion-ai"
@@ -130,6 +54,7 @@ function ComparisonPanels({
         title={t.comparison.manualTitle}
         criterionText={t.comparison.categoryCriterion}
         initialUnitText={t.source.initialUnits.request}
+        effectivePeriod={effectivePeriod}
         cohort={comparison.manual}
         panelTestId="funnel-comparison-panel-manual"
         criterionTestId="funnel-category-criterion-manual"
@@ -151,6 +76,9 @@ export interface MetricsComparisonContentProps {
   categoryOptions?: readonly CategoryOption[];
   fromDate?: string;
   toDate?: string;
+  effectiveFrom?: string;
+  effectiveTo?: string;
+  metadata?: ConversionFunnel["metadata"];
   onFromDateChange?: (date: string) => void;
   onToDateChange?: (date: string) => void;
   onApplyFilters?: () => void;
@@ -168,11 +96,19 @@ export function MetricsComparisonContent({
   categoryOptions,
   fromDate,
   toDate,
+  effectiveFrom,
+  effectiveTo,
+  metadata,
   onFromDateChange,
   onToDateChange,
   onApplyFilters,
 }: MetricsComparisonContentProps) {
   const t = translations.metrics;
+  const effectivePeriod = formatEffectivePeriod(
+    effectiveFrom,
+    effectiveTo,
+    metadata?.timezone,
+  );
 
   return (
     <div className="space-y-6">
@@ -191,8 +127,9 @@ export function MetricsComparisonContent({
         onToDateChange={onToDateChange}
         onApplyFilters={onApplyFilters}
       />
+      <FunnelMetadataBar from={effectiveFrom} to={effectiveTo} metadata={metadata} />
       <ComparisonNotice notice={t.comparison.periodNotice} />
-      <ComparisonPanels comparison={comparison} />
+      <ComparisonPanels comparison={comparison} effectivePeriod={effectivePeriod} />
     </div>
   );
 }
@@ -229,6 +166,9 @@ export function MetricsComparisonSection({
         categoryOptions={props.categoryOptions}
         fromDate={funnel.fromDate}
         toDate={funnel.toDate}
+        effectiveFrom={funnel.data.from}
+        effectiveTo={funnel.data.to}
+        metadata={funnel.data.metadata}
         onFromDateChange={funnel.handleFromDateChange}
         onToDateChange={funnel.handleToDateChange}
         onApplyFilters={funnel.handleApplyFilters}

@@ -168,6 +168,8 @@ describe("metric-mapper", () => {
       conversionFromStart: 1,
       conversionFromPrevious: null,
       avgDurationMinutes: null,
+      delayObservations: null,
+      delayMeanSeconds: null,
     });
 
     expect(result.cohorts.ai?.steps[1]).toEqual({
@@ -177,6 +179,8 @@ describe("metric-mapper", () => {
       conversionFromStart: 0.6667,
       conversionFromPrevious: { rate: 0.6667, numerator: 2, denominator: 3 },
       avgDurationMinutes: null,
+      delayObservations: null,
+      delayMeanSeconds: null,
     });
 
     expect(result.cohorts.ai?.steps[2]).toEqual({
@@ -186,6 +190,8 @@ describe("metric-mapper", () => {
       conversionFromStart: 0.6667,
       conversionFromPrevious: { rate: 1, numerator: 2, denominator: 2 },
       avgDurationMinutes: 1, // 33.34s / 60 rounded
+      delayObservations: 2,
+      delayMeanSeconds: 33.34,
     });
 
     expect(result.cohorts.ai?.steps[3]).toEqual({
@@ -195,6 +201,8 @@ describe("metric-mapper", () => {
       conversionFromStart: 0.6667,
       conversionFromPrevious: { rate: 1, numerator: 2, denominator: 2 },
       avgDurationMinutes: 0, // 14.17s / 60 rounded
+      delayObservations: 3,
+      delayMeanSeconds: 14.17,
     });
 
     expect(result.cohorts.ai?.steps[4]).toEqual({
@@ -204,6 +212,8 @@ describe("metric-mapper", () => {
       conversionFromStart: 0.6667,
       conversionFromPrevious: { rate: 1, numerator: 2, denominator: 2 },
       avgDurationMinutes: 2880, // 172820.00s / 60 rounded
+      delayObservations: 2,
+      delayMeanSeconds: 172820.0,
     });
 
     expect(result.cohorts.ai?.steps[5]).toEqual({
@@ -213,6 +223,8 @@ describe("metric-mapper", () => {
       conversionFromStart: 0.3333,
       conversionFromPrevious: { rate: 0.5, numerator: 1, denominator: 2 },
       avgDurationMinutes: 1,
+      delayObservations: 1,
+      delayMeanSeconds: 40.0,
     });
 
     expect(result.cohorts.ai?.steps[6]).toEqual({
@@ -222,6 +234,8 @@ describe("metric-mapper", () => {
       conversionFromStart: 0.3333,
       conversionFromPrevious: { rate: 1, numerator: 1, denominator: 1 },
       avgDurationMinutes: null,
+      delayObservations: null,
+      delayMeanSeconds: null,
     });
   });
 

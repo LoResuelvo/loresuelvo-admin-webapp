@@ -1,7 +1,8 @@
 "use client";
 
-import type { FunnelCohort, FunnelSource } from "@/domain/metrics/funnel";
+import type { ConversionFunnel, FunnelCohort, FunnelSource } from "@/domain/metrics/funnel";
 import { translations } from "@/infrastructure/i18n/translations";
+import { formatEffectivePeriod, formatObservationDate } from "./formatters";
 import { FunnelOverviewCard } from "./funnel-overview-card";
 import { FunnelChart } from "./funnel-chart";
 import { FunnelStepCard } from "./funnel-step-card";
@@ -24,10 +25,49 @@ export function MetricsHeader({ title, subtitle }: { title: string; subtitle: st
   );
 }
 
+export function FunnelMetadataBar({
+  from,
+  to,
+  metadata,
+}: {
+  from?: string;
+  to?: string;
+  metadata?: ConversionFunnel["metadata"];
+}) {
+  const t = translations.metrics;
+  if (!from || !to) return null;
+  const effectivePeriod = formatEffectivePeriod(from, to, metadata?.timezone);
+  const observation = formatObservationDate(metadata?.observedAt, metadata?.timezone);
+
+  return (
+    <div
+      data-testid="funnel-metadata-bar"
+      className="flex flex-wrap items-center gap-4 text-xs text-[#536176] bg-white border border-[#1A2B48]/10 rounded-xl px-4 py-2.5 shadow-xs"
+    >
+      <div>
+        <span className="font-semibold text-[#1A2B48]">{t.effectivePeriod}: </span>
+        <span data-testid="funnel-effective-period">{effectivePeriod}</span>
+      </div>
+      {observation ? (
+        <div>
+          <span className="font-semibold text-[#1A2B48]">{t.observedAt}: </span>
+          <span data-testid="funnel-observation-date">{observation}</span>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function MetricsStepsGrid({ steps }: { steps: FunnelCohort["steps"] }) {
+  const t = translations.metrics;
   return (
     <section aria-label="Detalle de etapas del embudo" className="space-y-3">
-      <h2 className="text-base font-semibold text-[#1A2B48]">Etapas del Embudo y Conversión Relativa</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-base font-semibold text-[#1A2B48]">Etapas del Embudo y Conversión Relativa</h2>
+        <p data-testid="funnel-delays-notice" className="text-xs text-[#536176]">
+          ℹ {t.delays.notice}
+        </p>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {steps.map((step, index) => (
           <FunnelStepCard key={step.stepName} step={step} index={index} totalSteps={steps.length} />
@@ -50,6 +90,9 @@ export interface MetricsFunnelContentProps {
   categoryOptions?: readonly CategoryOption[];
   fromDate?: string;
   toDate?: string;
+  effectiveFrom?: string;
+  effectiveTo?: string;
+  metadata?: ConversionFunnel["metadata"];
   onFromDateChange?: (date: string) => void;
   onToDateChange?: (date: string) => void;
   onApplyFilters?: () => void;
@@ -91,6 +134,9 @@ export function MetricsFunnelContent({
   categoryOptions,
   fromDate,
   toDate,
+  effectiveFrom,
+  effectiveTo,
+  metadata,
   onFromDateChange,
   onToDateChange,
   onApplyFilters,
@@ -116,6 +162,7 @@ export function MetricsFunnelContent({
         onToDateChange={onToDateChange}
         onApplyFilters={onApplyFilters}
       />
+      <FunnelMetadataBar from={effectiveFrom} to={effectiveTo} metadata={metadata} />
       <p data-testid="funnel-initial-unit" className="text-xs text-[#536176]">
         {t.initialUnitLabel}: {t.source.initialUnit[data.initialUnit]}
       </p>
@@ -178,6 +225,9 @@ export function MetricsCohortSection({
         categoryOptions={props.categoryOptions}
         fromDate={funnel.fromDate}
         toDate={funnel.toDate}
+        effectiveFrom={funnel.data.from}
+        effectiveTo={funnel.data.to}
+        metadata={funnel.data.metadata}
         onFromDateChange={funnel.handleFromDateChange}
         onToDateChange={funnel.handleToDateChange}
         onApplyFilters={funnel.handleApplyFilters}

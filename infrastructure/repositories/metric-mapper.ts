@@ -117,6 +117,8 @@ function mapStepsWithConfig(
               denominator: previousCount,
             },
       avgDurationMinutes: secondsToMinutes(delay?.mean_seconds),
+      delayObservations: delay ? delay.observations : null,
+      delayMeanSeconds: delay?.mean_seconds ?? null,
     };
   });
 }

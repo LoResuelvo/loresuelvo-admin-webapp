@@ -25,3 +25,46 @@ export function formatPercentage(value: number | null): string {
   if (value === null) return "—";
   return `${Math.round(value * 100)}%`;
 }
+
+export function formatEffectivePeriod(
+  from?: string | null,
+  to?: string | null,
+  timeZone?: string,
+): string {
+  if (!from || !to) return "-";
+  try {
+    const options: Intl.DateTimeFormatOptions = {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      ...(timeZone ? { timeZone } : {}),
+    };
+    const fromDate = new Intl.DateTimeFormat("es-AR", options).format(new Date(from));
+    const toDate = new Intl.DateTimeFormat("es-AR", options).format(new Date(to));
+    return `${fromDate} – ${toDate}`;
+  } catch {
+    return `${from} – ${to}`;
+  }
+}
+
+export function formatObservationDate(
+  observedAt?: string | null,
+  timeZone?: string,
+): string {
+  if (!observedAt) return "";
+  try {
+    const dateOptions: Intl.DateTimeFormatOptions = {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      ...(timeZone ? { timeZone } : {}),
+    };
+    const date = new Intl.DateTimeFormat("es-AR", dateOptions).format(new Date(observedAt));
+    return timeZone ? `${date} (${timeZone})` : date;
+  } catch {
+    return observedAt;
+  }
+}
+

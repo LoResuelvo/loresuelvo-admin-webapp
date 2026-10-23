@@ -35,6 +35,8 @@ export type FunnelStepMetric = Readonly<{
   conversionFromStart: number | null;
   conversionFromPrevious: FunnelStepTransition | null;
   avgDurationMinutes?: number | null;
+  delayObservations?: number | null;
+  delayMeanSeconds?: number | null;
 }>;
 
 export type FunnelCohort = Readonly<{

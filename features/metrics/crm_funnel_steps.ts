@@ -6,9 +6,12 @@ import { CustomWorld } from "../support/world";
 import {
   crmAiAndManualFunnelFixture,
   crmAiFunnelFixture,
+  crmComparisonFiltersFixture,
   crmComparisonFunnelFixture,
+  crmDelaysAndObservationFixture,
   crmZeroBaseAndZeroProgressFixture,
 } from "./crm_funnel_fixtures";
+import { mockCategories } from "./operational_funnel_fixtures";
 
 function funnelEndpoint(from: string, to: string, categoryId?: number): string {
   const params = new URLSearchParams({ from, to });
@@ -369,6 +372,149 @@ Then(
       await progressBar.waitFor({ state: "attached", timeout: 10000 });
       assert.equal(await progressBar.getAttribute("aria-valuenow"), "0");
     }
+  },
+);
+
+Given(
+  "que la respuesta incluye el período efectivo, la fecha de observación y demoras con su cantidad de observaciones",
+  async function (this: CustomWorld) {
+    await this.stubGet(defaultFunnelEndpoint(), crmDelaysAndObservationFixture);
+  },
+);
+
+When("consulto el detalle del embudo", async function (this: CustomWorld) {
+  await this.page.goto(new URL(ROUTES.metrics, this.appUrl).href);
+});
+
+Then(
+  "veo el período y la fecha de observación",
+  async function (this: CustomWorld) {
+    const period = this.page.getByTestId("funnel-effective-period");
+    await period.waitFor({ state: "visible", timeout: 10000 });
+    const periodText = await period.textContent();
+    assert.ok(periodText?.includes("15/10/2026"));
+    assert.ok(periodText?.includes("23/10/2026"));
+
+    const observed = this.page.getByTestId("funnel-observation-date");
+    await observed.waitFor({ state: "visible", timeout: 10000 });
+    const observedText = await observed.textContent();
+    assert.ok(observedText?.includes("23/10/2026"));
+    assert.ok(observedText?.includes("America/Argentina/Buenos_Aires"));
+  },
+);
+
+Then(
+  "las demoras disponibles indican su cantidad de observaciones",
+  async function (this: CustomWorld) {
+    const proposalDuration = this.page.getByTestId("duration-proposals_sent");
+    await proposalDuration.waitFor({ state: "visible", timeout: 10000 });
+    assert.ok((await proposalDuration.textContent())?.includes("15 min"));
+    const proposalObs = this.page.getByTestId("delay-observations-proposals_sent");
+    await proposalObs.waitFor({ state: "visible", timeout: 10000 });
+    assert.ok((await proposalObs.textContent())?.includes("25 observaciones"));
+
+    const depositDuration = this.page.getByTestId("duration-deposits_paid");
+    await depositDuration.waitFor({ state: "visible", timeout: 10000 });
+    assert.ok((await depositDuration.textContent())?.includes("1 h"));
+    const depositObs = this.page.getByTestId("delay-observations-deposits_paid");
+    await depositObs.waitFor({ state: "visible", timeout: 10000 });
+    assert.ok((await depositObs.textContent())?.includes("12 observaciones"));
+
+    const orderDuration = this.page.getByTestId("duration-orders_completed");
+    await orderDuration.waitFor({ state: "visible", timeout: 10000 });
+    assert.ok((await orderDuration.textContent())?.includes("1 d"));
+    const orderObs = this.page.getByTestId("delay-observations-orders_completed");
+    await orderObs.waitFor({ state: "visible", timeout: 10000 });
+    assert.ok((await orderObs.textContent())?.includes("8 observaciones"));
+
+    const paymentDuration = this.page.getByTestId("duration-full_payments");
+    await paymentDuration.waitFor({ state: "visible", timeout: 10000 });
+    assert.ok((await paymentDuration.textContent())?.includes("0 min"));
+    const paymentObs = this.page.getByTestId("delay-observations-full_payments");
+    await paymentObs.waitFor({ state: "visible", timeout: 10000 });
+    assert.ok((await paymentObs.textContent())?.includes("4 observaciones"));
+  },
+);
+
+Then(
+  "se aclara que son tiempos de transiciones realizadas y no espera de casos pendientes",
+  async function (this: CustomWorld) {
+    const notice = this.page.getByTestId("funnel-delays-notice");
+    await notice.waitFor({ state: "visible", timeout: 10000 });
+    assert.match(
+      (await notice.textContent()) ?? "",
+      /transiciones realizadas.*no.*espera de casos pendientes/i,
+    );
+  },
+);
+
+Given(
+  "que estoy comparando solicitudes IA y manuales",
+  async function (this: CustomWorld) {
+    await this.stubGet("/categories", mockCategories);
+    await this.stubGet("/admin/categories", mockCategories);
+    await this.stubGet(defaultFunnelEndpoint(), crmComparisonFunnelFixture);
+    await this.page.goto(new URL(ROUTES.metrics, this.appUrl).href);
+    const source = this.page.getByRole("combobox", { name: "Origen" });
+    await source.waitFor({ state: "visible", timeout: 10000 });
+    await source.selectOption("comparison");
+    const aiPanel = this.page.getByTestId("funnel-comparison-panel-ai");
+    await aiPanel.waitFor({ state: "visible", timeout: 10000 });
+  },
+);
+
+When(
+  "aplico un período y un rubro",
+  async function (this: CustomWorld) {
+    const { from, to } = computeDateRange("30d");
+    await this.stubGet(funnelEndpoint(from, to), crmComparisonFiltersFixture);
+    await this.stubGet(funnelEndpoint(from, to, 47), crmComparisonFiltersFixture);
+
+    const periodSelect = this.page
+      .getByRole("combobox", { name: /rango temporal|período/i })
+      .or(this.page.getByTestId("metrics-period-select"));
+    await periodSelect.waitFor({ state: "visible", timeout: 10000 });
+    await periodSelect.selectOption("30d");
+
+    const categorySelect = this.page
+      .getByRole("combobox", { name: /rubro|oficio/i })
+      .or(this.page.getByTestId("metrics-category-select"));
+    await categorySelect.waitFor({ state: "visible", timeout: 10000 });
+    await categorySelect.selectOption("47");
+  },
+);
+
+Then(
+  "ambos orígenes usan exactamente esos filtros y muestran su período efectivo",
+  async function (this: CustomWorld) {
+    const periodSelect = this.page.getByRole("combobox", { name: "Rango temporal" });
+    assert.equal(await periodSelect.inputValue(), "30d");
+
+    const categorySelect = this.page.getByRole("combobox", { name: "Rubro" });
+    assert.equal(await categorySelect.inputValue(), "47");
+
+    const aiPeriod = this.page.getByTestId("funnel-effective-period-ai");
+    const manualPeriod = this.page.getByTestId("funnel-effective-period-manual");
+    await aiPeriod.waitFor({ state: "visible", timeout: 10000 });
+    await manualPeriod.waitFor({ state: "visible", timeout: 10000 });
+
+    const aiText = await aiPeriod.textContent();
+    const manualText = await manualPeriod.textContent();
+    assert.ok(aiText?.includes("24/09/2026") || aiText?.includes("24/10/2026"));
+    assert.ok(manualText?.includes("24/09/2026") || manualText?.includes("24/10/2026"));
+  },
+);
+
+Then(
+  "la comparación mantiene solicitudes como unidad inicial en ambos orígenes",
+  async function (this: CustomWorld) {
+    const aiUnit = this.page.getByTestId("funnel-initial-unit-ai");
+    const manualUnit = this.page.getByTestId("funnel-initial-unit-manual");
+    await aiUnit.waitFor({ state: "visible", timeout: 10000 });
+    await manualUnit.waitFor({ state: "visible", timeout: 10000 });
+
+    assert.match((await aiUnit.textContent()) ?? "", /solicitud/i);
+    assert.match((await manualUnit.textContent()) ?? "", /solicitud/i);
   },
 );
 

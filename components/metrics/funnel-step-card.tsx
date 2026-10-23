@@ -40,6 +40,19 @@ function StepMetricsFooter({
         >
           {formatDurationMinutes(step.avgDurationMinutes)}
         </span>
+        {step.delayObservations !== undefined &&
+        step.delayObservations !== null &&
+        step.avgDurationMinutes !== null ? (
+          <span
+            data-testid={`delay-observations-${step.stepName}`}
+            className="block text-[11px] text-[#536176]"
+          >
+            {step.delayObservations}{" "}
+            {step.delayObservations === 1
+              ? t.delays.observationSingular
+              : t.delays.observationPlural}
+          </span>
+        ) : null}
       </div>
     </div>
   );

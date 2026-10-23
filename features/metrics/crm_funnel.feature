@@ -37,7 +37,6 @@ Feature: Lectura y comparación de embudos de contratación
     And la cohorte con base positiva muestra cero por ciento para las etapas sin avances
     And ninguna barra representa volumen positivo para una etapa con cero casos
 
-  @wip
   Scenario: 13-MET Interpretar la observación y las demoras
     Given que la respuesta incluye el período efectivo, la fecha de observación y demoras con su cantidad de observaciones
     When consulto el detalle del embudo
@@ -45,7 +44,6 @@ Feature: Lectura y comparación de embudos de contratación
     And las demoras disponibles indican su cantidad de observaciones
     And se aclara que son tiempos de transiciones realizadas y no espera de casos pendientes
 
-  @wip
   Scenario: 14-MET Aplicar los mismos filtros a la comparación
     Given que estoy comparando solicitudes IA y manuales
     When aplico un período y un rubro
