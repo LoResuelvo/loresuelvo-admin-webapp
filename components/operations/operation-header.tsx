@@ -24,22 +24,6 @@ export interface OperationHeaderProps {
   readonly onInspectChat?: () => void;
 }
 
-const statusStyles: Partial<Record<OperationStatus, string>> = {
-  request_pending: "bg-blue-50 text-blue-700 border-blue-200",
-  request_accepted: "bg-cyan-50 text-cyan-800 border-cyan-200",
-  proposal_pending: "bg-amber-50 text-amber-700 border-amber-200",
-  proposal_accepted: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  proposal_rejected: "bg-rose-50 text-rose-700 border-rose-200",
-  work_order_scheduled: "bg-blue-50 text-blue-700 border-blue-200",
-  work_order_awaiting_payment: "bg-amber-50 text-amber-700 border-amber-200",
-  work_order_paid: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  requested: "bg-blue-50 text-blue-700 border-blue-200",
-  quoted: "bg-amber-50 text-amber-700 border-amber-200",
-  in_progress: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  completed: "bg-slate-100 text-slate-700 border-slate-300",
-  cancelled: "bg-rose-50 text-rose-700 border-rose-200",
-};
-
 function PartyCard({
   roleLabel,
   party,
@@ -53,8 +37,8 @@ function PartyCard({
   const initials = `${party.name.charAt(0)}${party.surname.charAt(0)}`.toUpperCase();
 
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-[#1A2B48]/10 bg-white p-4 shadow-2xs">
-      <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#147560]/10 font-semibold text-[#147560]">
+    <div className="flex items-start gap-3 py-2">
+      <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#f1f3f5] font-semibold text-[#147560]">
         {party.profilePhotoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -67,7 +51,7 @@ function PartyCard({
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <span className="text-xs font-semibold uppercase tracking-wider text-[#536176]">
+        <span className="text-xs font-medium text-[#536176]">
           {roleLabel}
         </span>
         <Link href={href} className="block truncate text-base font-semibold text-[#147560] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]">{fullName}</Link>
@@ -89,7 +73,6 @@ function HeaderTopBar({
   onInspectChat?: () => void;
 }) {
   const statusLabel = status ? translations.operations.status[status] : translations.operations.unavailable;
-  const statusStyle = (status ? statusStyles[status] : undefined) ?? "bg-slate-50 text-slate-600 border-slate-200";
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1A2B48]/10 pb-4">
@@ -125,7 +108,7 @@ function HeaderTopBar({
           </button>
         )}
         <span
-          className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${statusStyle}`}
+          className="inline-flex items-center rounded-sm bg-[#f1f3f5] px-2 py-1 text-xs font-medium text-[#405064]"
         >
           {statusLabel}
         </span>
@@ -136,8 +119,8 @@ function HeaderTopBar({
 
 function AddressCard({ address }: { address: string }) {
   return (
-    <div className="rounded-xl border border-[#1A2B48]/10 bg-[#F4F1EE]/40 p-4">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#536176]">
+    <div className="border-l border-[#dce1e5] pl-4">
+      <div className="flex items-center gap-2 text-xs font-medium text-[#536176]">
         <svg
           aria-hidden="true"
           className="size-4 shrink-0 text-[#147560]"
@@ -179,7 +162,7 @@ export function OperationHeader({
     <section
       data-testid="operation-header"
       aria-label={translations.operations.detail.information}
-      className="space-y-4 rounded-2xl border border-[#1A2B48]/10 bg-white p-6 shadow-xs"
+      className="space-y-4 admin-detail-section"
     >
       <HeaderTopBar
         id={id}

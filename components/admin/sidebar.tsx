@@ -13,10 +13,10 @@ function SidebarHeader({ profile }: { profile: AdminProfile }) {
   return (
     <header role="banner" className="p-5 border-b border-[#1A2B48]/10">
       <div>
-        <span className="text-xl font-semibold tracking-tight text-[#1A2B48]">
+        <span className="text-lg font-semibold tracking-tight text-[#1A2B48]">
           {copy.brand}
         </span>
-        <p className="mt-0.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#147560]">
+        <p className="mt-0.5 text-xs font-medium text-[#536176]">
           {copy.area}
         </p>
       </div>
@@ -46,7 +46,7 @@ function SidebarFooter() {
     <div className="p-3 border-t border-[#1A2B48]/10">
       <a
         href={ROUTES.logout}
-        className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-[#536176] hover:bg-[#F4F1EE] hover:text-[#1A2B48] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560] transition-colors"
+        className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-sm font-medium text-[#536176] hover:bg-[#F4F1EE] hover:text-[#1A2B48] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560] transition-colors"
       >
         <LogoutIcon />
         <span>{copy.signOut}</span>
@@ -61,7 +61,7 @@ export function Sidebar({ profile, className = "" }: SidebarProps) {
   return (
     <aside
       aria-label={copy.mainNav}
-      className={`sticky top-0 h-svh w-56 shrink-0 overflow-y-auto bg-white border-r border-[#1A2B48]/10 flex flex-col ${className}`.trim()}
+      className={`sticky top-0 h-svh w-56 shrink-0 overflow-y-auto bg-[#f6f8f7] border-r border-[#1A2B48]/10 flex flex-col ${className}`.trim()}
     >
       <SidebarHeader profile={profile} />
       <AdminNavigation />

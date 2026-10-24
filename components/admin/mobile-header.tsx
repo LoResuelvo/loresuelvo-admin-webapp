@@ -49,7 +49,7 @@ function MobileHeaderBar({ isOpen }: MobileHeaderBarProps) {
         <span className="text-lg font-semibold tracking-tight text-[#1A2B48]">
           {copy.brand}
         </span>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#147560]">
+        <p className="text-[10px] font-medium text-[#536176]">
           {copy.area}
         </p>
       </div>
@@ -77,7 +77,7 @@ function DrawerHeader({ onClose }: { onClose: () => void }) {
         <span className="text-lg font-semibold tracking-tight text-[#1A2B48]">
           {copy.brand}
         </span>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#147560]">
+        <p className="text-[10px] font-medium text-[#536176]">
           {copy.area}
         </p>
       </div>
@@ -101,7 +101,7 @@ function DrawerFooter() {
       <a
         href={ROUTES.logout}
         role="button"
-        className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-[#536176] hover:bg-[#F4F1EE] hover:text-[#1A2B48] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560] transition-colors"
+        className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-sm font-medium text-[#536176] hover:bg-[#F4F1EE] hover:text-[#1A2B48] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560] transition-colors"
       >
         <LogoutIcon />
         <span>{copy.signOut}</span>

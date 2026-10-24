@@ -14,19 +14,19 @@ const responsibleConfig: Record<
 > = {
   consumer: {
     label: "Cliente",
-    container: "bg-sky-50 text-sky-700 border-sky-200",
+    container: "text-[#536176]",
   },
   provider: {
     label: "Prestador",
-    container: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    container: "text-[#536176]",
   },
   platform: {
     label: "Plataforma",
-    container: "bg-violet-50 text-violet-700 border-violet-200",
+    container: "text-[#536176]",
   },
   none: {
     label: "—",
-    container: "bg-slate-50 text-slate-500 border-slate-200",
+    container: "text-[#536176]",
   },
 };
 
@@ -36,7 +36,7 @@ export function ResponsibleBadge({ responsible, className = "" }: ResponsibleBad
   return (
     <span
       data-testid="responsible-badge"
-      className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${config.container} ${className}`.trim()}
+      className={`inline-flex items-center text-xs font-medium ${config.container} ${className}`.trim()}
     >
       {responsible === null ? translations.operations.unavailable : config.label}
     </span>

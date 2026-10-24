@@ -84,7 +84,7 @@ function OperationsForbidden({ message }: { message: string }) {
   return (
     <div
       role="alert"
-      className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-amber-800"
+      className="rounded-md border border-amber-200 bg-amber-50 p-6 text-center text-amber-800"
     >
       <p className="font-medium">{message}</p>
     </div>
@@ -93,7 +93,7 @@ function OperationsForbidden({ message }: { message: string }) {
 
 function OperationsError({ error, onRetry }: { error: string; onRetry: () => void }) {
   return (
-    <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
+    <div role="alert" className="rounded-md border border-red-200 bg-red-50 p-6 text-center text-red-700">
       <p className="font-medium">{error}</p>
       <button
         type="button"
@@ -180,7 +180,7 @@ export function OperationsInboxClient({
           onSelectOperation={(op) => router.push(ROUTES.operationDetail(op.id))}
         />
       )}
-      <nav aria-label={translations.operations.table.caption} className="flex gap-3">
+      <nav aria-label={translations.operations.table.caption} className="admin-pagination">
         <button type="button" disabled={isLoading || cursorHistory.length === 0} onClick={() => {
           const previous = cursorHistory.at(-1);
           setCursorHistory(history => history.slice(0, -1));

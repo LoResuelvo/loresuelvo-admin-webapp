@@ -34,7 +34,7 @@ export function OperationsEmptyState({
     <div
       role="status"
       data-testid="operations-empty-state"
-      className={`rounded-2xl border border-[#1A2B48]/10 bg-white p-12 text-center shadow-xs ${className}`.trim()}
+      className={`rounded-md border border-[#dce1e5] bg-white p-10 text-center ${className}`.trim()}
     >
       <EmptyInboxIcon />
       <h3 className="mt-4 text-base font-semibold text-[#1A2B48]">

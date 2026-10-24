@@ -97,7 +97,7 @@ describe("OperationsTable", () => {
     expect(row2.getByText("Cliente")).toBeInTheDocument();
   });
 
-  it("renders API operational alerts as distinct warning badges", () => {
+  it("renders every API operational alert with its warning label", () => {
     render(
       <OperationsTable
         operations={[{
@@ -107,8 +107,8 @@ describe("OperationsTable", () => {
       />,
     );
 
-    expect(screen.getByText("Servicio demorado")).toHaveClass("bg-rose-50");
-    expect(screen.getByText("Estancada > 72h")).toHaveClass("bg-red-50");
+    expect(screen.getByText("Servicio demorado")).toBeVisible();
+    expect(screen.getByText("Estancada > 72h")).toBeVisible();
   });
 
   it("calls onSelectOperation when row is clicked", async () => {

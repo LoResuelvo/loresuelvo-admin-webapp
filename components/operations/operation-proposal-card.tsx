@@ -36,7 +36,7 @@ function ProposalCardHeader({ status }: { status: string }) {
         <h2 className="text-base font-semibold text-[#1A2B48]">{copy.title}</h2>
         <p className="mt-0.5 text-xs text-[#536176]">{copy.subtitle}</p>
       </div>
-      <span className="inline-flex items-center rounded-full bg-[#147560]/10 px-3 py-1 text-xs font-semibold text-[#147560]">
+      <span className="inline-flex items-center rounded-sm bg-[#f1f3f5] px-3 py-1 text-xs font-semibold text-[#147560]">
         {statusLabel}
       </span>
     </header>
@@ -52,8 +52,8 @@ function ProposalCommercialGrid({ proposal }: { proposal: ProposalDetail }) {
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <div className="rounded-xl border border-[#1A2B48]/10 bg-[#F4F1EE]/40 p-4">
-        <span className="text-xs font-semibold uppercase tracking-wider text-[#536176]">
+      <div className="border-l border-[#dce1e5] pl-4">
+        <span className="text-xs font-medium text-[#536176]">
           {copy.totalAmount}
         </span>
         <p className="mt-1 text-xl font-bold tracking-tight text-[#1A2B48]">
@@ -61,8 +61,8 @@ function ProposalCommercialGrid({ proposal }: { proposal: ProposalDetail }) {
         </p>
       </div>
 
-      <div className="rounded-xl border border-[#1A2B48]/10 bg-[#F4F1EE]/40 p-4">
-        <span className="text-xs font-semibold uppercase tracking-wider text-[#536176]">
+      <div className="border-l border-[#dce1e5] pl-4">
+        <span className="text-xs font-medium text-[#536176]">
           {copy.bookingDeposit}
         </span>
         <div className="mt-1 flex items-baseline gap-2">
@@ -77,8 +77,8 @@ function ProposalCommercialGrid({ proposal }: { proposal: ProposalDetail }) {
         </div>
       </div>
 
-      <div className="rounded-xl border border-[#1A2B48]/10 bg-[#F4F1EE]/40 p-4">
-        <span className="text-xs font-semibold uppercase tracking-wider text-[#536176]">
+      <div className="border-l border-[#dce1e5] pl-4">
+        <span className="text-xs font-medium text-[#536176]">
           {copy.estimatedDuration}
         </span>
         <p className="mt-1 text-base font-semibold text-[#1A2B48]">
@@ -86,8 +86,8 @@ function ProposalCommercialGrid({ proposal }: { proposal: ProposalDetail }) {
         </p>
       </div>
 
-      <div className="rounded-xl border border-[#1A2B48]/10 bg-[#F4F1EE]/40 p-4">
-        <span className="text-xs font-semibold uppercase tracking-wider text-[#536176]">
+      <div className="border-l border-[#dce1e5] pl-4">
+        <span className="text-xs font-medium text-[#536176]">
           {copy.committedDates}
         </span>
         <p className="mt-1 text-base font-semibold text-[#1A2B48]">
@@ -101,8 +101,8 @@ function ProposalCommercialGrid({ proposal }: { proposal: ProposalDetail }) {
 function ProposalDescription({ description }: { description: string }) {
   const copy = translations.operations.proposal;
   return (
-    <div className="rounded-xl border border-[#1A2B48]/10 bg-white p-4">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-[#536176]">
+    <div className="py-2">
+      <h3 className="text-xs font-medium text-[#536176]">
         {copy.description}
       </h3>
       <p className="mt-1.5 text-sm leading-relaxed text-[#1A2B48]">{description}</p>
@@ -122,7 +122,7 @@ export function OperationProposalCard({ proposals = [] }: OperationProposalCardP
     <section
       data-testid="operation-proposal-card"
       aria-label={translations.operations.proposal.title}
-      className="space-y-4 rounded-2xl border border-[#1A2B48]/10 bg-white p-6 shadow-xs"
+      className="space-y-4 admin-detail-section"
     >
       <ProposalCardHeader status={activeProposal.status} />
       <ProposalCommercialGrid proposal={activeProposal} />

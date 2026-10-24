@@ -117,7 +117,7 @@ function ConsumerRow({ consumer }: { consumer: Consumer }) {
   const initials = `${consumer.name.charAt(0)}${consumer.surname.charAt(0)}`.toUpperCase();
 
   return (
-    <tr className="transition-colors hover:bg-[#F4F1EE]/30">
+    <tr className="transition-colors hover:bg-[#f8f9fa]">
       <td className="px-6 py-4">
         <div className="flex min-w-0 items-center gap-3">
           {consumer.profilePhotoUrl ? (
@@ -154,15 +154,15 @@ function ConsumersTable({ consumers }: { consumers: readonly Consumer[] }) {
   const { columns } = translations.users.table;
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-[#1A2B48]/10 bg-white shadow-xs">
+    <div className="admin-table-frame">
       <table aria-label={translations.users.table.caption} className="w-full text-left text-sm text-[#1A2B48]">
-        <thead className="border-b border-[#1A2B48]/10 bg-[#F4F1EE]/50 text-xs font-semibold uppercase tracking-wider text-[#1A2B48]/60">
+        <thead className="admin-table-heading">
           <tr>
             <th scope="col" className="px-6 py-4">{columns.user}</th>
             <th scope="col" className="px-6 py-4">{columns.createdOn}</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#1A2B48]/5">
+        <tbody className="divide-y divide-[#e8ebee]">
           {consumers.map((consumer) => (
             <ConsumerRow key={consumer.id} consumer={consumer} />
           ))}

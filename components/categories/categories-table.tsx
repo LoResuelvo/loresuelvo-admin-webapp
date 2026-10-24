@@ -42,7 +42,7 @@ function DeactivateIcon() {
 function CategoryTableHeader() {
   const copy = translations.categories;
   return (
-    <thead className="border-b border-[#1A2B48]/10 bg-[#F4F1EE]/50 text-xs font-semibold uppercase tracking-wider text-[#1A2B48]/60">
+    <thead className="admin-table-heading">
       <tr>
         <th scope="col" className="px-6 py-4">
           {copy.columns.name}
@@ -69,7 +69,7 @@ function CategoryRow({ category, onEditCategory, onDeactivateCategory }: Categor
   const isActive = category.enabled !== false;
 
   return (
-    <tr className="transition-colors hover:bg-[#F4F1EE]/30">
+    <tr className="transition-colors hover:bg-[#f8f9fa]">
       <td className="px-6 py-4 font-medium text-[#1A2B48]">
         {category.name}
       </td>
@@ -120,10 +120,10 @@ export function CategoriesTable({
   onDeactivateCategory,
 }: CategoriesTableProps) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-[#1A2B48]/10 bg-white shadow-xs">
+    <div className="admin-table-frame">
       <table className="w-full text-left text-sm text-[#1A2B48]">
         <CategoryTableHeader />
-        <tbody className="divide-y divide-[#1A2B48]/5">
+        <tbody className="divide-y divide-[#e8ebee]">
           {categories.map((category) => (
             <CategoryRow
               key={category.id}

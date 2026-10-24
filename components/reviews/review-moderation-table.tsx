@@ -59,7 +59,7 @@ function ReviewStatusBadge({ status }: { status: ReviewStatus }) {
 function ReviewModerationTableHeader() {
   const copy = translations.moderation.table;
   return (
-    <thead className="border-b border-[#1A2B48]/10 bg-[#F4F1EE]/50 text-xs font-semibold uppercase tracking-wider text-[#1A2B48]/60">
+    <thead className="admin-table-heading">
       <tr>
         <th scope="col" className="px-3 py-3 text-left">{copy.participants}</th>
         <th scope="col" className="px-3 py-3 text-left">{copy.rating}</th>
@@ -180,7 +180,7 @@ function ReviewModerationTableRow({
         }
       }}
       tabIndex={onSelectReview ? 0 : undefined}
-      className={`transition-colors hover:bg-[#F4F1EE]/30 ${
+      className={`transition-colors hover:bg-[#f8f9fa] ${
         onSelectReview ? "cursor-pointer focus:bg-[#F4F1EE]/50 focus:outline-none focus:ring-1 focus:ring-[#147560]" : ""
       }`.trim()}
     >
@@ -253,11 +253,11 @@ export function ReviewModerationTable({
   }
 
   return (
-    <div className={`overflow-hidden rounded-2xl border border-[#1A2B48]/10 bg-white shadow-xs ${className}`.trim()}>
+    <div className={`admin-table-frame ${className}`.trim()}>
       <div className="overflow-x-auto">
         <table aria-label={copy.ariaLabel} className="w-full min-w-[680px] table-fixed border-collapse text-left">
           <ReviewModerationTableHeader />
-          <tbody className="divide-y divide-[#1A2B48]/5">
+          <tbody className="divide-y divide-[#e8ebee]">
             {reviews.map((review) => (
               <ReviewModerationTableRow
                 key={review.id}

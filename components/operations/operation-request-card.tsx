@@ -53,7 +53,7 @@ function PhotoGallery({ photos }: { photos: readonly string[] }) {
 
   return (
     <div className="space-y-2">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-[#536176]">
+      <h3 className="text-xs font-medium text-[#536176]">
         Fotos adjuntas ({photos.length})
       </h3>
       <EvidencePhotoGallery
@@ -71,7 +71,7 @@ export function OperationRequestCard({ request }: OperationRequestCardProps) {
     <section
       data-testid="operation-request-card"
       aria-label="Solicitud inicial del cliente"
-      className="space-y-4 rounded-2xl border border-[#1A2B48]/10 bg-white p-6 shadow-xs"
+      className="space-y-4 admin-detail-section"
     >
       <header className="border-b border-[#1A2B48]/10 pb-4">
         <h2 className="text-base font-semibold text-[#1A2B48]">

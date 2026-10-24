@@ -55,7 +55,7 @@ function ParticipantSearchInput({
   const { filters } = translations.operations;
 
   return (
-    <div className="relative w-full max-w-xs">
+    <div className="relative w-full sm:min-w-64 sm:flex-1">
       <label htmlFor="operations-search" className="sr-only">
         {filters.search.label}
       </label>
@@ -69,7 +69,7 @@ function ParticipantSearchInput({
         value={searchQuery ?? ""}
         onChange={(e) => onSearchChange?.(e.target.value)}
         placeholder={filters.search.placeholder}
-        className="w-full rounded-xl border border-[#1A2B48]/15 bg-white py-2.5 pl-10 pr-4 text-sm text-[#1A2B48] placeholder-[#536176] transition-colors focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
+        className="w-full rounded-md border border-[#1A2B48]/15 bg-white py-2 pl-10 pr-4 text-sm text-[#1A2B48] placeholder-[#536176] transition-colors focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
       />
     </div>
   );
@@ -87,7 +87,7 @@ function CategoryFilterSelect({
   const { filters } = translations.operations;
 
   return (
-    <div className="flex items-center">
+    <div className="flex min-w-0 flex-1 items-center sm:flex-none">
       <label htmlFor="operations-category-filter" className="sr-only">
         {filters.category.label}
       </label>
@@ -96,7 +96,7 @@ function CategoryFilterSelect({
         aria-label={filters.category.label}
         value={selectedCategoryId ?? ""}
         onChange={(e) => onCategoryChange?.(e.target.value ? Number(e.target.value) : "")}
-        className="rounded-xl border border-[#1A2B48]/15 bg-white px-3 py-2.5 text-sm text-[#1A2B48] transition-colors focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
+        className="w-full rounded-md border border-[#1A2B48]/15 bg-white px-3 py-2 text-sm text-[#1A2B48] transition-colors focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
       >
         <option value="">{filters.category.all}</option>
         {categoryOptions.map((cat) => (
@@ -119,7 +119,7 @@ function BottleneckFilterSelect({
   const { filters, bottleneck: bottleneckTrans } = translations.operations;
 
   return (
-    <div className="flex items-center">
+    <div className="flex min-w-0 flex-1 items-center sm:flex-none">
       <label htmlFor="operations-bottleneck-filter" className="sr-only">
         {filters.bottleneck.label}
       </label>
@@ -128,7 +128,7 @@ function BottleneckFilterSelect({
         aria-label={filters.bottleneck.label}
         value={selectedBottleneck ?? ""}
         onChange={(e) => onBottleneckChange?.(e.target.value as BottleneckType | "")}
-        className="rounded-xl border border-[#1A2B48]/15 bg-white px-3 py-2.5 text-sm text-[#1A2B48] transition-colors focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
+        className="w-full rounded-md border border-[#1A2B48]/15 bg-white px-3 py-2 text-sm text-[#1A2B48] transition-colors focus:border-[#147560] focus:outline-hidden focus:ring-1 focus:ring-[#147560]"
       >
         <option value="">{filters.bottleneck.all}</option>
         {BOTTLENECK_OPTIONS.map((key) => (
@@ -151,7 +151,7 @@ export function OperationsFilterBar({
   onBottleneckChange,
 }: OperationsFilterBarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-4" data-testid="operations-filter-bar">
+    <div className="flex flex-wrap items-center gap-2.5 border-b border-[#dce1e5] pb-4" data-testid="operations-filter-bar">
       <ParticipantSearchInput
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}

@@ -67,9 +67,9 @@ export function PaymentsTable({ items, className = "" }: PaymentsTableProps) {
   const { table } = translations.payments;
 
   return (
-    <div className={`overflow-x-auto rounded-xl border border-[#1A2B48]/10 bg-white shadow-sm ${className}`.trim()}>
+    <div className={`admin-table-frame ${className}`.trim()}>
       <table aria-label={table.ariaLabel} className="w-full min-w-[700px] table-fixed text-left text-sm text-[#1A2B48]">
-        <thead className="border-b border-[#1A2B48]/10 bg-[#F4F1EE]/50 text-xs font-semibold uppercase tracking-wider text-[#536176]">
+        <thead className="admin-table-heading">
           <tr>
             <th scope="col" className="px-3 py-3">{table.date}</th>
             <th scope="col" className="px-3 py-3">{table.participants}</th>
@@ -79,9 +79,9 @@ export function PaymentsTable({ items, className = "" }: PaymentsTableProps) {
             <th scope="col" className="px-3 py-3">{table.details}</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#1A2B48]/5">
+        <tbody className="divide-y divide-[#e8ebee]">
           {items.map((item) => (
-            <tr key={item.id} className="transition-colors hover:bg-[#F4F1EE]/30">
+            <tr key={item.id} className="transition-colors hover:bg-[#f8f9fa]">
               <td className="px-3 py-3 text-xs text-[#536176]">
                 <time dateTime={item.createdOn}>{formatDate(item.createdOn)}</time>
               </td>

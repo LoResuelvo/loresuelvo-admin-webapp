@@ -54,7 +54,7 @@ function EvidencePhotosGallery({ photos }: { photos: readonly string[] }) {
 
   return (
     <div className="space-y-2">
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-[#536176]">
+      <h4 className="text-xs font-medium text-[#536176]">
         {copy.evidencePhotos} ({photos.length})
       </h4>
       <EvidencePhotoGallery
@@ -82,8 +82,8 @@ function CompletionReportSection({ report }: { report: CompletionReport }) {
       </div>
 
       {report.notes && (
-        <div className="rounded-xl border border-[#1A2B48]/10 bg-[#F4F1EE]/40 p-4">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-[#536176]">
+        <div className="border-l border-[#dce1e5] pl-4">
+          <h4 className="text-xs font-medium text-[#536176]">
             {copy.notes}
           </h4>
           <p className="mt-1 text-sm leading-relaxed text-[#1A2B48]">{report.notes}</p>
@@ -139,7 +139,7 @@ export function OperationCompletionCard({
     <section
       data-testid="operation-completion-card"
       aria-label="Finalización del servicio y reseña"
-      className="space-y-5 rounded-2xl border border-[#1A2B48]/10 bg-white p-6 shadow-xs"
+      className="space-y-5 admin-detail-section"
     >
       <header className="border-b border-[#1A2B48]/10 pb-4">
         <h2 className="text-base font-semibold text-[#1A2B48]">

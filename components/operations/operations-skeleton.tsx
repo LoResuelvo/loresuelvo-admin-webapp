@@ -13,9 +13,9 @@ export function OperationsSkeleton({ rowCount = 5, className = "" }: OperationsS
       role="status"
       aria-label={translations.operations.loading}
       data-testid="operations-skeleton"
-      className={`overflow-hidden rounded-2xl border border-[#1A2B48]/10 bg-white shadow-xs ${className}`.trim()}
+      className={`overflow-hidden rounded-md border border-[#dce1e5] bg-white ${className}`.trim()}
     >
-      <div className="border-b border-[#1A2B48]/10 bg-[#F4F1EE]/50 px-6 py-4">
+      <div className="border-b border-[#1A2B48]/10 bg-[#f8f9fa] px-6 py-4">
         <div className="flex gap-8">
           <div className="h-4 w-28 animate-pulse rounded bg-[#1A2B48]/10" />
           <div className="h-4 w-28 animate-pulse rounded bg-[#1A2B48]/10" />

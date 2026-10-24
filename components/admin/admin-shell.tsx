@@ -19,7 +19,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   if (access.status === "pending") return <AccessLoading />;
   if (access.status === "ready") {
     return (
-      <div className="flex min-h-svh flex-col lg:flex-row bg-[#F4F1EE] text-[#1A2B48]">
+      <div className="flex min-h-svh flex-col lg:flex-row bg-[#fafbfc] text-[#1A2B48]">
         <MobileHeader profile={access.profile} className="lg:hidden" />
         <Sidebar profile={access.profile} className="hidden lg:flex" />
         <div className="flex-1 flex flex-col min-w-0">

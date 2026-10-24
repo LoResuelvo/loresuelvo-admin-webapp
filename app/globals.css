@@ -1,1 +1,57 @@
 @import "tailwindcss";
+
+@layer components {
+  .admin-table-frame {
+    overflow-x: auto;
+    border: 1px solid #dce1e5;
+    border-radius: 0.375rem;
+    background: #fff;
+  }
+
+  .admin-table-heading {
+    border-bottom: 1px solid #dce1e5;
+    background: #f8f9fa;
+    color: #536176;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .admin-table-heading th {
+    font-weight: 500;
+  }
+
+  .admin-pagination {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    border-top: 1px solid #dce1e5;
+    padding-top: 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .admin-pagination button {
+    border: 1px solid #dce1e5;
+    border-radius: 0.375rem;
+    background: #fff;
+    padding: 0.375rem 0.75rem;
+  }
+
+  .admin-pagination button:enabled:hover {
+    background: #f1f3f5;
+  }
+
+  .admin-pagination button:disabled {
+    color: #697586;
+    cursor: not-allowed;
+  }
+
+  .admin-pagination button:focus-visible {
+    outline: 2px solid #147560;
+    outline-offset: 2px;
+  }
+
+  .admin-detail-section {
+    border-top: 1px solid #dce1e5;
+    padding: 1.5rem 0;
+  }
+}

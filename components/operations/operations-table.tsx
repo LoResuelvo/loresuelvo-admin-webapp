@@ -24,35 +24,18 @@ export interface OperationsTableProps {
   onSelectOperation?: (operation: OperationSummary) => void;
 }
 
-const statusStyles: Partial<Record<OperationStatus, string>> = {
-  request_pending: "bg-blue-50 text-blue-700 border-blue-200",
-  request_accepted: "bg-cyan-50 text-cyan-800 border-cyan-200",
-  proposal_pending: "bg-amber-50 text-amber-700 border-amber-200",
-  proposal_accepted: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  proposal_rejected: "bg-rose-50 text-rose-700 border-rose-200",
-  work_order_scheduled: "bg-blue-50 text-blue-700 border-blue-200",
-  work_order_awaiting_payment: "bg-amber-50 text-amber-700 border-amber-200",
-  work_order_paid: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  requested: "bg-blue-50 text-blue-700 border-blue-200",
-  quoted: "bg-amber-50 text-amber-700 border-amber-200",
-  in_progress: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  completed: "bg-slate-100 text-slate-700 border-slate-300",
-  cancelled: "bg-rose-50 text-rose-700 border-rose-200",
-};
-
 const alertStyles: Record<OperationAlert, string> = {
-  request_pending_over_24h: "border-amber-200 bg-amber-50 text-amber-900",
-  booking_deadline_passed: "border-orange-200 bg-orange-50 text-orange-900",
-  delayed: "border-rose-200 bg-rose-50 text-rose-900",
-  stalled: "border-red-200 bg-red-50 text-red-900",
+  request_pending_over_24h: "border-amber-500 text-amber-900",
+  booking_deadline_passed: "border-amber-500 text-amber-900",
+  delayed: "border-red-500 text-red-800",
+  stalled: "border-red-500 text-red-800",
 };
 
 function StatusBadge({ status }: { status: OperationStatus }) {
   const label = translations.operations.status[status];
-  const style = statusStyles[status] ?? "bg-slate-50 text-slate-600 border-slate-200";
 
   return (
-    <span className={`inline-flex max-w-full items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium leading-tight ${style}`}>
+    <span className="inline-flex max-w-full items-center rounded-sm bg-[#f1f3f5] px-2 py-1 text-xs font-medium leading-tight text-[#405064]">
       {label}
     </span>
   );
@@ -66,7 +49,7 @@ function OperationAlertBadges({ alerts }: { alerts: readonly OperationAlert[] })
       {alerts.map((alert) => (
         <span
           key={alert}
-          className={`inline-flex max-w-full items-center rounded-full border px-2 py-0.5 text-xs font-medium ${alertStyles[alert]}`}
+          className={`inline-flex max-w-full items-center border-l-2 pl-2 text-xs font-medium ${alertStyles[alert]}`}
         >
           {labels[alert]}
         </span>
@@ -77,9 +60,9 @@ function OperationAlertBadges({ alerts }: { alerts: readonly OperationAlert[] })
 
 export function OperationsTable({ operations, onSelectOperation }: OperationsTableProps) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-[#1A2B48]/10 bg-white shadow-xs">
+    <div className="admin-table-frame">
       <table aria-label={translations.operations.table.caption} className="w-full min-w-[700px] table-fixed text-left text-sm text-[#1A2B48]">
-        <thead className="border-b border-[#1A2B48]/10 bg-[#F4F1EE]/50 text-xs font-semibold uppercase tracking-wider text-[#1A2B48]/60">
+        <thead className="admin-table-heading">
           <tr>
             <th scope="col" className="px-3 py-3">{translations.operations.table.columns.consumer}</th>
             <th scope="col" className="px-3 py-3">{translations.operations.table.columns.provider}</th>
@@ -89,7 +72,7 @@ export function OperationsTable({ operations, onSelectOperation }: OperationsTab
             <th scope="col" className="px-3 py-3">{translations.operations.table.columns.responsible}</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#1A2B48]/5">
+        <tbody className="divide-y divide-[#e8ebee]">
           {operations.map((op) => (
             <tr
               key={op.id}
@@ -101,7 +84,7 @@ export function OperationsTable({ operations, onSelectOperation }: OperationsTab
                 }
               }}
               tabIndex={onSelectOperation ? 0 : undefined}
-              className={`transition-colors hover:bg-[#F4F1EE]/30 ${onSelectOperation ? "cursor-pointer focus:bg-[#F4F1EE]/50 focus:outline-none focus:ring-1 focus:ring-[#147560]" : ""}`.trim()}
+              className={`transition-colors hover:bg-[#f8f9fa] ${onSelectOperation ? "cursor-pointer focus:bg-[#F4F1EE]/50 focus:outline-none focus:ring-1 focus:ring-[#147560]" : ""}`.trim()}
             >
 
               <td className="min-w-0 px-3 py-3">

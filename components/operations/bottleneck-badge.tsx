@@ -21,24 +21,24 @@ const bottleneckConfig: Record<
     dot: "bg-orange-500",
   },
   scheduled_today: {
-    container: "bg-blue-50 text-blue-800 border-blue-200",
-    dot: "bg-blue-500",
+    container: "text-[#536176]",
+    dot: "bg-[#82938b]",
   },
   delayed: {
     container: "bg-rose-50 text-rose-800 border-rose-200",
     dot: "bg-rose-500",
   },
   pending_final_payment: {
-    container: "bg-purple-50 text-purple-800 border-purple-200",
-    dot: "bg-purple-500",
+    container: "text-amber-800",
+    dot: "bg-amber-500",
   },
   stalled: {
     container: "bg-red-50 text-red-800 border-red-200",
     dot: "bg-red-500",
   },
   none: {
-    container: "bg-emerald-50 text-emerald-800 border-emerald-200",
-    dot: "bg-emerald-500",
+    container: "text-[#536176]",
+    dot: "bg-[#82938b]",
   },
 };
 
@@ -49,7 +49,7 @@ export function BottleneckBadge({ bottleneck, className = "" }: BottleneckBadgeP
   return (
     <span
       data-testid="bottleneck-badge"
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${config.container} ${className}`.trim()}
+      className={`inline-flex items-center gap-1.5 text-xs font-medium ${config.container} ${className}`.trim()}
     >
       <span aria-hidden="true" className={`size-1.5 rounded-full ${config.dot}`} />
       <span>{label}</span>

@@ -34,17 +34,17 @@ export function FunnelOverviewCard({
   return (
     <section
       aria-label={t.overview.ariaLabel}
-      className="flex flex-col gap-5 rounded-2xl bg-gradient-to-br from-[#1A2B48] to-[#147560] p-5 text-white shadow-md sm:p-6 md:flex-row md:items-center md:justify-between"
+      className="flex flex-col gap-5 rounded-md border border-[#dce1e5] bg-white p-5 text-[#1A2B48] sm:p-6 md:flex-row md:items-center md:justify-between"
     >
       <div className="min-w-0 flex-1">
-        <p className="text-xs uppercase font-semibold tracking-wider text-emerald-200">
+        <p className="text-xs font-medium text-[#536176]">
           {t.overview.performance}
         </p>
-        <h2 className="text-xl font-bold mt-1 tracking-tight">
+        <h2 className="text-lg font-semibold mt-1 tracking-tight">
           {t.globalConversionRate}
         </h2>
-        <details className="mt-3 max-w-md rounded-lg text-sm text-white/85 marker:text-white/70">
-          <summary className="w-fit cursor-pointer rounded-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+        <details className="mt-3 max-w-md rounded-lg text-sm text-[#536176] marker:text-[#536176]">
+          <summary className="w-fit cursor-pointer rounded-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#147560]">
             {t.methodologySummary}
           </summary>
           <p className="pt-2 leading-relaxed">{description}</p>
@@ -52,30 +52,30 @@ export function FunnelOverviewCard({
       </div>
 
       <div className="grid w-full gap-3 sm:grid-cols-2 md:w-auto">
-        <div className="rounded-xl border border-white/15 bg-white/10 px-5 py-4 backdrop-blur-sm">
-          <span className="block text-xs uppercase tracking-wider text-white/70">
+        <div className="border-l-2 border-[#147560] px-5 py-2">
+          <span className="block text-xs font-medium text-[#536176]">
             {t.overview.rate}
           </span>
           <span
             data-testid="global-conversion-rate"
-            className="text-3xl font-extrabold text-white tracking-tight"
+            className="text-3xl font-semibold text-[#1A2B48] tracking-tight"
           >
             {formattedRate}
           </span>
         </div>
 
-        <div className="rounded-xl border border-white/15 bg-white/10 px-5 py-4 text-white/80">
-          <span className="block text-xs uppercase tracking-wider text-white/70">
+        <div className="border-l border-[#dce1e5] px-5 py-2 text-[#536176]">
+          <span className="block text-xs font-medium text-[#536176]">
             {t.overview.numerator} / {t.overview.denominator}
           </span>
           <span
             data-testid="global-conversion-count"
             aria-label={`${globalConversionNumerator} ${numeratorLabel} de ${globalConversionDenominator} ${initialUnitLabel}`}
-            className="mt-1 block text-2xl font-extrabold tracking-tight text-white"
+            className="mt-1 block text-2xl font-semibold tracking-tight text-[#1A2B48]"
           >
             {globalConversionNumerator.toLocaleString("es-AR")} de {globalConversionDenominator.toLocaleString("es-AR")}
           </span>
-          <span className="mt-1 block text-xs text-white/80">{initialUnitLabel}</span>
+          <span className="mt-1 block text-xs text-[#536176]">{initialUnitLabel}</span>
         </div>
       </div>
     </section>
