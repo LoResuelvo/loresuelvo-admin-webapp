@@ -28,8 +28,8 @@ export default async function Home({ searchParams }: HomeProps) {
     redirect(returnTo ?? ROUTES.operations);
   }
 
-  const notice = unavailable
-    ? translations.auth.unavailable
-    : auth === "incomplete" ? translations.auth.incomplete : undefined;
+  const notice = auth === "incomplete"
+    ? translations.auth.incomplete
+    : unavailable ? translations.auth.unavailable : undefined;
   return <LoginEntry notice={notice} returnTo={returnTo ?? undefined} />;
 }

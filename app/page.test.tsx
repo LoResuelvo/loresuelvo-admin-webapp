@@ -79,3 +79,16 @@ it.each(["configuration", "session"])("renders the public entry when authenticat
   expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeEnabled();
   expect(redirect).not.toHaveBeenCalled();
 });
+
+it.each(["configuration", "session"])("preserves the incomplete sign-in notice when authentication fails at %s", async failure => {
+  if (failure === "configuration") {
+    getAuth0Mock.mockImplementationOnce(() => { throw new Error("Authentication is not configured"); });
+  } else {
+    getSession.mockRejectedValueOnce(new Error("Session unavailable"));
+  }
+
+  render(await Home({ searchParams: Promise.resolve({ auth: "incomplete" }) }));
+  expect(screen.getByRole("alert")).toHaveTextContent(translations.auth.incomplete);
+  expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeEnabled();
+  expect(redirect).not.toHaveBeenCalled();
+});
