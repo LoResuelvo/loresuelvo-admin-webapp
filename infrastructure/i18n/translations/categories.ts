@@ -66,9 +66,6 @@ export const categoriesTranslations = {
     noProvidersNotice: "No hay prestadores asignados a este rubro.",
     ongoingOrdersWarning: (orders: number) =>
       `Hay ${orders} ${orders === 1 ? "orden" : "órdenes"} programadas o pendientes de pago. Si confirmás, esas operaciones existentes podrán continuar.`,
-    reasonLabel: "Motivo de desactivación",
-    reasonPlaceholder: "Explicá por qué se desactiva este rubro",
-    reasonRequired: "Ingresá un motivo para desactivar el rubro.",
     confirmationLabel: "Confirmo la desactivación aunque existan órdenes en curso",
     versionRequired: "No se pudo obtener la versión actual del rubro. Actualizá el catálogo e intentá nuevamente.",
     confirmButton: "Confirmar desactivación",

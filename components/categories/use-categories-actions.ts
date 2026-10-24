@@ -110,7 +110,7 @@ const initialDeactivationState: DeactivationState = {
 export function useCategoriesDeactivation(
   onGetImpact: ((id: number) => Promise<CategoryImpact>) | undefined,
   onDeactivateCategory: (
-    (id: number, expectedVersion: number, reason: string, confirmOngoingOrders: boolean) => Promise<void>
+    (id: number, expectedVersion: number, confirmOngoingOrders: boolean) => Promise<void>
   ) | undefined,
   onSuccess: (msg: string) => void,
 ) {
@@ -136,13 +136,12 @@ export function useCategoriesDeactivation(
   const handleConfirmDeactivate = async (
     id: number,
     expectedVersion: number,
-    reason: string,
     confirmOngoingOrders: boolean,
   ) => {
     if (!onDeactivateCategory) return;
     setState((prev) => ({ ...prev, isSubmitting: true, deactivateError: null }));
     try {
-      await onDeactivateCategory(id, expectedVersion, reason, confirmOngoingOrders);
+      await onDeactivateCategory(id, expectedVersion, confirmOngoingOrders);
       setState(initialDeactivationState);
       onSuccess(translations.categories.deactivateSuccess);
     } catch (err: unknown) {

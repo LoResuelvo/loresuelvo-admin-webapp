@@ -115,8 +115,8 @@ function OperationDetailContent({
   const [isChatDialogOpen, setIsChatDialogOpen] = useState(false);
 
   const handleFetchConversation = useCallback(
-    async (reason: string, cursor?: string) => {
-      const result = await getAuditedConversationAction(operation.id, reason, cursor);
+    async (cursor?: string) => {
+      const result = await getAuditedConversationAction(operation.id, cursor);
       if (!result.success) {
         const error = new Error(result.error);
         if (result.isForbidden) {

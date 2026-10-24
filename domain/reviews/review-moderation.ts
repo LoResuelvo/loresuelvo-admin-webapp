@@ -51,7 +51,6 @@ export type ReviewModerationDetail = Readonly<{
 export type ReviewModerationCommand = Readonly<{
   action: "hide" | "unhide";
   expectedVersion: number;
-  reason: string;
   category?: InfractionCategory;
   reportId?: number;
 }>;

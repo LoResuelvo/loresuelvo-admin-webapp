@@ -92,13 +92,12 @@ describe("DeactivateCategoryModal", () => {
     );
     const confirmButton = screen.getByRole("button", { name: "Confirmar desactivación" });
     expect(confirmButton).toBeDisabled();
-    await userEvent.type(screen.getByLabelText("Motivo de desactivación"), "Cierre solicitado");
     expect(confirmButton).toBeDisabled();
     await userEvent.click(screen.getByLabelText("Confirmo la desactivación aunque existan órdenes en curso"));
     expect(confirmButton).toBeEnabled();
   });
 
-  it("sends version, reason and explicit confirmation when confirming", async () => {
+  it("sends version and explicit confirmation without a reason when confirming", async () => {
     const onConfirm = vi.fn();
     render(
       <DeactivateCategoryModal
@@ -111,10 +110,9 @@ describe("DeactivateCategoryModal", () => {
     );
 
     const confirmButton = screen.getByRole("button", { name: "Confirmar desactivación" });
-    await userEvent.type(screen.getByLabelText("Motivo de desactivación"), "Cierre del rubro");
     await userEvent.click(confirmButton);
 
-    expect(onConfirm).toHaveBeenCalledWith(1, 2, "Cierre del rubro", false);
+    expect(onConfirm).toHaveBeenCalledWith(1, 2, false);
   });
 
   it("closes modal on cancel click", async () => {

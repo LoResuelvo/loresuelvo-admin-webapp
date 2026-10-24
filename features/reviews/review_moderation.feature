@@ -11,15 +11,15 @@ Feature: Moderación de reseñas y comentarios
     When accedo a la sección de moderación
     Then visualizo el listado con los IDs de consumidor y prestador, contratación, calificación, reportes pendientes y fecha del reporte
 
-  Scenario: 02-REV Ocultar reseña ofensiva con categoría de infracción y motivo justificado
+  Scenario: 02-REV Ocultar reseña ofensiva con categoría de infracción
     Given que identifico una reseña reportada con lenguaje agraviante
-    When oculto la reseña seleccionando la infracción "Lenguaje abusivo u ofensivo" y detallando el motivo
+    When oculto la reseña seleccionando la infracción "Lenguaje abusivo u ofensivo"
     Then el estado de la reseña pasa a "Ocultada"
     And veo una confirmación de la moderación aplicada
 
   Scenario: 03-REV Restablecer visibilidad pública de una reseña previamente ocultada
     Given que existe una reseña en estado "Ocultada"
-    When solicito restablecer la visibilidad pública e indico un motivo
+    When solicito restablecer la visibilidad pública
     Then el estado de la reseña pasa nuevamente a "Visible"
     And veo una confirmación del restablecimiento aplicado
 

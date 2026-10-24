@@ -1,16 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AuditedConversationResult } from "@/domain/operations/audited-message";
 import { translations } from "@/infrastructure/i18n/translations";
 
 export interface UseAuditedChatDialogStateProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
-  readonly onFetchConversation?: (reason: string, cursor?: string) => Promise<AuditedConversationResult>;
+  readonly onFetchConversation?: (cursor?: string) => Promise<AuditedConversationResult>;
 }
 
 interface DialogState {
-  readonly selectedReason: string;
-  readonly validationError: string | null;
   readonly isLoading: boolean;
   readonly error: string | null;
   readonly isForbidden: boolean;
@@ -18,8 +16,6 @@ interface DialogState {
 }
 
 const initialDialogState: DialogState = {
-  selectedReason: "",
-  validationError: null,
   isLoading: false,
   error: null,
   isForbidden: false,
@@ -48,14 +44,6 @@ export function useAuditedChatDialogState({ isOpen, onClose, onFetchConversation
   const requestGeneration = useRef(0);
   const pending = useRef(false);
 
-  useEffect(() => {
-    if (!isOpen) setState(initialDialogState);
-    return () => {
-      requestGeneration.current += 1;
-      pending.current = false;
-    };
-  }, [isOpen]);
-
   const handleClose = () => {
     requestGeneration.current += 1;
     pending.current = false;
@@ -63,24 +51,19 @@ export function useAuditedChatDialogState({ isOpen, onClose, onFetchConversation
     onClose();
   };
 
-  const loadPage = async (cursor?: string) => {
+  const loadPage = useCallback(async (cursor?: string) => {
     if (pending.current) return;
-    const reason = state.selectedReason.trim();
-    if (!reason) {
-      setState((prev) => ({ ...prev, validationError: translations.operations.chat.validationError }));
-      return;
-    }
     pending.current = true;
     const generation = ++requestGeneration.current;
-    setState((prev) => ({ ...prev, validationError: null, isLoading: true, error: null, isForbidden: false }));
+    setState((prev) => ({ ...prev, isLoading: true, error: null, isForbidden: false }));
     try {
       const page = onFetchConversation
-        ? await (cursor ? onFetchConversation(reason, cursor) : onFetchConversation(reason))
-        : null;
+        ? await (cursor ? onFetchConversation(cursor) : onFetchConversation())
+        : { items: [], total: 0 };
       if (generation !== requestGeneration.current) return;
       setState((prev) => ({
         ...prev,
-        conversationResult: page ? appendPage(cursor ? prev.conversationResult : null, page) : null,
+        conversationResult: appendPage(cursor ? prev.conversationResult : null, page),
         isLoading: false,
       }));
     } catch (error: unknown) {
@@ -89,15 +72,21 @@ export function useAuditedChatDialogState({ isOpen, onClose, onFetchConversation
     } finally {
       if (generation === requestGeneration.current) pending.current = false;
     }
-  };
+  }, [onFetchConversation]);
+
+  useEffect(() => {
+    if (isOpen) void loadPage();
+    else setState(initialDialogState);
+    return () => {
+      requestGeneration.current += 1;
+      pending.current = false;
+    };
+  }, [isOpen, loadPage]);
 
   return {
     ...state,
     handleClose,
-    handleConfirmAccess: () => loadPage(),
     handleLoadMore: () => state.conversationResult?.nextCursor ? loadPage(state.conversationResult.nextCursor) : Promise.resolve(),
     handleRetry: () => loadPage(state.conversationResult?.nextCursor ?? undefined),
-    handleReasonChange: (value: string) => setState((prev) => ({ ...prev, selectedReason: value, validationError: value ? null : prev.validationError })),
-    handleClearError: () => setState((prev) => ({ ...prev, error: null, isForbidden: false })),
   };
 }

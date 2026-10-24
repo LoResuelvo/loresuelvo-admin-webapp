@@ -170,7 +170,6 @@ export const apiCategoryRepository: CategoryRepository = {
     token: string,
     id: number,
     expectedVersion: number,
-    reason: string,
     confirmOngoingOrders: boolean,
   ): Promise<Category> {
     const endpoint = `/categories/${id}`;
@@ -191,7 +190,6 @@ export const apiCategoryRepository: CategoryRepository = {
       body: JSON.stringify({
         enabled: false,
         expected_version: expectedVersion,
-        reason,
         confirm_ongoing_orders: confirmOngoingOrders,
       }),
       cache: "no-store",

@@ -30,13 +30,11 @@ describe("getAuditedConversation", () => {
       mockRepo,
       "test-token",
       "op-101",
-      "Reclamo de cliente",
     );
 
     expect(mockRepo.getAuditedConversation).toHaveBeenCalledWith(
       "test-token",
       "op-101",
-      "Reclamo de cliente",
     );
     expect(result).toEqual(mockResult);
   });
@@ -51,7 +49,7 @@ describe("getAuditedConversation", () => {
     };
 
     await expect(
-      getAuditedConversation(mockRepo, "test-token", "op-101", "Causa"),
+      getAuditedConversation(mockRepo, "test-token", "op-101"),
     ).rejects.toSatisfy(
       (err) => err instanceof OperationError && err.code === "forbidden",
     );

@@ -114,7 +114,6 @@ export const apiReviewRepository: ReviewRepository = {
 
     const body: Record<string, unknown> = {
       action: command.action,
-      reason: command.reason,
       expected_version: command.expectedVersion,
     };
     if (command.action === "hide" && command.category) body.category = command.category;

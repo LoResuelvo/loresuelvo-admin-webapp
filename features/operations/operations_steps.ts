@@ -706,32 +706,9 @@ Given(
   },
 );
 
-When(
-  "elijo la causa {string} y confirmo el acceso",
-  async function (this: CustomWorld, cause: string) {
-    const dialog = this.page.getByRole("dialog");
-    await dialog.waitFor({ state: "visible", timeout: 5000 });
-
-    const causeSelect = dialog
-      .getByLabel(/motivo|causa/i)
-      .or(dialog.getByTestId("audit-reason-select"));
-
-    if (await causeSelect.isVisible()) {
-      await causeSelect.selectOption({ label: cause });
-    } else {
-      const causeOption = dialog
-        .getByRole("radio", { name: new RegExp(cause, "i") })
-        .or(dialog.getByRole("button", { name: new RegExp(cause, "i") }))
-        .or(dialog.getByText(cause));
-      await causeOption.click();
-    }
-
-    const confirmButton = dialog
-      .getByRole("button", { name: /confirmar acceso|acceder|confirmar/i })
-      .or(dialog.getByTestId("confirm-audit-access-button"));
-    await confirmButton.click();
-  },
-);
+When("se abre la conversación", async function (this: CustomWorld) {
+  await this.page.getByRole("dialog").waitFor({ state: "visible" });
+});
 
 Then(
   "visualizo los mensajes ordenados cronológicamente distinguiendo las intervenciones del cliente y del prestador",
@@ -764,6 +741,7 @@ Then(
 Given(
   "que me encuentro en el diálogo de acceso a la conversación",
   async function (this: CustomWorld) {
+    await this.stubGet("/admin/operations/jr-101/conversation", sampleAuditedConversation);
     const inspectButton = this.page
       .getByRole("button", { name: /inspeccionar conversación/i })
       .or(this.page.getByTestId("inspect-chat-button"));
@@ -775,29 +753,12 @@ Given(
   },
 );
 
-When(
-  "intento confirmar sin haber elegido una causa del listado",
-  async function (this: CustomWorld) {
-    const dialog = this.page.getByRole("dialog");
-    await dialog.waitFor({ state: "visible", timeout: 5000 });
-
-    const confirmButton = dialog
-      .getByRole("button", { name: /confirmar acceso|acceder|confirmar/i })
-      .or(dialog.getByTestId("confirm-audit-access-button"));
-    await confirmButton.click();
-  },
-);
-
-Then(
-  "el sistema me indica que debo seleccionar una causa para poder continuar",
-  async function (this: CustomWorld) {
-    const errorMessage = this.page.getByText(
-      /debes seleccionar una causa para poder continuar|selecciona una causa/i,
-    );
-    await errorMessage.waitFor({ state: "visible", timeout: 5000 });
-    assert.ok(await errorMessage.isVisible());
-  },
-);
+Then("no se solicita una causa ni una confirmación de acceso", async function (this: CustomWorld) {
+  const dialog = this.page.getByRole("dialog");
+  await dialog.getByTestId("audited-messages-list").waitFor({ state: "visible" });
+  assert.equal(await dialog.getByRole("combobox").count(), 0);
+  assert.equal(await dialog.getByRole("button", { name: /confirmar acceso/i }).count(), 0);
+});
 
 Given(
   "que la obtención de los mensajes toma unos momentos",
@@ -825,33 +786,6 @@ Given(
 
     const dialog = this.page.getByRole("dialog");
     await dialog.waitFor({ state: "visible", timeout: 5000 });
-  },
-);
-
-When(
-  "confirmo el acceso a la conversación indicando una causa válida",
-  async function (this: CustomWorld) {
-    const dialog = this.page.getByRole("dialog");
-    await dialog.waitFor({ state: "visible", timeout: 5000 });
-
-    const causeSelect = dialog
-      .getByLabel(/motivo|causa/i)
-      .or(dialog.getByTestId("audit-reason-select"));
-
-    if (await causeSelect.isVisible()) {
-      await causeSelect.selectOption({ label: "Reclamo de cliente" });
-    } else {
-      const causeOption = dialog
-        .getByRole("radio", { name: /reclamo de cliente/i })
-        .or(dialog.getByRole("button", { name: /reclamo de cliente/i }))
-        .or(dialog.getByText("Reclamo de cliente"));
-      await causeOption.click();
-    }
-
-    const confirmButton = dialog
-      .getByRole("button", { name: /confirmar acceso|acceder|confirmar/i })
-      .or(dialog.getByTestId("confirm-audit-access-button"));
-    await confirmButton.click();
   },
 );
 
@@ -892,39 +826,6 @@ Given(
       "/operations/jr-101/conversation",
       emptyAuditedConversation,
     );
-  },
-);
-
-When(
-  "selecciono una causa válida y accedo a la conversación",
-  async function (this: CustomWorld) {
-    const inspectButton = this.page
-      .getByRole("button", { name: /inspeccionar conversación/i })
-      .or(this.page.getByTestId("inspect-chat-button"));
-    await inspectButton.waitFor({ state: "visible", timeout: 5000 });
-    await inspectButton.click();
-
-    const dialog = this.page.getByRole("dialog");
-    await dialog.waitFor({ state: "visible", timeout: 5000 });
-
-    const causeSelect = dialog
-      .getByLabel(/motivo|causa/i)
-      .or(dialog.getByTestId("audit-reason-select"));
-
-    if (await causeSelect.isVisible()) {
-      await causeSelect.selectOption({ label: "Reclamo de cliente" });
-    } else {
-      const causeOption = dialog
-        .getByRole("radio", { name: /reclamo de cliente/i })
-        .or(dialog.getByRole("button", { name: /reclamo de cliente/i }))
-        .or(dialog.getByText("Reclamo de cliente"));
-      await causeOption.click();
-    }
-
-    const confirmButton = dialog
-      .getByRole("button", { name: /confirmar acceso|acceder|confirmar/i })
-      .or(dialog.getByTestId("confirm-audit-access-button"));
-    await confirmButton.click();
   },
 );
 
@@ -970,25 +871,6 @@ When(
 
     const dialog = this.page.getByRole("dialog");
     await dialog.waitFor({ state: "visible", timeout: 5000 });
-
-    const causeSelect = dialog
-      .getByLabel(/motivo|causa/i)
-      .or(dialog.getByTestId("audit-reason-select"));
-
-    if (await causeSelect.isVisible()) {
-      await causeSelect.selectOption({ label: "Reclamo de cliente" });
-    } else {
-      const causeOption = dialog
-        .getByRole("radio", { name: /reclamo de cliente/i })
-        .or(dialog.getByRole("button", { name: /reclamo de cliente/i }))
-        .or(dialog.getByText("Reclamo de cliente"));
-      await causeOption.click();
-    }
-
-    const confirmButton = dialog
-      .getByRole("button", { name: /confirmar acceso|acceder|confirmar/i })
-      .or(dialog.getByTestId("confirm-audit-access-button"));
-    await confirmButton.click();
   },
 );
 

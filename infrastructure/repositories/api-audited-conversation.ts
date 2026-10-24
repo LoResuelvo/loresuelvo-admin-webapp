@@ -63,7 +63,6 @@ function handleAuditedConversationHttpError(status: number): never {
 async function fetchAuditedConversationFromApi(
   token: string,
   id: string,
-  reason: string,
   cursor?: string,
 ): Promise<AuditedConversationResult> {
   const baseUrl = process.env.API_URL;
@@ -78,7 +77,6 @@ async function fetchAuditedConversationFromApi(
     response = await fetch(url.toString(), {
       headers: {
         Authorization: `Bearer ${token}`,
-        "X-Audit-Reason": reason,
         Accept: "application/json",
       },
       cache: "no-store",
@@ -100,12 +98,11 @@ async function fetchAuditedConversationFromApi(
 export async function fetchOrResolveAuditedConversation(
   token: string,
   id: string,
-  reason: string,
   cursor?: string,
 ): Promise<AuditedConversationResult> {
   const stub = await getE2EAuditedConversationStub(id, cursor);
   if (stub) {
     return resolveAuditedConversationFromStub(stub);
   }
-  return fetchAuditedConversationFromApi(token, id, reason, cursor);
+  return fetchAuditedConversationFromApi(token, id, cursor);
 }

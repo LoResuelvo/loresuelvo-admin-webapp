@@ -13,7 +13,6 @@ const result: ReviewModerationResult = {
 const required = {
   token: "tok-123",
   id: "101",
-  reason: "  Lenguaje abusivo comprobado  ",
   expectedVersion: 3,
 };
 
@@ -32,9 +31,7 @@ describe("moderateReview use case", () => {
       .rejects.toThrow("Infraction category is required when hiding a review");
   });
 
-  it("requires a non-empty reason and a current version", async () => {
-    await expect(moderateReview(repository(), { ...required, action: "unhide", reason: "  " }))
-      .rejects.toThrow("Moderation reason is required");
+  it("requires a current version", async () => {
     await expect(moderateReview(repository(), { ...required, action: "unhide", expectedVersion: 0 }))
       .rejects.toThrow("Review version is required");
   });
@@ -52,7 +49,6 @@ describe("moderateReview use case", () => {
     expect(moderate).toHaveBeenCalledWith("tok-123", "101", {
       action: "hide",
       category: "abusive_language",
-      reason: "Lenguaje abusivo comprobado",
       expectedVersion: 3,
       reportId: undefined,
     });
@@ -67,7 +63,6 @@ describe("moderateReview use case", () => {
     expect(moderate).toHaveBeenCalledWith("tok-123", "101", {
       action: "unhide",
       category: undefined,
-      reason: "Lenguaje abusivo comprobado",
       expectedVersion: 3,
       reportId: undefined,
     });

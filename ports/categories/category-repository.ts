@@ -10,7 +10,6 @@ export interface CategoryRepository {
     token: string,
     id: number,
     expectedVersion: number,
-    reason: string,
     confirmOngoingOrders: boolean,
   ): Promise<Category>;
 }

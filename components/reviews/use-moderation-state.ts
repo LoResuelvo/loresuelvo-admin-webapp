@@ -92,13 +92,12 @@ function applyModerationSuccess(
 async function performModerate(
   review: ReviewModerationDetail,
   action: ModerationAction,
-  data: { category?: InfractionCategory; reason: string },
+  data: { category?: InfractionCategory },
   setState: React.Dispatch<React.SetStateAction<ModerationState>>,
   recordMutation: (review: ReviewModerationItem) => void,
 ) {
   const command: ReviewModerationCommand = {
     action,
-    reason: data.reason,
     expectedVersion: review.review.version,
     ...(action === "hide" && data.category ? { category: data.category } : {}),
     ...(action === "hide" && review.report?.status === "pending" ? { reportId: review.report.id } : {}),
@@ -246,7 +245,7 @@ export function useModerationState({ initialReviews, initialStatus }: UseModerat
     openModerateModal: (review: ReviewModerationItem) => openReviewDialog(review, "moderate", "hide"),
     openRestoreModal: (review: ReviewModerationItem) => openReviewDialog(review, "moderate", "unhide"),
     closeModerateModal,
-    submitModerate: (data: { category?: InfractionCategory; reason: string }) => {
+    submitModerate: (data: { category?: InfractionCategory }) => {
       if (!state.reviewDetail || !state.moderationAction) return Promise.resolve();
       return performModerate(state.reviewDetail, state.moderationAction, data, setMountedState, recordMutation);
     },

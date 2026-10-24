@@ -116,7 +116,7 @@ Given(
 );
 
 When(
-  "oculto la reseña seleccionando la infracción {string} y detallando el motivo",
+  "oculto la reseña seleccionando la infracción {string}",
   async function (this: CustomWorld, infractionCategoryLabel: string) {
     const table = this.page.getByRole("table");
     await table.waitFor();
@@ -134,9 +134,6 @@ When(
     await categorySelect.waitFor();
     await categorySelect.selectOption({ label: infractionCategoryLabel });
 
-    const reasonTextarea = dialog.getByLabel(/motivo/i);
-    await reasonTextarea.waitFor();
-    await reasonTextarea.fill("Lenguaje ofensivo hacia el prestador");
 
     const confirmButton = dialog.getByRole("button", { name: /ocultar reseña/i });
     await confirmButton.click();
@@ -186,7 +183,7 @@ Given(
 );
 
 When(
-  "solicito restablecer la visibilidad pública e indico un motivo",
+  "solicito restablecer la visibilidad pública",
   async function (this: CustomWorld) {
     const table = this.page.getByRole("table");
     await table.waitFor();
@@ -197,7 +194,6 @@ When(
     await restoreButton.click();
     const dialog = this.page.getByRole("dialog");
     await dialog.waitFor();
-    await dialog.getByLabel(/motivo detallado/i).fill("Revisión solicitada por el autor");
     await dialog.getByRole("button", { name: /restablecer visibilidad/i }).click();
   },
 );
@@ -364,9 +360,6 @@ When(
     await categorySelect.waitFor({ state: "visible" });
     await categorySelect.selectOption({ value: "abusive_language" });
 
-    const reasonTextarea = dialog.getByLabel(/motivo/i);
-    await reasonTextarea.waitFor({ state: "visible" });
-    await reasonTextarea.fill("Comentario con términos inapropiados");
 
     const confirmButton = dialog.getByRole("button", { name: /ocultar reseña/i });
     await confirmButton.waitFor({ state: "visible" });

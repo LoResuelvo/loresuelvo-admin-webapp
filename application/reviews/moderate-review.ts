@@ -10,7 +10,6 @@ export interface ModerateReviewParams {
   id: string;
   action: ReviewModerationCommand["action"];
   category?: InfractionCategory;
-  reason: string;
   expectedVersion: number;
   reportId?: number;
 }
@@ -25,16 +24,12 @@ export async function moderateReview(
   if (params.action === "hide" && !params.category) {
     throw new Error("Infraction category is required when hiding a review");
   }
-  if (!params.reason.trim()) {
-    throw new Error("Moderation reason is required");
-  }
   if (params.expectedVersion <= 0) {
     throw new Error("Review version is required");
   }
   return repository.moderate(params.token, params.id, {
     action: params.action,
     category: params.category,
-    reason: params.reason.trim(),
     expectedVersion: params.expectedVersion,
     reportId: params.reportId,
   });

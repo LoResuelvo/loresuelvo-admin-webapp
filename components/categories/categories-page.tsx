@@ -33,7 +33,6 @@ export type CategoriesPageProps = {
   onDeactivateCategory?: (
     id: number,
     expectedVersion: number,
-    reason: string,
     confirmOngoingOrders: boolean,
   ) => Promise<void>;
   deactivateError?: string | null;

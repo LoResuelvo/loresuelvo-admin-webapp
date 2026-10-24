@@ -64,7 +64,7 @@ it.each<ReviewListFilter | undefined>(["reported", "visible", undefined])(
     const { result } = renderHook(() => useModerationState({ initialReviews: [item], initialStatus: status }));
 
     await act(async () => result.current.openModerateModal(item));
-    await act(async () => result.current.submitModerate({ category: "spam_advertising", reason: "Spam reiterado" }));
+    await act(async () => result.current.submitModerate({ category: "spam_advertising", }));
     expect(result.current.reviews).toEqual(status ? [] : [{
       ...item,
       visibility: "hidden",
@@ -74,7 +74,6 @@ it.each<ReviewListFilter | undefined>(["reported", "visible", undefined])(
     expect(moderateReviewAction).toHaveBeenCalledWith("101", {
       action: "hide",
       category: "spam_advertising",
-      reason: "Spam reiterado",
       expectedVersion: 3,
       ...(item.pendingReportCount > 0 ? { reportId: 501 } : {}),
     });
@@ -88,11 +87,10 @@ it("removes a restored review from the hidden filter after confirmation", async 
   const { result } = renderHook(() => useModerationState({ initialReviews: [hidden], initialStatus: "hidden" }));
 
   await act(async () => result.current.openRestoreModal(hidden));
-  await act(async () => result.current.submitModerate({ reason: "Restablecimiento solicitado" }));
+  await act(async () => result.current.submitModerate({ }));
   expect(result.current.reviews).toEqual([]);
   expect(moderateReviewAction).toHaveBeenCalledWith("101", {
     action: "unhide",
-    reason: "Restablecimiento solicitado",
     expectedVersion: 4,
   });
 });
@@ -128,7 +126,7 @@ it("preserves confirmed moderation when an in-flight filter snapshot arrives", a
   act(() => result.current.setStatusFilter("hidden"));
   await waitFor(() => expect(getReviewsAction).toHaveBeenCalledWith("hidden"));
   vi.mocked(moderateReviewAction).mockResolvedValue({ success: true, data: moderationResult("hidden", 4) });
-  await act(async () => result.current.submitModerate({ category: "spam_advertising", reason: "Spam reiterado" }));
+  await act(async () => result.current.submitModerate({ category: "spam_advertising", }));
   await act(async () => load.resolve({ success: true, data: [] }));
   expect(result.current.reviews).toEqual([{
     ...review,
@@ -158,7 +156,7 @@ it("allows a later reload to replace locally confirmed moderation state", async 
   const { result } = renderHook(() => useModerationState({ initialReviews: [review] }));
   await act(async () => result.current.openModerateModal(review));
   vi.mocked(moderateReviewAction).mockResolvedValue({ success: true, data: moderationResult("hidden", 4) });
-  await act(async () => result.current.submitModerate({ category: "spam_advertising", reason: "Spam reiterado" }));
+  await act(async () => result.current.submitModerate({ category: "spam_advertising", }));
   vi.mocked(getReviewsAction).mockResolvedValue({ success: true, data: [review] });
   await act(async () => result.current.reload());
   expect(result.current.reviews[0].pendingReportCount).toBe(1);

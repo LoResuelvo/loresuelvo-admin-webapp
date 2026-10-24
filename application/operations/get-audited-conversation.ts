@@ -5,10 +5,9 @@ export async function getAuditedConversation(
   repository: OperationRepository,
   token: string,
   operationId: string,
-  reason: string,
   cursor?: string,
 ): Promise<AuditedConversationResult> {
   return cursor
-    ? repository.getAuditedConversation(token, operationId, reason, cursor)
-    : repository.getAuditedConversation(token, operationId, reason);
+    ? repository.getAuditedConversation(token, operationId, cursor)
+    : repository.getAuditedConversation(token, operationId);
 }

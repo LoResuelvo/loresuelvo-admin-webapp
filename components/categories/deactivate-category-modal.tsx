@@ -17,7 +17,6 @@ export interface DeactivateCategoryModalProps {
   onConfirm: (
     id: number,
     expectedVersion: number,
-    reason: string,
     confirmOngoingOrders: boolean,
   ) => Promise<void> | void;
   isSubmitting?: boolean;
@@ -169,20 +168,17 @@ export function DeactivateCategoryModal({
   error = null,
 }: DeactivateCategoryModalProps) {
   const copy = translations.categories.deactivateModal;
-  const reasonId = useId();
   const confirmationId = useId();
-  const [reason, setReason] = useState("");
   const [confirmedOngoingOrders, setConfirmedOngoingOrders] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const requiresConfirmation = Boolean(impact?.requiresConfirmation);
   const hasVersion = Boolean(category?.version);
   const canConfirm = Boolean(
-    reason.trim() && hasVersion && (!requiresConfirmation || confirmedOngoingOrders),
+    hasVersion && (!requiresConfirmation || confirmedOngoingOrders),
   );
 
   const handleClose = () => {
     if (isSubmitting) return;
-    setReason("");
     setConfirmedOngoingOrders(false);
     setValidationError(null);
     onClose();
@@ -190,17 +186,13 @@ export function DeactivateCategoryModal({
 
   const handleConfirm = async () => {
     if (!category || !impact || isLoadingImpact || isSubmitting) return;
-    if (!reason.trim()) {
-      setValidationError(copy.reasonRequired);
-      return;
-    }
     if (!category.version) {
       setValidationError(copy.versionRequired);
       return;
     }
     if (requiresConfirmation && !confirmedOngoingOrders) return;
     setValidationError(null);
-    await onConfirm(category.id, category.version, reason.trim(), confirmedOngoingOrders);
+    await onConfirm(category.id, category.version, confirmedOngoingOrders);
   };
 
   return (
@@ -223,31 +215,6 @@ export function DeactivateCategoryModal({
           <>
             <DeactivateModalContent impact={impact} categoryName={category.name} />
             <div className="space-y-3">
-              <div>
-                <label htmlFor={reasonId} className="block text-sm font-medium text-[#1A2B48]">
-                  {copy.reasonLabel}
-                </label>
-                <textarea
-                  id={reasonId}
-                  value={reason}
-                  onChange={(event) => {
-                    setReason(event.target.value);
-                    if (validationError) setValidationError(null);
-                  }}
-                  maxLength={500}
-                  rows={3}
-                  disabled={isSubmitting}
-                  placeholder={copy.reasonPlaceholder}
-                  aria-invalid={Boolean(validationError)}
-                  aria-describedby={validationError ? `${reasonId}-error` : undefined}
-                  className="mt-1.5 w-full resize-y rounded-xl border border-[#1A2B48]/20 bg-white px-3.5 py-2.5 text-sm text-[#1A2B48] placeholder-[#1A2B48]/40 focus:outline-none focus:ring-2 focus:ring-[#147560] disabled:bg-gray-100"
-                />
-                {validationError && (
-                  <p id={`${reasonId}-error`} role="alert" className="mt-1 text-xs font-medium text-red-600">
-                    {validationError}
-                  </p>
-                )}
-              </div>
               {requiresConfirmation && (
                 <label htmlFor={confirmationId} className="flex items-start gap-2 text-sm text-[#1A2B48]">
                   <input
@@ -264,6 +231,8 @@ export function DeactivateCategoryModal({
             </div>
           </>
         )}
+
+        {validationError && <p role="alert" className="text-sm text-red-600">{validationError}</p>}
 
         <DeactivateModalFooter
           isSubmitting={isSubmitting}

@@ -27,7 +27,6 @@ describe("moderateReviewAction", () => {
     const command: ReviewModerationCommand = {
       action: "hide",
       category: "abusive_language",
-      reason: "Lenguaje ofensivo",
       expectedVersion: 3,
       reportId: 501,
     };
@@ -40,7 +39,6 @@ describe("moderateReviewAction", () => {
   it("returns validation errors without calling the repository", async () => {
     const command: ReviewModerationCommand = {
       action: "hide",
-      reason: "   ",
       expectedVersion: 3,
     };
 
@@ -56,7 +54,6 @@ describe("moderateReviewAction", () => {
 
     const result = await moderateReviewAction("101", {
       action: "unhide",
-      reason: "Restablecimiento solicitado",
       expectedVersion: 4,
     });
 
@@ -68,7 +65,6 @@ describe("moderateReviewAction", () => {
 
     const result = await moderateReviewAction("101", {
       action: "unhide",
-      reason: "Restablecimiento solicitado",
       expectedVersion: 4,
     });
 
@@ -80,7 +76,6 @@ describe("moderateReviewAction", () => {
 
     const result = await moderateReviewAction("101", {
       action: "unhide",
-      reason: "Restablecimiento solicitado",
       expectedVersion: 4,
     });
 

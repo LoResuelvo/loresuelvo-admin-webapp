@@ -4,7 +4,7 @@ import { fetchOrResolveAuditedConversation } from "./api-audited-conversation";
 describe("fetchOrResolveAuditedConversation", () => {
   afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
-  it("resends the audit reason and opaque cursor for the next page", async () => {
+  it("sends the opaque cursor without an audit reason for the next page", async () => {
     vi.stubEnv("APP_ENV", "production");
     vi.stubEnv("API_URL", "https://api.example.com");
     const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({
@@ -13,11 +13,11 @@ describe("fetchOrResolveAuditedConversation", () => {
     })));
     vi.stubGlobal("fetch", fetcher);
 
-    await fetchOrResolveAuditedConversation("token", "jr-101", "Reclamo de cliente", "signed+/cursor");
+    await fetchOrResolveAuditedConversation("token", "jr-101", "signed+/cursor");
 
     expect(fetcher).toHaveBeenCalledWith(
       "https://api.example.com/admin/operations/jr-101/conversation?cursor=signed%2B%2Fcursor",
-      expect.objectContaining({ headers: { Authorization: "Bearer token", "X-Audit-Reason": "Reclamo de cliente", Accept: "application/json" }, cache: "no-store" }),
+      expect.objectContaining({ headers: { Authorization: "Bearer token", Accept: "application/json" }, cache: "no-store" }),
     );
   });
 });

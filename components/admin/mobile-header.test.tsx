@@ -51,9 +51,10 @@ describe("MobileHeader", () => {
     const trigger = screen.getByRole("button", { name: "Abrir menú de navegación" });
     await user.click(trigger);
     expect(screen.getByRole("button", { name: "Cerrar menú de navegación" })).toHaveFocus();
-    for (const destination of ["users", "categories", "operations", "payments", "metrics", "claims", "audit", "moderation"] as const) {
+    for (const destination of ["users", "categories", "operations", "payments", "metrics", "claims", "moderation"] as const) {
       expect(screen.getByRole("link", { name: translations.navigation[destination] })).toHaveAttribute("href", ROUTES[destination]);
     }
+    expect(screen.queryByRole("link", { name: translations.navigation.audit })).not.toBeInTheDocument();
     await user.tab({ shift: true });
     expect(screen.getByRole("button", { name: "Cerrar sesión" })).toHaveFocus();
     await user.tab();

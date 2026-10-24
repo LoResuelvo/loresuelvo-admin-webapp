@@ -128,7 +128,6 @@ export async function getCategoryImpactAction(id: number): Promise<GetCategoryIm
 export async function deactivateCategoryAction(
   id: number,
   expectedVersion: number,
-  reason: string,
   confirmOngoingOrders: boolean,
 ): Promise<DeactivateCategoryResult> {
   try {
@@ -138,7 +137,6 @@ export async function deactivateCategoryAction(
       token,
       id,
       expectedVersion,
-      reason,
       confirmOngoingOrders,
     );
     return { success: true, data: category };

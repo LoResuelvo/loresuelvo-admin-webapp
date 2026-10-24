@@ -42,7 +42,7 @@ describe("ModerateReviewModal", () => {
     expect(screen.getByText(/El trabajo fue pésimo y además me insultó/)).toBeInTheDocument();
     expect(screen.getByText(mockReview.report!.explanation)).toBeInTheDocument();
     expect(screen.getByLabelText(copy.modal.categoryLabel)).toBeInTheDocument();
-    expect(screen.getByLabelText(copy.modal.reasonLabel)).toBeInTheDocument();
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: copy.modal.cancel })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: copy.modal.confirm })).toBeInTheDocument();
   });
@@ -51,30 +51,26 @@ describe("ModerateReviewModal", () => {
     const user = userEvent.setup();
     const handleSubmit = vi.fn();
     render(<ModerateReviewModal isOpen onClose={vi.fn()} review={mockReview} onSubmit={handleSubmit} />);
-
-    await user.type(screen.getByLabelText(copy.modal.reasonLabel), "Motivo suficiente");
     await user.click(screen.getByRole("button", { name: copy.modal.confirm }));
 
     expect(screen.getByRole("alert")).toHaveTextContent(copy.modal.errors.categoryRequired);
     expect(handleSubmit).not.toHaveBeenCalled();
   });
 
-  it("submits a hide with the selected API category and trimmed reason", async () => {
+  it("submits a hide with only the selected API category", async () => {
     const user = userEvent.setup();
     const handleSubmit = vi.fn();
     render(<ModerateReviewModal isOpen onClose={vi.fn()} review={mockReview} onSubmit={handleSubmit} />);
 
     await user.selectOptions(screen.getByLabelText(copy.modal.categoryLabel), "abusive_language");
-    await user.type(screen.getByLabelText(copy.modal.reasonLabel), "Lenguaje ofensivo hacia el prestador");
     await user.click(screen.getByRole("button", { name: copy.modal.confirm }));
 
     expect(handleSubmit).toHaveBeenCalledWith({
       category: "abusive_language",
-      reason: "Lenguaje ofensivo hacia el prestador",
     });
   });
 
-  it("requires a reason when restoring visibility and omits category", async () => {
+  it("restores visibility without requiring a reason or category", async () => {
     const user = userEvent.setup();
     const handleSubmit = vi.fn();
     render(<ModerateReviewModal
@@ -83,10 +79,7 @@ describe("ModerateReviewModal", () => {
 
     expect(screen.queryByLabelText(copy.modal.categoryLabel)).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: copy.modal.restoreConfirm }));
-    expect(screen.getByRole("alert")).toHaveTextContent(copy.modal.errors.reasonRequired);
-    await user.type(screen.getByLabelText(copy.modal.reasonLabel), "Restablecimiento solicitado");
-    await user.click(screen.getByRole("button", { name: copy.modal.restoreConfirm }));
-    expect(handleSubmit).toHaveBeenCalledWith({ reason: "Restablecimiento solicitado", category: undefined });
+    expect(handleSubmit).toHaveBeenCalledWith({ category: undefined });
   });
 
   it("calls onClose when cancel is clicked", async () => {
@@ -106,9 +99,8 @@ describe("ModerateReviewModal", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent("Fallo al conectar con el servidor");
     await user.selectOptions(screen.getByLabelText(copy.modal.categoryLabel), "abusive_language");
-    await user.type(screen.getByLabelText(copy.modal.reasonLabel), "Motivo informado");
     await user.click(screen.getByRole("button", { name: copy.retry }));
-    expect(handleSubmit).toHaveBeenCalledWith({ category: "abusive_language", reason: "Motivo informado" });
+    expect(handleSubmit).toHaveBeenCalledWith({ category: "abusive_language" });
   });
 
   it("disables controls while submitting and shows the detail loading state", () => {
@@ -118,7 +110,6 @@ describe("ModerateReviewModal", () => {
     expect(screen.getByRole("button", { name: copy.modal.submitting })).toBeDisabled();
     expect(screen.getByRole("button", { name: copy.modal.cancel })).toBeDisabled();
     expect(screen.getByLabelText(copy.modal.categoryLabel)).toBeDisabled();
-    expect(screen.getByLabelText(copy.modal.reasonLabel)).toBeDisabled();
 
     rerender(<ModerateReviewModal isOpen onClose={vi.fn()} review={null} isLoadingDetail onSubmit={vi.fn()} />);
     expect(screen.getByRole("status")).toHaveTextContent(copy.modal.loadingDetail);

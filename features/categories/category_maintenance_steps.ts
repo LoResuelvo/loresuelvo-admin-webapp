@@ -175,7 +175,6 @@ When(
   "confirmo la desactivación tras revisar el impacto de prestadores asociados",
   async function (this: CustomWorld) {
     await this.stubPatch("/categories/1", 200, categoryDto(1, "Cerrajería", false, 2));
-    await this.page.getByLabel("Motivo de desactivación").fill("Cierre del rubro");
     const confirmButton = this.page.getByRole("button", { name: "Confirmar desactivación" });
     await confirmButton.waitFor({ state: "visible" });
     await confirmButton.click();

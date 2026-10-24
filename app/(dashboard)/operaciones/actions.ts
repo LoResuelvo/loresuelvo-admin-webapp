@@ -100,24 +100,14 @@ export async function getOperationDetailAction(
 
 export async function getAuditedConversationAction(
   operationId: string,
-  reason: string,
   cursor?: string,
 ): Promise<GetAuditedConversationActionResult> {
-  const trimmed = reason.trim();
-  if (trimmed.length < 10) {
-    return {
-      success: false,
-      error: translations.operations.chat.validationError,
-    };
-  }
-
   try {
     const token = await resolveAuthToken();
     const result = await getAuditedConversation(
       apiOperationRepository,
       token,
       operationId,
-      trimmed,
       cursor,
     );
     return { success: true, data: result };

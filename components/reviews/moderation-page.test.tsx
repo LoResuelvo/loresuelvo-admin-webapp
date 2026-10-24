@@ -108,7 +108,6 @@ describe("ModerationPage", () => {
     const dialog = screen.getByRole("dialog");
     await waitFor(() => expect(within(dialog).getByText("Lenguaje agraviante")).toBeInTheDocument());
     await user.selectOptions(screen.getByLabelText("Categoría de infracción"), "abusive_language");
-    await user.type(screen.getByLabelText("Motivo detallado"), "Lenguaje ofensivo");
     await user.click(within(dialog).getByRole("button", { name: "Ocultar reseña" }));
 
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -116,7 +115,6 @@ describe("ModerationPage", () => {
     expect(moderateReviewAction).toHaveBeenCalledWith("101", {
       action: "hide",
       category: "abusive_language",
-      reason: "Lenguaje ofensivo",
       expectedVersion: 3,
       reportId: 501,
     });
@@ -155,7 +153,7 @@ describe("ModerationPage", () => {
     expect(screen.getByRole("button", { name: "Ver detalle" })).toHaveFocus();
   });
 
-  it("asks for a reason before restoring a hidden review", async () => {
+  it("restores a hidden review without asking for a reason", async () => {
     vi.mocked(getReviewsAction).mockResolvedValue({ success: true, data: [hiddenReview] });
     vi.mocked(getReviewDetailAction).mockResolvedValue({
       success: true,
@@ -170,12 +168,10 @@ describe("ModerationPage", () => {
     await user.click(screen.getByRole("button", { name: "Restablecer visibilidad" }));
     const dialog = screen.getByRole("dialog");
     await waitFor(() => expect(within(dialog).getByText("Historial de moderación")).toBeInTheDocument());
-    await user.type(screen.getByLabelText("Motivo detallado"), "Restablecimiento solicitado");
     await user.click(within(dialog).getByRole("button", { name: "Restablecer visibilidad" }));
 
     await waitFor(() => expect(moderateReviewAction).toHaveBeenCalledWith("101", {
       action: "unhide",
-      reason: "Restablecimiento solicitado",
       expectedVersion: 4,
     }));
     expect(await screen.findByTestId("moderation-feedback")).toHaveTextContent("La visibilidad de la reseña ha sido restablecida");

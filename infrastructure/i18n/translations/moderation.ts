@@ -70,9 +70,8 @@ export const moderationTranslations = {
     visibility: "Visibilidad",
     operatorId: "ID de operador",
     categoryLabel: "Categoría de infracción",
-    categoryPlaceholder: "Selecciona una categoría",
     reasonLabel: "Motivo detallado",
-    reasonPlaceholder: "Describe el motivo por el cual se oculta la reseña...",
+    categoryPlaceholder: "Selecciona una categoría",
     cancel: "Cancelar",
     confirm: "Ocultar reseña",
     restoreConfirm: "Restablecer visibilidad",
@@ -80,7 +79,6 @@ export const moderationTranslations = {
     restoring: "Restableciendo...",
     errors: {
       categoryRequired: "La categoría de infracción es requerida",
-      reasonRequired: "El motivo de la moderación es obligatorio",
     },
   },
   feedback: {
@@ -91,7 +89,7 @@ export const moderationTranslations = {
   loadingComments: "Cargando comentarios...",
   forbidden: "Acceso restringido: no posee permisos para consultar o moderar reseñas",
   conflict: "La reseña cambió desde que se cargó. Cerrá el formulario, actualizá el listado e intentá nuevamente.",
-  invalidModeration: "Revisá la categoría y el motivo de la moderación.",
+  invalidModeration: "Revisá la categoría de infracción y los datos de la reseña.",
   detail: {
     notFound: "La reseña ya no está disponible.",
   },

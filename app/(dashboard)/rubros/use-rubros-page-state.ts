@@ -60,10 +60,9 @@ export function useRubrosPageState() {
   const handleDeactivate = async (
     id: number,
     expectedVersion: number,
-    reason: string,
     confirmOngoingOrders: boolean,
   ) => {
-    const res = await deactivateCategoryAction(id, expectedVersion, reason, confirmOngoingOrders);
+    const res = await deactivateCategoryAction(id, expectedVersion, confirmOngoingOrders);
     if (!res.success) throw new Error(res.error);
     setCategories((prev) => sortCategories(prev.map((c) => (c.id === id ? res.data : c))));
   };

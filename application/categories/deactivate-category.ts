@@ -6,7 +6,6 @@ export async function deactivateCategory(
   categoryRepository: CategoryRepository,
   id: number,
   expectedVersion: number,
-  reason: string,
   confirmOngoingOrders: boolean,
 ): Promise<Category>;
 export async function deactivateCategory(
@@ -14,7 +13,6 @@ export async function deactivateCategory(
   token: string,
   id: number,
   expectedVersion: number,
-  reason: string,
   confirmOngoingOrders: boolean,
 ): Promise<Category>;
 export async function deactivateCategory(
@@ -22,16 +20,15 @@ export async function deactivateCategory(
   second: string | CategoryRepository,
   id: number,
   expectedVersion: number,
-  reason: string,
   confirmOngoingOrders: boolean,
 ): Promise<Category> {
   if (typeof first === "string") {
     const token = first;
     const repo = second as CategoryRepository;
-    return repo.deactivate(token, id, expectedVersion, reason, confirmOngoingOrders);
+    return repo.deactivate(token, id, expectedVersion, confirmOngoingOrders);
   }
 
   const repo = first;
   const token = second as string;
-  return repo.deactivate(token, id, expectedVersion, reason, confirmOngoingOrders);
+  return repo.deactivate(token, id, expectedVersion, confirmOngoingOrders);
 }

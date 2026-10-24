@@ -173,7 +173,6 @@ describe("apiReviewRepository", () => {
     const result = await apiReviewRepository.moderate("auth-token", "101", {
       action: "hide",
       category: "abusive_language",
-      reason: "Lenguaje ofensivo",
       expectedVersion: 3,
       reportId: 501,
     });
@@ -191,7 +190,6 @@ describe("apiReviewRepository", () => {
     );
     expect(JSON.parse(fetcher.mock.calls[0][1].body as string)).toEqual({
       action: "hide",
-      reason: "Lenguaje ofensivo",
       expected_version: 3,
       category: "abusive_language",
       report_id: 501,
@@ -199,7 +197,7 @@ describe("apiReviewRepository", () => {
     expect(result).toEqual({ id: "101", visibility: "hidden", version: 4, decisionId: 89 });
   });
 
-  it("omits category and report id when restoring visibility and still includes its reason", async () => {
+  it("omits category, report id and reason when restoring visibility", async () => {
     vi.stubEnv("API_URL", "https://api.example.com");
     const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({
       work_order_id: 101,
@@ -211,13 +209,11 @@ describe("apiReviewRepository", () => {
 
     await apiReviewRepository.moderate("token", "101", {
       action: "unhide",
-      reason: "Restablecimiento solicitado",
       expectedVersion: 4,
     });
 
     expect(JSON.parse(fetcher.mock.calls[0][1].body as string)).toEqual({
       action: "unhide",
-      reason: "Restablecimiento solicitado",
       expected_version: 4,
     });
   });
@@ -228,7 +224,6 @@ describe("apiReviewRepository", () => {
 
     await expect(apiReviewRepository.moderate("token", "101", {
       action: "unhide",
-      reason: "Restablecimiento solicitado",
       expectedVersion: 4,
     })).rejects.toSatisfy((error) => error instanceof ReviewError && error.code === "conflict");
   });

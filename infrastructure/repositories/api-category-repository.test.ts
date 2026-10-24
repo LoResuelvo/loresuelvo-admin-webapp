@@ -230,7 +230,7 @@ describe("apiCategoryRepository", () => {
       const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(deactivatedData), { status: 200 }));
       vi.stubGlobal("fetch", fetcher);
 
-      const result = await apiCategoryRepository.deactivate("test-token", 1, 2, "Cierre del rubro", true);
+      const result = await apiCategoryRepository.deactivate("test-token", 1, 2, true);
 
       expect(fetcher).toHaveBeenCalledWith(
         "https://api.example.com/categories/1",
@@ -239,7 +239,6 @@ describe("apiCategoryRepository", () => {
           body: JSON.stringify({
             enabled: false,
             expected_version: 2,
-            reason: "Cierre del rubro",
             confirm_ongoing_orders: true,
           }),
         }),
@@ -250,7 +249,7 @@ describe("apiCategoryRepository", () => {
     it("throws error if response is not ok for deactivate", async () => {
       vi.stubEnv("API_URL", "https://api.example.com");
       vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("Forbidden", { status: 403 })));
-      await expect(apiCategoryRepository.deactivate("token", 1, 1, "Motivo", false)).rejects.toThrow("Forbidden");
+      await expect(apiCategoryRepository.deactivate("token", 1, 1, false)).rejects.toThrow("Forbidden");
     });
   });
 

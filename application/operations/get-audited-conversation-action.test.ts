@@ -25,16 +25,6 @@ describe("getAuditedConversationAction", () => {
     vi.mocked(authSession.getAccessToken).mockResolvedValue("mock-token");
   });
 
-  it("returns validation error if reason is shorter than 10 characters", async () => {
-    const result = await getAuditedConversationAction("jr-101", "corta");
-
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error).toBe(translations.operations.chat.validationError);
-    }
-    expect(apiOperationRepository.getAuditedConversation).not.toHaveBeenCalled();
-  });
-
   it("returns conversation result on success", async () => {
     const mockResult = {
       items: [
@@ -53,7 +43,6 @@ describe("getAuditedConversationAction", () => {
 
     const result = await getAuditedConversationAction(
       "jr-101",
-      "Reclamo de cliente",
     );
 
     expect(result.success).toBe(true);
@@ -62,15 +51,15 @@ describe("getAuditedConversationAction", () => {
     }
   });
 
-  it("forwards the cursor while retaining the selected audit reason", async () => {
+  it("forwards the cursor without requiring an audit reason", async () => {
     vi.mocked(apiOperationRepository.getAuditedConversation).mockResolvedValue({
       items: [], total: 0, nextCursor: null,
     });
 
-    await getAuditedConversationAction("jr-101", "Reclamo de cliente", "signed-cursor");
+    await getAuditedConversationAction("jr-101", "signed-cursor");
 
     expect(apiOperationRepository.getAuditedConversation).toHaveBeenCalledWith(
-      "mock-token", "jr-101", "Reclamo de cliente", "signed-cursor",
+      "mock-token", "jr-101", "signed-cursor",
     );
   });
 
@@ -79,7 +68,7 @@ describe("getAuditedConversationAction", () => {
       new Error("Invalid internal conversation response"),
     );
 
-    expect(await getAuditedConversationAction("jr-101", "Reclamo de cliente")).toEqual({
+    expect(await getAuditedConversationAction("jr-101")).toEqual({
       success: false,
       error: translations.operations.chat.error,
     });
@@ -92,7 +81,6 @@ describe("getAuditedConversationAction", () => {
 
     const result = await getAuditedConversationAction(
       "jr-101",
-      "Reclamo de cliente",
     );
 
     expect(result.success).toBe(false);

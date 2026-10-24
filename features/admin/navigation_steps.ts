@@ -111,7 +111,6 @@ Then(
       [copy.payments, ROUTES.payments],
       [copy.metrics, ROUTES.metrics],
       [copy.claims, ROUTES.claims],
-      [copy.audit, ROUTES.audit],
       [copy.moderation, ROUTES.moderation],
     ];
     for (const [name, href] of destinations) {
@@ -119,6 +118,7 @@ Then(
       await link.waitFor();
       assert.equal(await link.getAttribute("href"), href);
     }
+    assert.equal(await drawer.getByRole("link", { name: copy.audit, exact: true }).count(), 0);
     const logoutOption = this.page.getByRole("button", { name: logoutLabel, exact: true }).or(
       this.page.getByRole("link", { name: logoutLabel, exact: true }),
     );

@@ -3,7 +3,6 @@
 import { Modal } from "@/components/ui/modal";
 import type { AuditedConversationResult } from "@/domain/operations/audited-message";
 import { translations } from "@/infrastructure/i18n/translations";
-import { AuditReasonSelector } from "./audit-reason-selector";
 import { AuditedMessagesList } from "./audited-messages-list";
 import { AuditedChatLoadingState } from "./audited-chat-loading-state";
 import { useAuditedChatDialogState } from "./use-audited-chat-dialog-state";
@@ -17,55 +16,8 @@ export interface AuditedChatDialogProps {
   readonly consumerName?: string;
   readonly providerName?: string;
   readonly onFetchConversation?: (
-    reason: string,
     cursor?: string,
   ) => Promise<AuditedConversationResult>;
-}
-
-interface ReasonFormProps {
-  readonly reason: string;
-  readonly validationError: string | null;
-  readonly onReasonChange: (reason: string) => void;
-  readonly onClose: () => void;
-  readonly onConfirm: () => void;
-}
-
-function AuditedChatReasonForm({
-  reason,
-  validationError,
-  onReasonChange,
-  onClose,
-  onConfirm,
-}: ReasonFormProps) {
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-[#536176] leading-relaxed">
-        {translations.operations.chat.dialogDescription}
-      </p>
-      <AuditReasonSelector
-        value={reason}
-        onChange={onReasonChange}
-        error={validationError}
-      />
-      <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#1A2B48]/10">
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-xl border border-[#1A2B48]/20 px-4 py-2 text-sm font-medium text-[#1A2B48] hover:bg-[#F4F1EE] transition-colors"
-        >
-          {translations.operations.chat.cancel}
-        </button>
-        <button
-          type="button"
-          onClick={onConfirm}
-          data-testid="confirm-audit-access-button"
-          className="inline-flex items-center justify-center rounded-xl bg-[#147560] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#105F4E] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]"
-        >
-          {translations.operations.chat.confirmAccess}
-        </button>
-      </div>
-    </div>
-  );
 }
 
 interface ErrorStateProps {
@@ -101,7 +53,7 @@ function AuditedChatErrorState({
               : "border border-red-300 bg-white text-red-800 hover:bg-red-50"
           }`}
         >
-          {isForbidden ? translations.operations.chat.close : translations.operations.chat.back}
+          {translations.operations.chat.close}
         </button>
         {!isForbidden && (
           <button
@@ -176,16 +128,11 @@ export function AuditedChatDialog({
   onFetchConversation,
 }: AuditedChatDialogProps) {
   const {
-    selectedReason,
-    validationError,
     isLoading,
     error,
     isForbidden,
     conversationResult,
     handleClose,
-    handleConfirmAccess,
-    handleReasonChange,
-    handleClearError,
     handleLoadMore,
     handleRetry,
   } = useAuditedChatDialogState({ isOpen, onClose, onFetchConversation });
@@ -198,21 +145,12 @@ export function AuditedChatDialog({
       className="max-w-2xl"
     >
       <div className="space-y-5">
-        {!conversationResult && !isLoading && !error && (
-          <AuditedChatReasonForm
-            reason={selectedReason}
-            validationError={validationError}
-            onReasonChange={handleReasonChange}
-            onClose={handleClose}
-            onConfirm={handleConfirmAccess}
-          />
-        )}
         {isLoading && !conversationResult && <AuditedChatLoadingState />}
         {error && !isLoading && (
           <AuditedChatErrorState
             error={error}
             isForbidden={isForbidden}
-            onBack={isForbidden ? handleClose : handleClearError}
+            onBack={handleClose}
             onRetry={handleRetry}
           />
         )}

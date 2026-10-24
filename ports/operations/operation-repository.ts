@@ -17,7 +17,6 @@ export interface OperationRepository {
   getAuditedConversation(
     token: string,
     operationId: string,
-    reason: string,
     cursor?: string,
   ): Promise<AuditedConversationResult>;
 }
