@@ -35,8 +35,8 @@ describe("ModerateReviewModal", () => {
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: copy.modal.title })).toBeInTheDocument();
-    expect(screen.getByText("ID de consumidor:")).toBeInTheDocument();
-    expect(screen.getByText("ID de prestador:")).toBeInTheDocument();
+    expect(screen.getByText("Consumidor:")).toBeInTheDocument();
+    expect(screen.getByText("Prestador:")).toBeInTheDocument();
     expect(screen.getByText("10", { exact: true })).toBeInTheDocument();
     expect(screen.getByText("20", { exact: true })).toBeInTheDocument();
     expect(screen.getByText(/El trabajo fue pésimo y además me insultó/)).toBeInTheDocument();

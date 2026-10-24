@@ -2,6 +2,7 @@ import { auditTranslations } from "./translations/audit";
 import { authTranslations } from "./translations/auth";
 import { categoriesTranslations } from "./translations/categories";
 import { claimsTranslations } from "./translations/claims";
+import { imageViewerTranslations } from "./translations/image-viewer";
 import { metricsTranslations } from "./translations/metrics";
 import { moderationTranslations } from "./translations/moderation";
 import { navigationTranslations } from "./translations/navigation";
@@ -14,6 +15,7 @@ export const translations = {
   auth: authTranslations,
   categories: categoriesTranslations,
   claims: claimsTranslations,
+  images: imageViewerTranslations,
   metrics: metricsTranslations,
   moderation: moderationTranslations,
   navigation: navigationTranslations,

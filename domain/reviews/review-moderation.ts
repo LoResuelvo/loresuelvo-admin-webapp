@@ -5,7 +5,9 @@ export type InfractionCategory = "abusive_language" | "personal_data" | "spam_ad
 export type ReviewModerationItem = Readonly<{
   id: string;
   consumerId: number;
+  consumerName?: string;
   providerId: number;
+  providerName?: string;
   operationId: string;
   rating: number;
   visibility: "visible" | "hidden";

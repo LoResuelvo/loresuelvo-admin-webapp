@@ -40,9 +40,11 @@ export async function resolveClaimsFromStub(
   let result = page.items;
   if (filters?.status) result = result.filter((c) => c.status === filters.status);
   if (filters?.q) {
-    const q = filters.q.toLowerCase().trim();
+    const query = filters.q.trim();
+    const q = query.toLowerCase();
     result = result.filter(
-      (c) => c.claimantName.toLowerCase().includes(q) || (c.respondentName ?? "").toLowerCase().includes(q),
+      (c) => (c.claimantEmail ?? c.claimantName).toLowerCase().includes(q)
+        || String(c.operationId) === query,
     );
   }
 

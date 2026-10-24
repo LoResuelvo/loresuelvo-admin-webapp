@@ -20,7 +20,9 @@ describe("claim mapper", () => {
           createdAt: "2026-09-24T10:00:00Z",
           operationId: "sp-42",
           claimantType: "consumer",
+          claimantId: 1101,
           claimantName: "ana@example.com",
+          claimantEmail: "ana@example.com",
           categoryName: "Plomería",
           status: "in_review",
         },
@@ -29,7 +31,9 @@ describe("claim mapper", () => {
           createdAt: "2026-09-24T10:00:00Z",
           operationId: "sp-43",
           claimantType: "provider",
+          claimantId: 1102,
           claimantName: "martin@example.com",
+          claimantEmail: "martin@example.com",
           categoryName: "Electricidad",
           status: "open",
         },
@@ -46,7 +50,9 @@ describe("claim mapper", () => {
       createdAt: "2026-09-24T10:00:00Z",
       operationId: "sp-42",
       claimantType: "consumer",
+      claimantId: sampleClaimDetailResponse.claimant.id,
       claimantName: "ana@example.com",
+      claimantEmail: "ana@example.com",
       categoryName: "Plomería",
       status: "in_review",
       claimReason: "non_compliance",
@@ -57,6 +63,54 @@ describe("claim mapper", () => {
       ],
       resolution: null,
     });
+  });
+
+  it("maps participant names, emails, IDs, and parties from list and detail responses", () => {
+    const list = mapClaimsList({
+      ...sampleClaimsListResponse,
+      items: [{ ...sampleClaimsListResponse.items[0], claimant_name: "Ana Martínez" }],
+    });
+    expect(list.items[0]).toMatchObject({
+      claimantId: 1101,
+      claimantName: "Ana Martínez",
+      claimantEmail: "ana@example.com",
+    });
+
+    const detail = mapClaimDetails({
+      ...sampleClaimDetailResponse,
+      claimant: { ...sampleClaimDetailResponse.claimant, name: "Ana Martínez" },
+      respondent: {
+        id: 2202,
+        party: "provider",
+        name: "Martín Gómez",
+        email: "martin@example.com",
+      },
+    });
+    expect(detail).toMatchObject({
+      claimantId: 1101,
+      claimantName: "Ana Martínez",
+      claimantEmail: "ana@example.com",
+      respondentId: 2202,
+      respondentType: "provider",
+      respondentName: "Martín Gómez",
+      respondentEmail: "martin@example.com",
+    });
+  });
+
+  it("uses email when participant names are blank and leaves an absent respondent unavailable", () => {
+    const list = mapClaimsList({
+      ...sampleClaimsListResponse,
+      items: [{ ...sampleClaimsListResponse.items[0], claimant_name: "  " }],
+    });
+    expect(list.items[0].claimantName).toBe("ana@example.com");
+
+    const detail = mapClaimDetails({
+      ...sampleClaimDetailResponse,
+      claimant: { ...sampleClaimDetailResponse.claimant, name: "  " },
+    });
+    expect(detail.claimantName).toBe("ana@example.com");
+    expect(detail).not.toHaveProperty("respondentId");
+    expect(detail).not.toHaveProperty("respondentName");
   });
 
   it("maps API resolution types and amounts to the existing domain values", () => {

@@ -48,10 +48,13 @@ describe("OperationRequestCard", () => {
 
   it("renders photo gallery with attached photos", () => {
     render(<OperationRequestCard request={sampleRequestWithAi} />);
-    const photos = screen.getAllByTestId("request-photo");
+    const photos = screen.getAllByRole("img", { name: /Foto adjunta/ });
     expect(photos).toHaveLength(2);
     expect(photos[0]).toHaveAttribute("src", "https://example.com/photos/leak-1.jpg");
     expect(photos[1]).toHaveAttribute("src", "https://example.com/photos/leak-2.jpg");
+    expect(
+      screen.getByRole("button", { name: "Ampliar Foto adjunta 1" }),
+    ).toBeInTheDocument();
   });
 
   it("does not render AI diagnostic banner when not present", () => {

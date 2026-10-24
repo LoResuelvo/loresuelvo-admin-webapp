@@ -34,7 +34,7 @@ describe("AuditTable", () => {
 
     expect(screen.getByRole("table", { name: "Bitácora de auditoría de intervenciones de operadores" })).toBeInTheDocument();
     expect(screen.getByText("Fecha y hora")).toBeInTheDocument();
-    expect(screen.getByText("ID del operador")).toBeInTheDocument();
+    expect(screen.getByText("Operador")).toBeInTheDocument();
     expect(screen.getByText("Recurso")).toBeInTheDocument();
     expect(screen.getByText("Acción")).toBeInTheDocument();
     expect(screen.getByText("Resultado")).toBeInTheDocument();
@@ -59,7 +59,7 @@ describe("AuditTable", () => {
     render(<AuditTable entries={[{ ...mockEntries[0], resourceId: undefined, reason: undefined }]} />);
 
     const row = screen.getByText("101").closest("tr")!;
-    expect(within(row).getByText("operation — No disponible")).toBeInTheDocument();
+    expect(within(row).getByText("Contratación — No disponible")).toBeInTheDocument();
   });
 
   it("renders empty messages", () => {
@@ -85,4 +85,10 @@ describe("AuditTable", () => {
     await user.keyboard("{Enter}");
     expect(handleSelect).toHaveBeenCalledWith(mockEntries[1]);
   });
+  it("prioritizes the operator name and retains the ID as a secondary reference", () => {
+    render(<AuditTable entries={[{...mockEntries[0],operatorName:"Sofía López"}]} />);
+    const row = screen.getByText("Sofía López").closest("tr")!;
+    expect(within(row).getByText("ID del operador: 101")).toBeInTheDocument();
+  });
+
 });

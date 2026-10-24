@@ -1,4 +1,6 @@
 import type { RequestDetail } from "@/domain/operations/unified-operation-detail";
+import { EvidencePhotoGallery } from "@/components/ui/evidence-photo-gallery";
+import { translations } from "@/infrastructure/i18n/translations";
 
 export interface OperationRequestCardProps {
   readonly request: RequestDetail;
@@ -54,22 +56,10 @@ function PhotoGallery({ photos }: { photos: readonly string[] }) {
       <h3 className="text-xs font-semibold uppercase tracking-wider text-[#536176]">
         Fotos adjuntas ({photos.length})
       </h3>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-        {photos.map((photoUrl, idx) => (
-          <div
-            key={`${photoUrl}-${idx}`}
-            className="group relative aspect-square overflow-hidden rounded-xl border border-[#1A2B48]/10 bg-[#F4F1EE]"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              data-testid="request-photo"
-              src={photoUrl}
-              alt={`Foto adjunta ${idx + 1}`}
-              className="size-full object-cover transition-transform duration-200 group-hover:scale-105"
-            />
-          </div>
-        ))}
-      </div>
+      <EvidencePhotoGallery
+        photos={photos}
+        photoAlt={translations.images.requestPhotoAlt}
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ROUTES } from "@/lib/routes";
 import { translations } from "@/infrastructure/i18n/translations";
-import type { ClaimDetails, ClaimResolution, ClaimStatus, ClaimUrgency } from "@/domain/claims/claim";
+import type { ClaimDetails, ClaimantType, ClaimResolution, ClaimStatus, ClaimUrgency } from "@/domain/claims/claim";
 import { ClaimEvidenceGallery } from "./claim-evidence-gallery";
 import { OperationLinkCard } from "./operation-link-card";
 
@@ -130,23 +130,67 @@ function ClaimHeader({
   );
 }
 
+function participantProfileRoute(id?: number, type?: ClaimantType): string | undefined {
+  if (!id || !type) return undefined;
+  return type === "consumer" ? ROUTES.consumerDetail(id) : ROUTES.providerDetail(id);
+}
+
+function ClaimParticipantCard({
+  label,
+  id,
+  type,
+  name,
+  email,
+}: {
+  label: string;
+  id?: number;
+  type?: ClaimantType;
+  name?: string;
+  email?: string;
+}) {
+  const copy = translations.claims;
+  const displayName = name ?? copy.notAvailable;
+  const profileRoute = participantProfileRoute(id, type);
+
+  return (
+    <div className="rounded-xl border border-[#1A2B48]/10 bg-[#F4F1EE]/20 p-3.5">
+      <span className="text-xs font-medium text-[#536176]">{label}</span>
+      {profileRoute ? (
+        <Link
+          href={profileRoute}
+          className="mt-1 block break-words text-sm font-semibold text-[#147560] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]"
+        >{displayName}</Link>
+      ) : (
+        <p className="mt-1 break-words text-sm font-semibold text-[#1A2B48]">{displayName}</p>
+      )}
+      {email && email !== name && <p className="break-words text-xs text-[#536176]">{email}</p>}
+      {id && <p className="text-xs text-[#536176]">{`${copy.detail.participantId}: ${id}`}</p>}
+      {type && <span className="text-xs text-[#536176]">({copy.claimantType[type] ?? type})</span>}
+    </div>
+  );
+}
+
 function ClaimPartiesCard({ claim }: { claim: ClaimDetailViewModel }) {
   const copy = translations.claims;
-  const claimantTypeLabel = copy.claimantType[claim.claimantType] ?? claim.claimantType;
 
   return (
     <div className="rounded-2xl border border-[#1A2B48]/10 bg-white p-6 shadow-xs">
       <h2 className="text-base font-semibold text-[#1A2B48]">{copy.detail.parties}</h2>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-[#1A2B48]/10 bg-[#F4F1EE]/20 p-3.5">
-          <span className="text-xs font-medium text-[#536176]">{copy.detail.claimant}</span>
-          <p className="mt-1 text-sm font-semibold text-[#1A2B48]">{claim.claimantName}</p>
-          <span className="text-xs text-[#536176]">({claimantTypeLabel})</span>
-        </div>
-        <div className="rounded-xl border border-[#1A2B48]/10 bg-[#F4F1EE]/20 p-3.5">
-          <span className="text-xs font-medium text-[#536176]">{copy.detail.respondent}</span>
-          <p className="mt-1 text-sm font-semibold text-[#1A2B48]">{claim.respondentName ?? copy.notAvailable}</p>
-        </div>
+        <ClaimParticipantCard
+          label={copy.detail.claimant}
+          id={claim.claimantId}
+          type={claim.claimantType}
+          name={claim.claimantName}
+          email={claim.claimantEmail}
+        />
+        <ClaimParticipantCard
+          label={copy.detail.respondent}
+          id={claim.respondentId}
+          type={claim.respondentType}
+          name={claim.respondentName}
+          email={claim.respondentEmail}
+        />
         <div className="rounded-xl border border-[#1A2B48]/10 bg-[#F4F1EE]/20 p-3.5">
           <span className="text-xs font-medium text-[#536176]">{copy.detail.category}</span>
           <p className="mt-1 text-sm font-semibold text-[#1A2B48]">{claim.categoryName ?? copy.notAvailable}</p>

@@ -93,7 +93,7 @@ export function PaymentsPageClient() {
   const [state, setState] = useState<PaymentsState>(initialState);
   const [purpose, setPurpose] = useState<PaymentPurpose | "">("");
   const [status, setStatus] = useState<PaymentStatus | "">("");
-  const [searchField, setSearchField] = useState<PaymentSearchField>("paymentIntentId");
+  const [searchField, setSearchField] = useState<PaymentSearchField>("consumerEmail");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchError, setSearchError] = useState<string | null>(null);
   const [appliedSearch, setAppliedSearch] = useState<AppliedSearch | null>(null);

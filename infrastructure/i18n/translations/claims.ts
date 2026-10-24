@@ -50,6 +50,7 @@ export const claimsTranslations = {
     parties: "Partes intervinientes",
     claimant: "Reclamante",
     respondent: "Demandado",
+    participantId: "ID",
     category: "Rubro",
     createdAt: "Fecha de registro",
     urgency: "Nivel de urgencia",
@@ -71,6 +72,7 @@ export const claimsTranslations = {
   resolution: {
     modalTitle: "Dictamen de Resolución de Mediación",
     typeLabel: "Tipo de resolución",
+    typePlaceholder: "Seleccioná un tipo de resolución",
     types: {
       favor_consumer: "A favor del cliente",
       favor_provider: "A favor del prestador",
@@ -86,6 +88,7 @@ export const claimsTranslations = {
     closeAriaLabel: "Cerrar modal de resolución",
     successMessage: "El dictamen de resolución ha sido registrado exitosamente.",
     errors: {
+      typeRequired: "Seleccioná un tipo de resolución",
       compensationInvalid: "La compensación sugerida debe ser un importe positivo válido",
       reasonRequired: "El motivo de resolución es obligatorio",
     },

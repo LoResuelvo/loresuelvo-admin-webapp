@@ -27,7 +27,7 @@ function ContextSection({ entry }: { entry: AuditLogEntry }) {
         {copy.detail.context}
       </h3>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <DetailItem label={copy.detail.operator} value={entry.operatorId} />
+        <DetailItem label={copy.detail.operator} value={entry.operatorName || entry.operatorId} />
         <DetailItem label={copy.detail.action} value={copy.actions[entry.action]} />
         <DetailItem
           label={copy.detail.resource}
@@ -55,6 +55,7 @@ function TraceabilitySection({ entry }: { entry: AuditLogEntry }) {
       <h3 className="text-xs font-semibold uppercase tracking-wider text-[#536176]">
         {copy.detail.traceability}
       </h3>
+      {entry.operatorName && <DetailItem label={copy.detail.operatorId} value={entry.operatorId} />}
       <DetailItem label={copy.detail.correlationId} value={entry.correlationId} />
     </div>
   );

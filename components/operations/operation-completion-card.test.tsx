@@ -37,9 +37,12 @@ describe("OperationCompletionCard", () => {
       screen.getByText(/Se reparó con éxito la pérdida del sifón/),
     ).toBeInTheDocument();
 
-    const photos = screen.getAllByTestId("evidence-photo");
+    const photos = screen.getAllByRole("img", { name: /Foto de evidencia/ });
     expect(photos).toHaveLength(2);
     expect(photos[0]).toHaveAttribute("src", "https://example.com/photos/evidence-1.jpg");
+    expect(
+      screen.getByRole("button", { name: "Ampliar Foto de evidencia 1" }),
+    ).toBeInTheDocument();
   });
 
   it("renders customer review with star rating and comment", () => {
@@ -62,7 +65,7 @@ describe("OperationCompletionCard", () => {
 
     expect(screen.getByTestId("operation-completion-card")).toBeInTheDocument();
     expect(screen.getByTestId("operation-review-card")).toBeInTheDocument();
-    expect(screen.getAllByTestId("evidence-photo")).toHaveLength(2);
+    expect(screen.getAllByRole("img", { name: /Foto de evidencia/ })).toHaveLength(2);
     expect(screen.getByText(/junta de estanqueidad/)).toBeInTheDocument();
     expect(screen.getByText(/Resolvió todo en el tiempo pactado/)).toBeInTheDocument();
   });

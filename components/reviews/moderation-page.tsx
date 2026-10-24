@@ -5,6 +5,7 @@ import { translations } from "@/infrastructure/i18n/translations";
 import { ReviewModerationTable } from "./review-moderation-table";
 import { ReviewStatusTabs } from "./review-status-tabs";
 import { ModerateReviewModal } from "./moderate-review-modal";
+import { ReviewDetailsModal } from "./review-details-modal";
 import { useModerationState } from "./use-moderation-state";
 import { ModerationSkeleton } from "./moderation-skeleton";
 
@@ -72,6 +73,10 @@ export interface ModerationPageProps {
 export function ModerationPage(props: ModerationPageProps = {}) {
   const copy = translations.moderation;
   const state = useModerationState(props);
+  const selectedReview = state.selectedReview;
+  const retryReviewDetails = selectedReview
+    ? () => state.openReviewDetails(selectedReview)
+    : undefined;
 
   return (
     <div className="space-y-6">
@@ -94,12 +99,13 @@ export function ModerationPage(props: ModerationPageProps = {}) {
         <ReviewModerationTable
           reviews={state.reviews}
           emptyMessage={state.statusFilter ? copy.table.emptyFiltered : copy.table.empty}
+          onViewReview={state.openReviewDetails}
           onHideReview={state.openModerateModal}
           onRestoreReview={state.openRestoreModal}
         />
       )}
       <ModerateReviewModal
-        isOpen={Boolean(state.reviewToModerate)}
+        isOpen={state.dialogMode === "moderate"}
         onClose={state.closeModerateModal}
         review={state.reviewDetail}
         action={state.moderationAction ?? "hide"}
@@ -107,6 +113,14 @@ export function ModerationPage(props: ModerationPageProps = {}) {
         onSubmit={state.submitModerate}
         isSubmitting={state.isSubmitting}
         error={state.modalError}
+      />
+      <ReviewDetailsModal
+        isOpen={state.dialogMode === "view"}
+        onClose={state.closeModerateModal}
+        review={state.reviewDetail}
+        isLoading={state.isLoadingDetail}
+        error={state.modalError}
+        onRetry={retryReviewDetails}
       />
     </div>
   );

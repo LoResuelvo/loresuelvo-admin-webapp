@@ -43,23 +43,33 @@ function useResolutionForm(
   isSubmitting: boolean,
   onRetry?: () => void,
 ) {
-  const [resolutionType, setResolutionType] = useState<ResolutionType>("favor_consumer");
+  const [resolutionType, setResolutionType] = useState<ResolutionType | "">("");
   const [reason, setReason] = useState("");
   const [compensationAmount, setCompensationAmount] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [typeError, setTypeError] = useState<string | null>(null);
   const copy = translations.claims.resolution;
 
   const handleClose = () => {
     if (isSubmitting) return;
     setReason("");
+    setResolutionType("");
+    setCompensationAmount("");
+    setTypeError(null);
     setValidationError(null);
     onClose();
   };
 
   const submitWithCurrentValues = async () => {
+    setTypeError(null);
     const trimmedReason = reason.trim();
     if (!trimmedReason) {
       setValidationError(copy.errors.reasonRequired);
+      return;
+    }
+    if (!resolutionType) {
+      setValidationError(null);
+      setTypeError(copy.errors.typeRequired);
       return;
     }
     const cents = parseCompensationCents(compensationAmount);
@@ -68,6 +78,7 @@ function useResolutionForm(
       return;
     }
     setValidationError(null);
+    setTypeError(null);
     await onSubmit({
       resolutionType,
       reason: trimmedReason,
@@ -87,8 +98,13 @@ function useResolutionForm(
     if (validationError) setValidationError(null);
   };
 
+  const handleTypeChange = (value: ResolutionType | "") => {
+    setResolutionType(value);
+    setTypeError(null);
+  };
+
   return {
-    resolutionType, setResolutionType,
+    resolutionType, handleTypeChange, typeError,
     reason, handleReasonChange,
     compensationAmount, setCompensationAmount,
     validationError, handleClose, handleSubmit, handleRetry,
@@ -131,7 +147,7 @@ function ClaimResolutionForm({
   error,
   onRetry,
 }: ClaimResolutionFormProps) {
-  const ids = { type: useId(), reason: useId(), comp: useId(), error: useId() };
+  const ids = { type: useId(), typeError: useId(), reason: useId(), comp: useId(), error: useId() };
   const form = useResolutionForm(onSubmit, onClose, isSubmitting, onRetry);
   const copy = translations.claims.resolution;
 
@@ -147,7 +163,9 @@ function ClaimResolutionForm({
       <ResolutionTypeSelect
         id={ids.type}
         value={form.resolutionType}
-        onChange={form.setResolutionType}
+        onChange={form.handleTypeChange}
+        error={form.typeError}
+        errorId={ids.typeError}
         disabled={isSubmitting}
       />
       <ResolutionReasonTextarea

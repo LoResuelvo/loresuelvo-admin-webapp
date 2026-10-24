@@ -19,6 +19,11 @@ describe("ClaimEvidenceGallery", () => {
     expect(images[0]).toHaveAttribute("alt", "Foto de evidencia adjunta al reclamo 1");
     expect(images[1]).toHaveAttribute("src", "https://example.com/photo2.jpg");
     expect(images[1]).toHaveAttribute("alt", "Foto de evidencia adjunta al reclamo 2");
+    expect(
+      screen.getByRole("button", {
+        name: "Ampliar Foto de evidencia adjunta al reclamo 1",
+      }),
+    ).toBeInTheDocument();
   });
 
   it("renders empty message when no photos are provided", () => {

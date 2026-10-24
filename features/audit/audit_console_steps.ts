@@ -34,6 +34,7 @@ Then(
     const text0 = await row0.innerText();
     assert.ok(text0.includes("28/09/2026") || text0.includes("2026-09-28"));
     assert.ok(text0.includes("101"));
+    assert.ok(text0.includes("Sofía López"));
     assert.ok(text0.includes("Contratación #105") || text0.includes("105"));
     assert.ok(text0.includes("Acceso"));
     assert.ok(text0.includes("Exitoso"));
@@ -209,6 +210,7 @@ Then(
     const modalText = await modal.innerText();
 
     assert.ok(modalText.includes("101"));
+    assert.ok(modalText.includes("Sofía López"));
     assert.ok(modalText.includes("Acceso"));
     assert.ok(modalText.includes("Exitoso"));
     assert.ok(modalText.includes("Investigación de reporte"));

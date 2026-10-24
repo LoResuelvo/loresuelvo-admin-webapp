@@ -4,6 +4,19 @@ import { describe, expect, it, vi } from "vitest";
 import { ClaimResolutionModal } from "./claim-resolution-modal";
 
 describe("ClaimResolutionModal", () => {
+  it("requires an explicit resolution choice before submitting a reason", async () => {
+    const onSubmit = vi.fn();
+    render(<ClaimResolutionModal isOpen onClose={vi.fn()} onSubmit={onSubmit} />);
+    expect(screen.getByLabelText("Tipo de resolución")).toHaveValue("");
+    await userEvent.type(screen.getByLabelText("Motivo justificado"), "Motivo fundamentado");
+    await userEvent.click(screen.getByRole("button", { name: "Confirmar dictamen" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Seleccioná un tipo de resolución");
+    expect(screen.getByLabelText("Tipo de resolución")).toHaveAttribute("aria-invalid", "true");
+    expect(onSubmit).not.toHaveBeenCalled();
+    await userEvent.selectOptions(screen.getByLabelText("Tipo de resolución"), "mutual_agreement");
+    await userEvent.click(screen.getByRole("button", { name: "Confirmar dictamen" }));
+    expect(onSubmit).toHaveBeenCalledWith({ resolutionType: "mutual_agreement", reason: "Motivo fundamentado", compensationAmountCents: null });
+  });
   it("renders form elements properly when open", () => {
     render(
       <ClaimResolutionModal
@@ -89,6 +102,7 @@ describe("ClaimResolutionModal", () => {
     const onSubmit = vi.fn();
     render(<ClaimResolutionModal isOpen onClose={vi.fn()} onSubmit={onSubmit} />);
 
+    await userEvent.selectOptions(screen.getByLabelText("Tipo de resolución"), "favor_consumer");
     await userEvent.type(screen.getByLabelText("Motivo justificado"), "Motivo válido");
     await userEvent.type(screen.getByLabelText("Compensación sugerida (ARS, opcional)"), amount);
     await userEvent.click(screen.getByRole("button", { name: "Confirmar dictamen" }));
@@ -101,6 +115,7 @@ describe("ClaimResolutionModal", () => {
     const onSubmit = vi.fn();
     render(<ClaimResolutionModal isOpen onClose={vi.fn()} onSubmit={onSubmit} />);
 
+    await userEvent.selectOptions(screen.getByLabelText("Tipo de resolución"), "favor_consumer");
     await userEvent.type(screen.getByLabelText("Motivo justificado"), "Motivo válido");
     await userEvent.type(screen.getByLabelText("Compensación sugerida (ARS, opcional)"), "25.50");
     await userEvent.click(screen.getByRole("button", { name: "Confirmar dictamen" }));
@@ -201,6 +216,7 @@ describe("ClaimResolutionModal", () => {
       />
     );
 
+    await userEvent.selectOptions(screen.getByLabelText("Tipo de resolución"), "favor_consumer");
     const input = screen.getByLabelText("Motivo justificado");
     await userEvent.type(input, "Demora no justificada");
 

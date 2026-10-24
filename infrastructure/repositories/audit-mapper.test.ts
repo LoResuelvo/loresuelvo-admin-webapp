@@ -48,4 +48,15 @@ describe("audit-mapper", () => {
   it("throws error for invalid DTO payload", () => {
     expect(() => mapAuditLogsPage({ invalid: true })).toThrow("Invalid audit logs response");
   });
+  it("preserves a current operator display name across API validation and mapping", () => {
+    const page = mapAuditLogsPage({events: [{...sampleDto, operator_name: "  Sofía López  "}], next_cursor: null});
+    expect(page.events[0]).toMatchObject({operatorId:101, operatorName:"Sofía López"});
+  });
+
+  it.each([null, "", "   ", undefined])("keeps an absent operator name unavailable (%s)", (name) => {
+    const page = mapAuditLogsPage({events: [{...sampleDto, operator_name:name}],next_cursor:null});
+    expect(page.events[0]).not.toHaveProperty("operatorName");
+    expect(page.events[0].operatorId).toBe(101);
+  });
+
 });

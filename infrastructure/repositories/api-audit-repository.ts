@@ -4,27 +4,18 @@ import { AuditError } from "@/domain/audit/audit-error";
 import type { AuditRepository } from "@/ports/audit/audit-repository";
 import { mapAuditLogsPage } from "./audit-mapper";
 import { getE2EAuditLogsStub, resolveAuditLogsFromStub } from "./audit-stubs";
-
-function toUtcBoundary(date: string, includeFollowingDay = false): string | undefined {
-  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(date);
-  const parsed = new Date(dateOnly ? `${date}T00:00:00.000Z` : date);
-  if (Number.isNaN(parsed.getTime())) return undefined;
-
-  if (dateOnly && parsed.toISOString().slice(0, 10) !== date) return undefined;
-  if (includeFollowingDay) parsed.setUTCDate(parsed.getUTCDate() + 1);
-  return parsed.toISOString();
-}
+import { toAuditDateBoundary } from "./audit-date-boundary";
 
 function buildApiUrl(baseUrl: string, filters?: AuditFilters, cursor?: string): URL {
   const url = new URL(`${baseUrl.replace(/\/$/, "")}/admin/audit-logs`);
   if (filters?.action) url.searchParams.set("action", filters.action);
   if (filters?.operatorId) url.searchParams.set("operator_id", String(filters.operatorId));
   if (filters?.from) {
-    const occurredFrom = toUtcBoundary(filters.from);
+    const occurredFrom = toAuditDateBoundary(filters.from);
     if (occurredFrom) url.searchParams.set("occurred_from", occurredFrom);
   }
   if (filters?.to) {
-    const occurredTo = toUtcBoundary(filters.to, true);
+    const occurredTo = toAuditDateBoundary(filters.to, true);
     if (occurredTo) url.searchParams.set("occurred_to", occurredTo);
   }
   if (cursor) url.searchParams.set("cursor", cursor);

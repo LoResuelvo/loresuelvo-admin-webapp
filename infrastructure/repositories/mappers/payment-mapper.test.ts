@@ -93,6 +93,46 @@ describe("payment-mapper", () => {
     });
   });
 
+  it("maps names and the canonical operation ID while preserving profile IDs", () => {
+    const result = mapPaymentItem({
+      ...validItemDto,
+      consumer_name: "  Ana Rivera  ",
+      provider_name: "Mario López",
+      operation_id: "jr-123",
+    });
+
+    expect(result).toMatchObject({
+      consumerId: 1,
+      consumerName: "Ana Rivera",
+      providerId: 2,
+      providerName: "Mario López",
+      operationId: "jr-123",
+    });
+  });
+
+  it("keeps names and operation ID optional for older API responses", () => {
+    const result = mapPaymentItem(validItemDto);
+
+    expect(result).toMatchObject({ consumerId: 1, providerId: 2 });
+    expect(result.consumerName).toBeUndefined();
+    expect(result.providerName).toBeUndefined();
+    expect(result.operationId).toBeUndefined();
+  });
+
+  it("normalizes blank names and rejects non-canonical operation IDs", () => {
+    const result = mapPaymentItem({
+      ...validItemDto,
+      consumer_name: "   ",
+      provider_name: "",
+      operation_id: "sp-9",
+    });
+
+    expect(result.consumerName).toBeUndefined();
+    expect(result.providerName).toBeUndefined();
+    expect(result.operationId).toBe("sp-9");
+    expect(() => mapPaymentItem({ ...validItemDto, operation_id: "proposal-100" })).toThrow();
+  });
+
   it("maps the API cursor pagination response", () => {
     const result = mapPaymentList({
       payments: [validItemDto],

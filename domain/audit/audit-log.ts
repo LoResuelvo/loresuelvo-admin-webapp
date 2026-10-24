@@ -5,6 +5,7 @@ export type AuditResult = "succeeded" | "prepared" | "failed";
 export type AuditLogEntry = Readonly<{
   id: string;
   operatorId: number;
+  operatorName?: string;
   action: AuditAction;
   resourceType: string;
   resourceId?: string;

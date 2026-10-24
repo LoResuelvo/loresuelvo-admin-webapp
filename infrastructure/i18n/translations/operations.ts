@@ -8,6 +8,8 @@ export const operationsTranslations = {
   title: "Bandeja de Operaciones",
   subtitle: "Monitoreo transversal de contrataciones y cuellos de botella",
   detail: {
+    registeredAddress: "Domicilio registrado",
+    information: "Información de la contratación",
     title: "Ficha de Operación",
     subtitle: "Detalle completo del servicio",
     backToList: "Volver a la bandeja",

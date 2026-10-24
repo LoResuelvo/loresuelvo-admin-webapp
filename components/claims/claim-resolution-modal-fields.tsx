@@ -5,9 +5,11 @@ import type { ResolutionType } from "@/domain/claims/claim";
 
 interface ResolutionTypeSelectProps {
   id: string;
-  value: ResolutionType;
-  onChange: (val: ResolutionType) => void;
+  value: ResolutionType | "";
+  onChange: (val: ResolutionType | "") => void;
   disabled: boolean;
+  error: string | null;
+  errorId: string;
 }
 
 export function ResolutionTypeSelect({
@@ -15,6 +17,8 @@ export function ResolutionTypeSelect({
   value,
   onChange,
   disabled,
+  error,
+  errorId,
 }: ResolutionTypeSelectProps) {
   const copy = translations.claims.resolution;
   return (
@@ -26,15 +30,19 @@ export function ResolutionTypeSelect({
         id={id}
         name="resolutionType"
         value={value}
-        onChange={(e) => onChange(e.target.value as ResolutionType)}
+        onChange={(e) => onChange(e.target.value as ResolutionType | "")}
         disabled={disabled}
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? errorId : undefined}
         className="mt-1.5 block w-full rounded-xl border border-[#1A2B48]/20 bg-white px-3.5 py-2.5 text-sm text-[#1A2B48] transition-colors focus:border-[#147560] focus:outline-none focus:ring-2 focus:ring-[#147560]/20 disabled:cursor-not-allowed disabled:bg-gray-100"
       >
+        <option value="">{copy.typePlaceholder}</option>
         <option value="favor_consumer">{copy.types.favor_consumer}</option>
         <option value="favor_provider">{copy.types.favor_provider}</option>
         <option value="mutual_agreement">{copy.types.mutual_agreement}</option>
         <option value="dismissed">{copy.types.dismissed}</option>
       </select>
+      {error && <p id={errorId} role="alert" className="mt-1.5 text-xs font-medium text-red-600">{error}</p>}
     </div>
   );
 }

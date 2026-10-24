@@ -10,6 +10,11 @@ import {
   apiReviewsPageSchema,
 } from "@/infrastructure/api/types";
 
+function normalizeName(name: string | undefined): string | undefined {
+  const trimmedName = name?.trim();
+  return trimmedName || undefined;
+}
+
 export function mapReviewModerationItem(raw: unknown): ReviewModerationItem {
   const parsed = apiReviewSummarySchema.safeParse(raw);
   if (!parsed.success) {
@@ -19,7 +24,9 @@ export function mapReviewModerationItem(raw: unknown): ReviewModerationItem {
   return {
     id: String(review.work_order_id),
     consumerId: review.consumer_id,
+    consumerName: normalizeName(review.consumer_name),
     providerId: review.provider_id,
+    providerName: normalizeName(review.provider_name),
     operationId: review.operation_id,
     rating: review.rating,
     visibility: review.visibility,

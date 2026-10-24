@@ -1,13 +1,15 @@
+import { translations } from "@/infrastructure/i18n/translations";
+
 export function formatAuditDateTime(iso: string): string {
   try {
     const date = new Date(iso);
     if (Number.isNaN(date.getTime())) return iso;
-    const day = String(date.getUTCDate()).padStart(2, "0");
-    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-    const year = date.getUTCFullYear();
-    const hours = String(date.getUTCHours()).padStart(2, "0");
-    const minutes = String(date.getUTCMinutes()).padStart(2, "0");
-    return `${day}/${month}/${year} ${hours}:${minutes}`;
+    const formatted = new Intl.DateTimeFormat("es-AR", {
+      timeZone: "America/Argentina/Buenos_Aires",
+      day: "2-digit", month: "2-digit", year: "numeric",
+      hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+    }).format(date);
+    return `${formatted} (${translations.audit.timeZone})`;
   } catch {
     return iso;
   }
@@ -18,21 +20,7 @@ export function formatAuditResource(
   resourceId: string | undefined,
   notAvailable: string,
 ): string {
-  if (!resourceId) return `${resourceType} — ${notAvailable}`;
-  if (resourceType === "operation" || resourceType === "hiring") {
-    return `Contratación #${resourceId}`;
-  }
-  if (resourceType === "claim") {
-    return `Reclamo #${resourceId}`;
-  }
-  if (resourceType === "payment") {
-    return `Pago #${resourceId}`;
-  }
-  if (resourceType === "category") {
-    return `Categoría #${resourceId}`;
-  }
-  if (resourceType === "provider") {
-    return `Prestador #${resourceId}`;
-  }
-  return `${resourceType} #${resourceId}`;
+  const resources: Readonly<Record<string, string>> = translations.audit.resources;
+  const label = resources[resourceType] ?? translations.audit.table.resource;
+  return resourceId ? `${label} #${resourceId}` : `${label} — ${notAvailable}`;
 }

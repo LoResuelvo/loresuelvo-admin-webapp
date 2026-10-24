@@ -56,6 +56,9 @@ export interface PaymentIntentSummary {
   workOrderId: number | null;
   consumerId: number;
   providerId: number;
+  consumerName?: string;
+  providerName?: string;
+  operationId?: string;
   purpose: PaymentPurpose;
   status: PaymentStatus;
   currency: string;

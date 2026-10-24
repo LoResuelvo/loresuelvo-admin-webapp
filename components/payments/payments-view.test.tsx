@@ -21,11 +21,14 @@ function createProps(overrides: Partial<PaymentsViewProps> = {}): PaymentsViewPr
 }
 
 describe("PaymentsView", () => {
-  it("renders the current payment intent ID and its API-backed details", () => {
+  it("renders the current payment intent and opens its API-backed details", async () => {
     render(<PaymentsView {...createProps()} />);
     expect(screen.getByRole("heading", { name: "Consola de pagos" })).toBeInTheDocument();
     expect(screen.getByText("0f8fad5b-d9cb-469f-a165-70867728950e")).toBeInTheDocument();
-    expect(screen.getByText("#1")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Cliente #1" })).toBeInTheDocument();
+
+    await userEvent.setup().click(screen.getByText("Ver desglose y referencias"));
+    expect(screen.getByText("ID de propuesta de servicio")).toBeInTheDocument();
   });
 
   it("renders loading skeleton when isLoading is true", () => {

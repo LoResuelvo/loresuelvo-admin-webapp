@@ -38,7 +38,7 @@ describe("apiAuditRepository", () => {
     });
 
     expect(fetcher).toHaveBeenCalledWith(
-      "https://api.example.com/admin/audit-logs?action=access&operator_id=101&occurred_from=2026-09-01T00%3A00%3A00.000Z&occurred_to=2026-09-21T00%3A00%3A00.000Z",
+      "https://api.example.com/admin/audit-logs?action=access&operator_id=101&occurred_from=2026-09-01T03%3A00%3A00.000Z&occurred_to=2026-09-21T03%3A00%3A00.000Z",
       expect.objectContaining({
         cache: "no-store",
         headers: {

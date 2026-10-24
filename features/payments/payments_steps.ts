@@ -32,21 +32,27 @@ Then(
     assert.equal(await rows.count(), 2);
 
     const row0 = rows.nth(0);
+    await row0.getByText("Ver desglose y referencias").click();
     const text0 = await row0.innerText();
     assert.ok(text0.includes("Seña"));
     assert.ok(text0.includes("#1"));
     assert.ok(text0.includes("#2"));
     assert.ok(text0.includes("20.000") || text0.includes("20000"));
+    assert.ok(text0.includes("Monto asignado al prestador"));
+    assert.ok(text0.includes("No representa una liquidación confirmada."));
     assert.ok(text0.includes("17.000") || text0.includes("17000"));
     assert.ok(text0.includes("3.000") || text0.includes("3000"));
     assert.ok(text0.includes("Pagado"));
 
     const row1 = rows.nth(1);
+    await row1.getByText("Ver desglose y referencias").click();
     const text1 = await row1.innerText();
     assert.ok(text1.includes("Saldo del servicio"));
     assert.ok(text1.includes("#3"));
     assert.ok(text1.includes("#4"));
     assert.ok(text1.includes("50.000") || text1.includes("50000"));
+    assert.ok(text1.includes("Monto asignado al prestador"));
+    assert.ok(text1.includes("No representa una liquidación confirmada."));
     assert.ok(text1.includes("42.500") || text1.includes("42500"));
     assert.ok(text1.includes("7.500") || text1.includes("7500"));
     assert.ok(text1.includes("Pagado"));
@@ -108,6 +114,8 @@ Given(
 When(
   "realizo una búsqueda por el ID de intención {string}",
   async function (this: CustomWorld, paymentId: string) {
+    const searchField = this.page.getByRole("combobox", { name: "Buscar por" });
+    await searchField.selectOption("paymentIntentId");
     const searchInput = this.page
       .getByRole("searchbox", { name: /buscar pagos/i })
       .or(this.page.locator("#payments-search"));
@@ -182,6 +190,8 @@ Given(
 When(
   "aplico un filtro de búsqueda sin resultados en la sección de pagos",
   async function (this: CustomWorld) {
+    const searchField = this.page.getByRole("combobox", { name: "Buscar por" });
+    await searchField.selectOption("paymentIntentId");
     const searchInput = this.page
       .getByRole("searchbox", { name: /buscar pagos/i })
       .or(this.page.locator("#payments-search"));

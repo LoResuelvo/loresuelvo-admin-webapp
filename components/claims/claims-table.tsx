@@ -103,6 +103,9 @@ function ClaimsTableRow({ claim, onSelectClaim }: ClaimsTableRowProps) {
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="font-medium text-[#1A2B48]">{claim.claimantName}</div>
+        {claim.claimantEmail && claim.claimantEmail !== claim.claimantName && (
+          <div className="text-xs text-[#536176]">{claim.claimantEmail}</div>
+        )}
         <div className="text-xs text-[#536176]">
           {copy.claimantType[claim.claimantType] ?? claim.claimantType}
         </div>

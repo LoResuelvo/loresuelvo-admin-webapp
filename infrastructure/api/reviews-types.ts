@@ -3,7 +3,9 @@ import { z } from "zod";
 export const apiReviewSummarySchema = z.object({
   work_order_id: z.number().int().positive(),
   consumer_id: z.number().int().positive(),
+  consumer_name: z.string().optional(),
   provider_id: z.number().int().positive(),
+  provider_name: z.string().optional(),
   operation_id: z.string().min(1),
   rating: z.number().int().min(1).max(5),
   visibility: z.enum(["visible", "hidden"]),

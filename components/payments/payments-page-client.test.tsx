@@ -25,6 +25,7 @@ describe("PaymentsPageClient", () => {
       expect(screen.getByText("0f8fad5b-d9cb-469f-a165-70867728950e")).toBeInTheDocument();
       expect(actions.getPaymentsAction).toHaveBeenLastCalledWith({ limit: 20 });
     });
+    expect(screen.getByRole("combobox", { name: "Buscar por" })).toHaveValue("consumerEmail");
   });
 
   it("sends purpose and intent status filters to the API", async () => {
@@ -79,6 +80,7 @@ describe("PaymentsPageClient", () => {
     const user = userEvent.setup();
     render(<PaymentsPageClient />);
     await screen.findByText("0f8fad5b-d9cb-469f-a165-70867728950e");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Buscar por" }), "paymentIntentId");
     await user.type(screen.getByRole("searchbox", { name: "Buscar pagos" }), "not-a-uuid");
     await user.click(screen.getByRole("button", { name: "Buscar" }));
 

@@ -33,9 +33,11 @@ const statusStyles: Partial<Record<OperationStatus, string>> = {
 function PartyCard({
   roleLabel,
   party,
+  href,
 }: {
   roleLabel: string;
   party: OperationPartyHeaderInfo;
+  href: string;
 }) {
   const fullName = `${party.name} ${party.surname}`.trim();
   const initials = `${party.name.charAt(0)}${party.surname.charAt(0)}`.toUpperCase();
@@ -58,7 +60,7 @@ function PartyCard({
         <span className="text-xs font-semibold uppercase tracking-wider text-[#536176]">
           {roleLabel}
         </span>
-        <p className="truncate text-base font-semibold text-[#1A2B48]">{fullName}</p>
+        <Link href={href} className="block truncate text-base font-semibold text-[#147560] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]">{fullName}</Link>
         <p className="truncate text-sm text-[#536176]">{party.email ?? translations.operations.unavailable}</p>
       </div>
     </div>
@@ -145,7 +147,7 @@ function AddressCard({ address }: { address: string }) {
             d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
           />
         </svg>
-        <span>Domicilio registrado</span>
+        <span>{translations.operations.detail.registeredAddress}</span>
       </div>
       <p className="mt-1 text-sm font-medium text-[#1A2B48]">{address}</p>
     </div>
@@ -164,7 +166,7 @@ export function OperationHeader({
   return (
     <section
       data-testid="operation-header"
-      aria-label="Información de la contratación"
+      aria-label={translations.operations.detail.information}
       className="space-y-4 rounded-2xl border border-[#1A2B48]/10 bg-white p-6 shadow-xs"
     >
       <HeaderTopBar
@@ -174,10 +176,12 @@ export function OperationHeader({
         onInspectChat={onInspectChat}
       />
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <PartyCard roleLabel="Cliente" party={consumer} />
-        <PartyCard roleLabel="Prestador" party={provider} />
+        <PartyCard roleLabel={translations.operations.responsible.consumer} party={consumer} href={ROUTES.consumerDetail(consumer.id)} />
+        <PartyCard roleLabel={translations.operations.responsible.provider} party={provider} href={ROUTES.providerDetail(provider.id)} />
       </div>
       <AddressCard address={currentAddress ?? translations.operations.unavailable} />
     </section>
   );
 }
+import Link from "next/link";
+import { ROUTES } from "@/lib/routes";

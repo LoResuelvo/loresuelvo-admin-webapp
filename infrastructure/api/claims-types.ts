@@ -14,6 +14,7 @@ export const apiClaimListItemSchema = summary.extend({
   claimant_id: z.number().int().positive(),
   claimant_party: party,
   claimant_email: z.email(),
+  claimant_name: z.string().nullish(),
   category_id: z.number().int().positive().nullable(),
   category_name: z.string().nullable(),
   age_seconds: z.number().nonnegative(),
@@ -36,7 +37,8 @@ export const apiClaimResolutionSchema = z.object({
   suggested_compensation: z.object({ amount_minor: z.number().int().positive().safe(), currency: z.literal("ARS"), unit: z.literal("minor") }).nullable(),
 });
 export const apiClaimDetailSchema = summary.extend({
-  claimant: z.object({ id: z.number().int().positive(), party, email: z.email() }),
+  claimant: z.object({ id: z.number().int().positive(), party, name: z.string().nullish(), email: z.email() }),
+  respondent: z.object({ id: z.number().int().positive(), party, name: z.string().nullish(), email: z.email() }).nullish(),
   category_id: z.number().int().positive().nullable(),
   category_name: z.string().nullable(),
   description: z.string(),

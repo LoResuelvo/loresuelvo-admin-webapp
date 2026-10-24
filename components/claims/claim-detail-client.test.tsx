@@ -133,6 +133,7 @@ describe("ClaimDetailClient", () => {
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
 
+    await userEvent.selectOptions(screen.getByLabelText("Tipo de resolución"), "favor_consumer");
     const reasonInput = screen.getByLabelText("Motivo justificado");
     await userEvent.type(reasonInput, "Incumplimiento de visita pactada");
 
@@ -151,6 +152,7 @@ describe("ClaimDetailClient", () => {
     vi.mocked(resolveClaimAction).mockResolvedValueOnce({ success: true, data: resolution });
     const view = render(<ClaimDetailClient id="101" />);
     await userEvent.click(await screen.findByRole("button", { name: "Dictaminar resolución" }));
+    await userEvent.selectOptions(screen.getByLabelText("Tipo de resolución"), "dismissed");
     await userEvent.type(screen.getByLabelText("Motivo justificado"), resolution.reason);
     await userEvent.click(screen.getByRole("button", { name: "Confirmar dictamen" }));
     await waitFor(() => expect(screen.getByTestId("claim-status-badge")).toHaveTextContent("Desestimado"));
@@ -168,6 +170,7 @@ describe("ClaimDetailClient", () => {
 
     render(<ClaimDetailClient id="101" />);
     await userEvent.click(await screen.findByRole("button", { name: "Dictaminar resolución" }));
+    await userEvent.selectOptions(screen.getByLabelText("Tipo de resolución"), "favor_consumer");
     await userEvent.type(screen.getByLabelText("Motivo justificado"), "Incumplimiento de visita pactada");
     await userEvent.click(screen.getByRole("button", { name: "Confirmar dictamen" }));
     await screen.findByRole("alert");

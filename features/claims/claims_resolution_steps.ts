@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { Given, When, Then } from "@cucumber/cucumber";
+import { ROUTES } from "@/lib/routes";
 import { CustomWorld } from "../support/world";
 import { sampleClaimDetailOpenResponse } from "./claims_fixtures";
 
@@ -7,7 +8,7 @@ Given(
   "que me encuentro en el formulario de dictamen del reclamo",
   async function (this: CustomWorld) {
     await this.stubGet("/admin/claims/101", sampleClaimDetailOpenResponse);
-    await this.page.goto(new URL("/reclamos/101", this.appUrl).href);
+    await this.page.goto(new URL(ROUTES.claimDetail(101), this.appUrl).href);
     const openModalBtn = this.page.getByRole("button", {
       name: /dictaminar resolución|resolver reclamo/i,
     });
@@ -64,7 +65,7 @@ Given(
 When(
   "intento registrar el dictamen de un reclamo",
   async function (this: CustomWorld) {
-    await this.page.goto(new URL("/reclamos/101", this.appUrl).href);
+    await this.page.goto(new URL(ROUTES.claimDetail(101), this.appUrl).href);
     const openModalBtn = this.page.getByRole("button", {
       name: /dictaminar resolución|resolver reclamo/i,
     });
@@ -76,6 +77,7 @@ When(
 
     const reasonInput = dialog.getByLabel(/motivo justificado|fundamentación/i);
     await reasonInput.fill("Incumplimiento verificado de visita pactada");
+    await dialog.getByLabel("Tipo de resolución").selectOption("favor_consumer");
 
     const submitBtn = dialog.getByRole("button", {
       name: /confirmar dictamen|registrar resolución/i,

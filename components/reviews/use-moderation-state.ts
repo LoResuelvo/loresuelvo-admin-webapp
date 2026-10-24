@@ -21,6 +21,7 @@ export interface UseModerationStateProps {
 }
 
 type ModerationAction = ReviewModerationCommand["action"];
+type ReviewDialogMode = "view" | "moderate";
 
 interface ModerationState {
   reviews: ReviewModerationItem[];
@@ -28,8 +29,9 @@ interface ModerationState {
   isLoading: boolean;
   error: string | null;
   isForbidden: boolean;
-  reviewToModerate: ReviewModerationItem | null;
+  selectedReview: ReviewModerationItem | null;
   reviewDetail: ReviewModerationDetail | null;
+  dialogMode: ReviewDialogMode | null;
   moderationAction: ModerationAction | null;
   isLoadingDetail: boolean;
   isSubmitting: boolean;
@@ -44,8 +46,9 @@ function defaultState(reviews?: ReviewModerationItem[], status?: ReviewListFilte
     isLoading: !reviews,
     error: null,
     isForbidden: false,
-    reviewToModerate: null,
+    selectedReview: null,
     reviewDetail: null,
+    dialogMode: null,
     moderationAction: null,
     isLoadingDetail: false,
     isSubmitting: false,
@@ -73,8 +76,9 @@ function applyModerationSuccess(
   return {
     ...previous,
     reviews: updateModeratedReviews(previous.reviews, updated, previous.statusFilter),
-    reviewToModerate: null,
+    selectedReview: null,
     reviewDetail: null,
+    dialogMode: null,
     moderationAction: null,
     isLoadingDetail: false,
     modalError: null,
@@ -180,13 +184,18 @@ export function useModerationState({ initialReviews, initialStatus }: UseModerat
     loadReviews(state.statusFilter);
   }, [loadReviews, state.statusFilter]);
 
-  const openModerationModal = async (review: ReviewModerationItem, action: ModerationAction) => {
+  const openReviewDialog = async (
+    review: ReviewModerationItem,
+    mode: ReviewDialogMode,
+    action?: ModerationAction,
+  ) => {
     const currentRequest = ++detailRequestId.current;
     setState((previous) => ({
       ...previous,
-      reviewToModerate: review,
+      selectedReview: review,
       reviewDetail: null,
-      moderationAction: action,
+      dialogMode: mode,
+      moderationAction: mode === "moderate" ? action ?? "hide" : null,
       isLoadingDetail: true,
       modalError: null,
     }));
@@ -216,8 +225,9 @@ export function useModerationState({ initialReviews, initialStatus }: UseModerat
     detailRequestId.current += 1;
     setState((previous) => ({
       ...previous,
-      reviewToModerate: null,
+      selectedReview: null,
       reviewDetail: null,
+      dialogMode: null,
       moderationAction: null,
       isLoadingDetail: false,
       modalError: null,
@@ -232,8 +242,9 @@ export function useModerationState({ initialReviews, initialStatus }: UseModerat
       setState((previous) => ({ ...previous, statusFilter: status }));
     },
     reload: () => loadReviews(state.statusFilter),
-    openModerateModal: (review: ReviewModerationItem) => openModerationModal(review, "hide"),
-    openRestoreModal: (review: ReviewModerationItem) => openModerationModal(review, "unhide"),
+    openReviewDetails: (review: ReviewModerationItem) => openReviewDialog(review, "view"),
+    openModerateModal: (review: ReviewModerationItem) => openReviewDialog(review, "moderate", "hide"),
+    openRestoreModal: (review: ReviewModerationItem) => openReviewDialog(review, "moderate", "unhide"),
     closeModerateModal,
     submitModerate: (data: { category?: InfractionCategory; reason: string }) => {
       if (!state.reviewDetail || !state.moderationAction) return Promise.resolve();

@@ -1,8 +1,10 @@
+import Link from "next/link";
 import type {
   ReviewModerationItem,
   ReviewStatus,
 } from "@/domain/reviews/review-moderation";
 import { translations } from "@/infrastructure/i18n/translations";
+import { ROUTES } from "@/lib/routes";
 
 export type { ReviewModerationItem, ReviewStatus };
 
@@ -11,6 +13,7 @@ export interface ReviewModerationTableProps {
   className?: string;
   emptyMessage?: string;
   onSelectReview?: (review: ReviewModerationItem) => void;
+  onViewReview?: (review: ReviewModerationItem) => void;
   onHideReview?: (review: ReviewModerationItem) => void;
   onRestoreReview?: (review: ReviewModerationItem) => void;
 }
@@ -71,33 +74,55 @@ function ReviewModerationTableHeader() {
   );
 }
 
+interface ReviewProfileLinkProps {
+  name?: string;
+  id: number;
+  href: string;
+}
+
+function ReviewProfileLink({ name, id, href }: ReviewProfileLinkProps) {
+  const copy = translations.moderation.table;
+
+  return (
+    <span className="flex flex-col">
+      <Link
+        href={href}
+        onClick={(event) => event.stopPropagation()}
+        onKeyDown={(event) => event.stopPropagation()}
+        className="font-medium text-[#147560] underline underline-offset-2"
+      >
+        {name ?? id}
+      </Link>
+      {name && <span className="text-xs font-normal text-[#536176]">{copy.profileId}: {id}</span>}
+    </span>
+  );
+}
+
 interface ReviewActionButtonsProps {
   review: ReviewModerationItem;
+  onView?: (review: ReviewModerationItem) => void;
   onHide?: (review: ReviewModerationItem) => void;
   onRestore?: (review: ReviewModerationItem) => void;
 }
 
-function ReviewActionButtons({ review, onHide, onRestore }: ReviewActionButtonsProps) {
+function ReviewActionButtons({ review, onView, onHide, onRestore }: ReviewActionButtonsProps) {
   const actions = translations.moderation.actions;
-  if (review.visibility === "hidden") {
-    return (
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onRestore?.(review);
-        }}
-        className="inline-flex items-center rounded-lg border border-[#147560]/30 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-[#147560] transition-colors hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]"
-      >
-        {actions.restore}
-      </button>
-    );
-  }
-  return (
+  const moderationAction = review.visibility === "hidden" ? (
     <button
       type="button"
-      onClick={(e) => {
-        e.stopPropagation();
+      onClick={(event) => {
+        event.stopPropagation();
+        onRestore?.(review);
+      }}
+      className="inline-flex items-center rounded-lg border border-[#147560]/30 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-[#147560] transition-colors hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]"
+    >
+      {actions.restore}
+    </button>
+  ) : (
+    <button
+      type="button"
+      onClick={(event) => {
+        event.stopPropagation();
         onHide?.(review);
       }}
       className="inline-flex items-center rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
@@ -105,11 +130,28 @@ function ReviewActionButtons({ review, onHide, onRestore }: ReviewActionButtonsP
       {actions.hide}
     </button>
   );
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          onView?.(review);
+        }}
+        className="rounded-lg border border-[#1A2B48]/20 px-2.5 py-1 text-xs font-semibold text-[#1A2B48] hover:bg-[#F4F1EE] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]"
+      >
+        {actions.viewDetails}
+      </button>
+      {moderationAction}
+    </div>
+  );
 }
 
 interface ReviewModerationTableRowProps {
   review: ReviewModerationItem;
   onSelectReview?: (review: ReviewModerationItem) => void;
+  onViewReview?: (review: ReviewModerationItem) => void;
   onHideReview?: (review: ReviewModerationItem) => void;
   onRestoreReview?: (review: ReviewModerationItem) => void;
 }
@@ -117,6 +159,7 @@ interface ReviewModerationTableRowProps {
 function ReviewModerationTableRow({
   review,
   onSelectReview,
+  onViewReview,
   onHideReview,
   onRestoreReview,
 }: ReviewModerationTableRowProps) {
@@ -137,8 +180,20 @@ function ReviewModerationTableRow({
         onSelectReview ? "cursor-pointer focus:bg-[#F4F1EE]/50 focus:outline-none focus:ring-1 focus:ring-[#147560]" : ""
       }`.trim()}
     >
-      <td className="px-6 py-4 font-medium text-sm text-[#1A2B48]">{review.consumerId}</td>
-      <td className="px-6 py-4 text-sm text-[#536176]">{review.providerId}</td>
+      <td className="px-6 py-4 text-sm text-[#1A2B48]">
+        <ReviewProfileLink
+          name={review.consumerName}
+          id={review.consumerId}
+          href={ROUTES.consumerDetail(review.consumerId)}
+        />
+      </td>
+      <td className="px-6 py-4 text-sm text-[#536176]">
+        <ReviewProfileLink
+          name={review.providerName}
+          id={review.providerId}
+          href={ROUTES.providerDetail(review.providerId)}
+        />
+      </td>
       <td className="px-6 py-4 text-sm text-[#536176] whitespace-nowrap">{review.operationId}</td>
       <td className="px-6 py-4 text-sm">
         <div className="flex items-center gap-1.5" aria-label={`Calificación: ${review.rating} de 5`}>
@@ -152,7 +207,7 @@ function ReviewModerationTableRow({
       </td>
       <td className="px-6 py-4 text-sm text-[#536176] whitespace-nowrap">{reportedOn}</td>
       <td className="px-6 py-4 text-sm whitespace-nowrap">
-        <ReviewActionButtons review={review} onHide={onHideReview} onRestore={onRestoreReview} />
+        <ReviewActionButtons review={review} onView={onViewReview} onHide={onHideReview} onRestore={onRestoreReview} />
       </td>
     </tr>
   );
@@ -163,6 +218,7 @@ export function ReviewModerationTable({
   className = "",
   emptyMessage,
   onSelectReview,
+  onViewReview,
   onHideReview,
   onRestoreReview,
 }: ReviewModerationTableProps) {
@@ -187,6 +243,7 @@ export function ReviewModerationTable({
                 key={review.id}
                 review={review}
                 onSelectReview={onSelectReview}
+                onViewReview={onViewReview}
                 onHideReview={onHideReview}
                 onRestoreReview={onRestoreReview}
               />

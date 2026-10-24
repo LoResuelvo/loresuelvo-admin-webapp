@@ -8,6 +8,7 @@ import type {
   ReviewModerationDetail,
 } from "@/domain/reviews/review-moderation";
 import { translations } from "@/infrastructure/i18n/translations";
+import { ReviewDetailContent } from "./review-detail-content";
 
 export interface ModerateReviewModalProps {
   isOpen: boolean;
@@ -27,40 +28,6 @@ const infractionOptions = [
   { value: "spam_advertising", labelKey: "spam_advertising" },
   { value: "unrelated_content", labelKey: "unrelated_content" },
 ] as const;
-
-function ReviewSnippet({ review }: { review: ReviewModerationDetail }) {
-  const copy = translations.moderation;
-  return (
-    <div className="rounded-xl bg-[#F4F1EE]/60 p-3 text-xs text-[#536176] space-y-1">
-      <p><strong className="text-[#1A2B48]">{copy.modal.consumerId}:</strong> {review.review.consumerId}</p>
-      <p><strong className="text-[#1A2B48]">{copy.modal.providerId}:</strong> {review.review.providerId}</p>
-      <p><strong className="text-[#1A2B48]">{copy.table.operation}:</strong> {review.review.operationId}</p>
-      <p><strong className="text-[#1A2B48]">{copy.modal.description}:</strong></p>
-      <p className="whitespace-pre-wrap italic">&ldquo;{review.description}&rdquo;</p>
-      {review.report && (
-        <div className="mt-2 border-t border-[#1A2B48]/10 pt-2">
-          <p><strong className="text-[#1A2B48]">{copy.modal.reportId}:</strong> {review.report.id}</p>
-          <p><strong className="text-[#1A2B48]">{copy.modal.reportCategory}:</strong> {review.report.category}</p>
-          <p><strong className="text-[#1A2B48]">{copy.modal.report}:</strong> {review.report.explanation}</p>
-        </div>
-      )}
-      <div className="mt-2 border-t border-[#1A2B48]/10 pt-2">
-        <p className="font-semibold text-[#1A2B48]">{copy.modal.history}</p>
-        {review.decisions.items.length === 0 ? (
-          <p>{copy.modal.noHistory}</p>
-        ) : (
-          <ul className="list-disc space-y-1 pl-4">
-            {review.decisions.items.map((decision) => (
-              <li key={decision.id}>
-                {decision.action}: {decision.reason}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
-  );
-}
 
 interface CategorySelectProps {
   id: string;
@@ -279,7 +246,7 @@ function ModerateReviewForm({
           {translations.moderation.modal.loadingDetail}
         </div>
       )}
-      {review && <ReviewSnippet review={review} />}
+      {review && <ReviewDetailContent review={review} />}
       {action === "hide" && (
         <CategorySelect
           id={categoryId}
@@ -324,7 +291,7 @@ export function ModerateReviewModal({
   const title = action === "hide" ? copy.modal.title : copy.modal.restoreTitle;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title}>
+    <Modal isOpen={isOpen} onClose={onClose} title={title} className="max-w-2xl">
       <ModerateReviewForm
         review={review}
         action={action}

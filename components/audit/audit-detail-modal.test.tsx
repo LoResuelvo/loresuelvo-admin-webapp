@@ -54,7 +54,7 @@ describe("AuditDetailModal", () => {
       />,
     );
 
-    expect(screen.getByText("operation — No disponible")).toBeInTheDocument();
+    expect(screen.getByText("Contratación — No disponible")).toBeInTheDocument();
     expect(screen.getByText("No disponible")).toBeInTheDocument();
   });
 
@@ -66,4 +66,11 @@ describe("AuditDetailModal", () => {
     await user.click(screen.getByRole("button", { name: "Cerrar modal" }));
     expect(handleClose).toHaveBeenCalled();
   });
+  it("shows the operator name in context and preserves the ID for traceability", () => {
+    render(<AuditDetailModal isOpen onClose={vi.fn()} entry={{...sampleEntry,operatorName:"Sofía López"}} />);
+    expect(screen.getByText("Sofía López")).toBeInTheDocument();
+    expect(screen.getByText("ID del operador")).toBeInTheDocument();
+    expect(screen.getByText("101")).toBeInTheDocument();
+  });
+
 });

@@ -59,7 +59,12 @@ function AuditTableRow({
         {formatAuditDateTime(entry.occurredOn)}
       </td>
       <td className="px-4 py-3.5 font-medium text-[#1A2B48]">
-        {entry.operatorId}
+        {entry.operatorName ? (
+          <>
+            <span className="block">{entry.operatorName}</span>
+            <span className="block text-xs font-normal text-[#536176]">{copy.detail.operatorId}: {entry.operatorId}</span>
+          </>
+        ) : entry.operatorId}
       </td>
       <td className="whitespace-nowrap px-4 py-3.5 text-[#1A2B48]">
         {formatAuditResource(entry.resourceType, entry.resourceId, copy.notAvailable)}

@@ -7,6 +7,7 @@ export const apiAuditResultSchema = z.enum(["succeeded", "prepared", "failed"]);
 export const apiAuditLogEntrySchema = z.object({
   id: z.string().uuid(),
   operator_id: z.number().int().positive(),
+  operator_name: z.string().nullable().optional(),
   action: apiAuditActionTypeSchema,
   resource_type: z.string().min(1),
   resource_id: z.string().optional(),

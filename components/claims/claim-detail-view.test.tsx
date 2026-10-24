@@ -8,7 +8,13 @@ const sampleClaim: ClaimDetailViewModel = {
   createdAt: "2026-09-24T10:00:00Z",
   operationId: "sp-42",
   claimantType: "consumer",
-  claimantName: "ana@example.com",
+  claimantId: 10,
+  claimantName: "Ana Pérez",
+  claimantEmail: "ana@example.com",
+  respondentId: 20,
+  respondentType: "provider",
+  respondentName: "Martín Gómez",
+  respondentEmail: "martin@example.com",
   categoryName: "Plomería",
   status: "in_review",
   claimReason: "non_compliance",
@@ -27,8 +33,12 @@ describe("ClaimDetailView", () => {
     expect(screen.getByText(/101/)).toBeInTheDocument();
     expect(screen.getByText("En revisión")).toBeInTheDocument();
     expect(screen.getByText(/Urgencia: No informado/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ana Pérez" })).toHaveAttribute("href", "/usuarios/consumidores/10");
     expect(screen.getByText("ana@example.com")).toBeInTheDocument();
-    expect(screen.getByText("No informado")).toBeInTheDocument();
+    expect(screen.getByText("ID: 10")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Martín Gómez" })).toHaveAttribute("href", "/usuarios/prestadores/20");
+    expect(screen.getByText("martin@example.com")).toBeInTheDocument();
+    expect(screen.getByText("ID: 20")).toBeInTheDocument();
     expect(screen.getByText("Plomería")).toBeInTheDocument();
     expect(screen.getByText("24/09/2026")).toBeInTheDocument();
 
@@ -45,6 +55,40 @@ describe("ClaimDetailView", () => {
     const opLink = screen.getByTestId("operation-link");
     expect(opLink).toHaveAttribute("href", "/operaciones/sp-42");
     expect(opLink).toHaveTextContent("Contratación #sp-42");
+  });
+
+  it("links a provider claimant and consumer respondent to their matching profiles", () => {
+    const reversedClaim: ClaimDetailViewModel = {
+      ...sampleClaim,
+      claimantType: "provider",
+      claimantId: 20,
+      claimantName: "Martín Gómez",
+      claimantEmail: "martin@example.com",
+      respondentType: "consumer",
+      respondentId: 10,
+      respondentName: "Ana Pérez",
+      respondentEmail: "ana@example.com",
+    };
+
+    render(<ClaimDetailView claim={reversedClaim} />);
+
+    expect(screen.getByRole("link", { name: "Martín Gómez" })).toHaveAttribute("href", "/usuarios/prestadores/20");
+    expect(screen.getByRole("link", { name: "Ana Pérez" })).toHaveAttribute("href", "/usuarios/consumidores/10");
+  });
+
+  it("shows the unavailable fallback when an older API response has no respondent", () => {
+    const claimWithoutRespondent: ClaimDetailViewModel = {
+      ...sampleClaim,
+      respondentId: undefined,
+      respondentType: undefined,
+      respondentName: undefined,
+      respondentEmail: undefined,
+    };
+
+    render(<ClaimDetailView claim={claimWithoutRespondent} />);
+
+    expect(screen.getByText("Demandado").parentElement).toHaveTextContent("No informado");
+    expect(screen.queryByRole("link", { name: "Martín Gómez" })).not.toBeInTheDocument();
   });
 
   it("renders resolve button and triggers onOpenResolutionModal", async () => {

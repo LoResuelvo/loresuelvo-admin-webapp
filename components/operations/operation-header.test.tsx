@@ -31,12 +31,14 @@ describe("OperationHeader", () => {
     render(<OperationHeader {...defaultProps} />);
     expect(screen.getByText("Ana Martínez")).toBeInTheDocument();
     expect(screen.getByText("ana.martinez@example.com")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ana Martínez" })).toHaveAttribute("href", "/usuarios/consumidores/10");
   });
 
   it("renders provider contact information and photo", () => {
     render(<OperationHeader {...defaultProps} />);
     expect(screen.getByText("Carlos López")).toBeInTheDocument();
     expect(screen.getByText("carlos.lopez@example.com")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Carlos López" })).toHaveAttribute("href", "/usuarios/prestadores/20");
     const photo = screen.getByAltText("Carlos López");
     expect(photo).toHaveAttribute("src", "https://example.com/carlos.jpg");
   });

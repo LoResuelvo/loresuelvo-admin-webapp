@@ -20,8 +20,13 @@ export interface Claim {
   createdAt: string;
   operationId: string | number;
   claimantType: ClaimantType;
+  claimantId?: number;
   claimantName: string;
+  claimantEmail?: string;
+  respondentId?: number;
+  respondentType?: ClaimantType;
   respondentName?: string;
+  respondentEmail?: string;
   categoryName?: string;
   status: ClaimStatus;
   urgency?: ClaimUrgency;

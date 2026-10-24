@@ -3,6 +3,7 @@ import { AuditError } from "@/domain/audit/audit-error";
 import type { ApiStub } from "@/infrastructure/api/types";
 import { parseE2EStubsFromCookies } from "@/infrastructure/api/e2e-stubs-utils";
 import { mapAuditLogsPage } from "./audit-mapper";
+import { toAuditDateBoundary } from "./audit-date-boundary";
 
 function hasCursor(endpoint: string, cursor: string): boolean {
   const query = endpoint.split("?")[1];
@@ -43,15 +44,14 @@ export async function getE2EAuditLogsStub(
 
 function occurredOnOrAfter(value: string, from: string): boolean {
   const instant = new Date(value).getTime();
-  const boundary = new Date(from.includes("T") ? from : `${from}T00:00:00.000Z`).getTime();
+  const boundary = new Date(toAuditDateBoundary(from) ?? "").getTime();
   return !Number.isNaN(instant) && !Number.isNaN(boundary) && instant >= boundary;
 }
 
 function occurredBeforeFollowingDay(value: string, to: string): boolean {
   const instant = new Date(value).getTime();
-  const boundary = new Date(to.includes("T") ? to : `${to}T00:00:00.000Z`);
+  const boundary = new Date(toAuditDateBoundary(to, true) ?? "");
   if (Number.isNaN(instant) || Number.isNaN(boundary.getTime())) return false;
-  if (!to.includes("T")) boundary.setUTCDate(boundary.getUTCDate() + 1);
   return instant < boundary.getTime();
 }
 

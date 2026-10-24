@@ -25,6 +25,20 @@ const mockClaims: ClaimItem[] = [
 ];
 
 describe("ClaimsTable", () => {
+  it("shows the claimant name first and email as secondary information", () => {
+    const namedClaim: ClaimItem = {
+      ...mockClaims[0],
+      claimantName: "Ana Martínez",
+      claimantEmail: "ana@example.com",
+    };
+
+    render(<ClaimsTable claims={[namedClaim]} />);
+
+    const row = screen.getByText("Ana Martínez").closest("tr")!;
+    expect(within(row).getByText("ana@example.com")).toBeInTheDocument();
+    expect(within(row).getByText("Consumidor")).toBeInTheDocument();
+  });
+
   it("renders table headers and rows with claim details", () => {
     render(<ClaimsTable claims={mockClaims} />);
 

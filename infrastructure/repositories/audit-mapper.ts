@@ -8,6 +8,7 @@ export function mapAuditLogEntry(dto: ApiAuditLogEntry): AuditLogEntry {
   return {
     id: dto.id,
     operatorId: dto.operator_id,
+    ...(dto.operator_name?.trim() ? { operatorName: dto.operator_name.trim() } : {}),
     action: dto.action,
     resourceType: dto.resource_type,
     ...(dto.resource_id ? { resourceId: dto.resource_id } : {}),

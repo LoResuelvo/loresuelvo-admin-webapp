@@ -2,6 +2,7 @@ const firstAuditEvent = {
   id: "550e8400-e29b-41d4-a716-446655440000",
   occurred_on: "2026-09-28T14:30:00Z",
   operator_id: 101,
+  operator_name: "Sofía López",
   action: "access",
   resource_type: "operation",
   resource_id: "105",

@@ -124,6 +124,37 @@ describe("ModerationPage", () => {
     expect(screen.getByText("Ocultada")).toBeInTheDocument();
   });
 
+  it("opens a neutral detail view without presenting or submitting a moderation form", async () => {
+    const historyDetail = detail(reportedReview, reportedDetail.report);
+    historyDetail.decisions.items.push({
+      id: 91,
+      operatorId: 7,
+      action: "hide",
+      category: "abusive_language",
+      reason: "Se confirmó el reporte.",
+      reportId: 501,
+      previousHideId: null,
+      createdOn: "2026-09-26T14:30:00Z",
+    });
+    vi.mocked(getReviewsAction).mockResolvedValue({ success: true, data: [reportedReview] });
+    vi.mocked(getReviewDetailAction).mockResolvedValue({ success: true, data: historyDetail });
+    render(<ModerationPage />);
+    await waitFor(() => expect(screen.getByText("work_order-101")).toBeInTheDocument());
+
+    await userEvent.setup().click(screen.getByRole("button", { name: "Ver detalle" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("heading", { name: "Detalle de la reseña" })).toBeInTheDocument();
+    expect(within(dialog).getByText(historyDetail.description)).toBeInTheDocument();
+    expect(within(dialog).getByText(historyDetail.report!.explanation)).toBeInTheDocument();
+    expect(within(dialog).getByText("7", { exact: true })).toBeInTheDocument();
+    expect(within(dialog).queryByLabelText("Motivo detallado")).not.toBeInTheDocument();
+    expect(within(dialog).queryByRole("button", { name: "Ocultar reseña" })).not.toBeInTheDocument();
+    expect(moderateReviewAction).not.toHaveBeenCalled();
+    await userEvent.setup().keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "Ver detalle" })).toHaveFocus();
+  });
+
   it("asks for a reason before restoring a hidden review", async () => {
     vi.mocked(getReviewsAction).mockResolvedValue({ success: true, data: [hiddenReview] });
     vi.mocked(getReviewDetailAction).mockResolvedValue({
