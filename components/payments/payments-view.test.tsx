@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { PaymentsView, type PaymentsViewProps } from "./payments-view";
@@ -24,11 +24,13 @@ describe("PaymentsView", () => {
   it("renders the current payment intent and opens its API-backed details", async () => {
     render(<PaymentsView {...createProps()} />);
     expect(screen.getByRole("heading", { name: "Consola de pagos" })).toBeInTheDocument();
-    expect(screen.getByText("0f8fad5b-d9cb-469f-a165-70867728950e")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Cliente #1" })).toBeInTheDocument();
+    expect(screen.queryByText("0f8fad5b-d9cb-469f-a165-70867728950e")).not.toBeInTheDocument();
 
-    await userEvent.setup().click(screen.getByText("Ver desglose y referencias"));
-    expect(screen.getByText("ID de propuesta de servicio")).toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole("button", { name: "Ver desglose y referencias" }));
+    const dialog = screen.getByRole("dialog", { name: "Detalle del pago" });
+    expect(within(dialog).getByText("0f8fad5b-d9cb-469f-a165-70867728950e")).toBeInTheDocument();
+    expect(within(dialog).getByText("ID de propuesta de servicio")).toBeInTheDocument();
   });
 
   it("renders loading skeleton when isLoading is true", () => {

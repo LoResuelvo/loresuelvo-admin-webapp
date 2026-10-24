@@ -44,9 +44,6 @@ function CategoryTableHeader() {
   return (
     <thead className="border-b border-[#1A2B48]/10 bg-[#F4F1EE]/50 text-xs font-semibold uppercase tracking-wider text-[#1A2B48]/60">
       <tr>
-        <th scope="col" className="px-6 py-4 w-28">
-          {copy.columns.id}
-        </th>
         <th scope="col" className="px-6 py-4">
           {copy.columns.name}
         </th>
@@ -54,7 +51,7 @@ function CategoryTableHeader() {
           {copy.columns.status}
         </th>
         <th scope="col" className="px-6 py-4 text-right w-28">
-          <span className="sr-only">Acciones</span>
+          <span className="sr-only">{copy.actions.label}</span>
         </th>
       </tr>
     </thead>
@@ -73,9 +70,6 @@ function CategoryRow({ category, onEditCategory, onDeactivateCategory }: Categor
 
   return (
     <tr className="transition-colors hover:bg-[#F4F1EE]/30">
-      <td className="whitespace-nowrap px-6 py-4 font-mono text-xs text-[#1A2B48]/60">
-        {category.id}
-      </td>
       <td className="px-6 py-4 font-medium text-[#1A2B48]">
         {category.name}
       </td>
@@ -93,8 +87,8 @@ function CategoryRow({ category, onEditCategory, onDeactivateCategory }: Categor
           <button
             type="button"
             onClick={() => onEditCategory?.(category)}
-            aria-label={`Editar rubro ${category.name}`}
-            className="inline-flex items-center justify-center rounded-lg p-1.5 text-[#1A2B48]/60 transition-colors hover:bg-[#F4F1EE] hover:text-[#1A2B48] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]"
+            aria-label={`${copy.actions.edit} rubro ${category.name}`}
+            className="inline-flex size-10 items-center justify-center rounded-lg text-[#1A2B48]/60 transition-colors hover:bg-[#F4F1EE] hover:text-[#1A2B48] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]"
           >
             <EditIcon />
           </button>
@@ -102,8 +96,8 @@ function CategoryRow({ category, onEditCategory, onDeactivateCategory }: Categor
             <button
               type="button"
               onClick={() => onDeactivateCategory?.(category)}
-              aria-label={`Desactivar rubro ${category.name}`}
-              className="inline-flex items-center justify-center rounded-lg p-1.5 text-[#1A2B48]/60 transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
+              aria-label={`${copy.actions.deactivate} rubro ${category.name}`}
+              className="inline-flex size-10 items-center justify-center rounded-lg text-[#1A2B48]/60 transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
             >
               <DeactivateIcon />
             </button>
@@ -126,7 +120,7 @@ export function CategoriesTable({
   onDeactivateCategory,
 }: CategoriesTableProps) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#1A2B48]/10 bg-white shadow-xs">
+    <div className="overflow-x-auto rounded-2xl border border-[#1A2B48]/10 bg-white shadow-xs">
       <table className="w-full text-left text-sm text-[#1A2B48]">
         <CategoryTableHeader />
         <tbody className="divide-y divide-[#1A2B48]/5">

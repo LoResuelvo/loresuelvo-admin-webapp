@@ -23,25 +23,20 @@ describe("ConsumersView", () => {
     },
   ];
 
-  it("renders consumers table with headers, photos, names, emails and formatted dates", () => {
+  it("renders consumer identity, profile links and formatted registration dates", () => {
     render(<ConsumersView consumers={sampleConsumers} />);
 
-    expect(screen.getByRole("columnheader", { name: "Foto" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "Nombre" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "Apellido" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "Correo" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Usuario" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Fecha de registro" })).toBeInTheDocument();
 
     expect(screen.getByAltText("Ana Pérez")).toBeInTheDocument();
-    expect(screen.getByText("Ana")).toBeInTheDocument();
-    expect(screen.getByText("Pérez")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ana Pérez" })).toHaveAttribute("href", "/usuarios/consumidores/1");
     expect(screen.getByText("ana@example.com")).toBeInTheDocument();
     expect(screen.getByText("10/09/2026")).toBeInTheDocument();
 
     // Beatriz doesn't have a photo url, renders initials BS
     expect(screen.getByLabelText("Beatriz Suárez")).toHaveTextContent("BS");
-    expect(screen.getByText("Beatriz")).toBeInTheDocument();
-    expect(screen.getByText("Suárez")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Beatriz Suárez" })).toHaveAttribute("href", "/usuarios/consumidores/2");
     expect(screen.getByText("beatriz@example.com")).toBeInTheDocument();
     expect(screen.getByText("12/09/2026")).toBeInTheDocument();
   });

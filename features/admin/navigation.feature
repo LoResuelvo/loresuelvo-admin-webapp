@@ -8,14 +8,15 @@ Feature: Layout de navegación y cierre de sesión
     When ingreso al área de administración
     Then veo la identidad "Lo Resuelvo" y el indicador "Administración"
     And veo mi nombre "Ana", apellido "Pérez" y correo "ana@example.com"
-    And veo los enlaces de navegación "Directorio de Usuarios" y "Catálogo de Rubros"
+    And accedo directamente a Operaciones
+    And veo los enlaces de navegación "Usuarios" y "Rubros"
 
   Scenario: 02-NAV Navegar entre secciones del panel con indicador de ruta activa
     Given que estoy autenticado como administrador
     And estoy en el área de administración
-    When navego a la sección "Catálogo de Rubros"
+    When navego a la sección "Rubros"
     Then accedo a la sección de rubros
-    And el enlace "Catálogo de Rubros" se muestra como ruta activa
+    And el enlace "Rubros" se muestra como ruta activa
 
   Scenario: 03-NAV Cerrar sesión y denegar acceso posterior
     Given que estoy autenticado como administrador

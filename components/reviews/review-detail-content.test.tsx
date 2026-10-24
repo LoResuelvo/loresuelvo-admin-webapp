@@ -92,5 +92,7 @@ describe("ReviewDetailContent", () => {
 
     expect(screen.getByRole("link", { name: "10" })).toHaveAttribute("href", ROUTES.consumerDetail(10));
     expect(screen.getByRole("link", { name: "20" })).toHaveAttribute("href", ROUTES.providerDetail(20));
+    expect(screen.getByText("ID de consumidor: 10")).toBeInTheDocument();
+    expect(screen.getByText("ID de prestador: 20")).toBeInTheDocument();
   });
 });

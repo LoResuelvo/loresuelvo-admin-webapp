@@ -1,7 +1,6 @@
 export const categoriesTranslations = {
-  title: "Catálogo de Rubros",
+  title: "Rubros",
   columns: {
-    id: "ID",
     name: "Nombre",
     status: "Estado",
   },
@@ -11,6 +10,7 @@ export const categoriesTranslations = {
     inactive: "Inactivo",
   },
   actions: {
+    label: "Acciones",
     edit: "Editar",
     deactivate: "Desactivar",
   },

@@ -11,7 +11,7 @@ export interface SidebarProps {
 function SidebarHeader({ profile }: { profile: AdminProfile }) {
   const copy = translations.navigation;
   return (
-    <header role="banner" className="p-6 border-b border-[#1A2B48]/10">
+    <header role="banner" className="p-5 border-b border-[#1A2B48]/10">
       <div>
         <span className="text-xl font-semibold tracking-tight text-[#1A2B48]">
           {copy.brand}
@@ -43,10 +43,9 @@ function LogoutIcon() {
 function SidebarFooter() {
   const copy = translations.navigation;
   return (
-    <div className="p-4 border-t border-[#1A2B48]/10">
+    <div className="p-3 border-t border-[#1A2B48]/10">
       <a
         href={ROUTES.logout}
-        role="button"
         className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-[#536176] hover:bg-[#F4F1EE] hover:text-[#1A2B48] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560] transition-colors"
       >
         <LogoutIcon />
@@ -62,7 +61,7 @@ export function Sidebar({ profile, className = "" }: SidebarProps) {
   return (
     <aside
       aria-label={copy.mainNav}
-      className={`w-72 shrink-0 bg-white border-r border-[#1A2B48]/10 flex flex-col ${className}`.trim()}
+      className={`sticky top-0 h-svh w-56 shrink-0 overflow-y-auto bg-white border-r border-[#1A2B48]/10 flex flex-col ${className}`.trim()}
     >
       <SidebarHeader profile={profile} />
       <AdminNavigation />

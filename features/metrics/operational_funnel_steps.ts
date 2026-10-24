@@ -11,6 +11,13 @@ import {
 } from "./operational_funnel_fixtures";
 import { computeDateRange, type PeriodOption } from "../../domain/metrics/funnel-date-range";
 
+async function openStageDetails(page: CustomWorld["page"]): Promise<void> {
+  const summary = page.getByText("Ver detalle por etapa", { exact: true });
+  await summary.waitFor({ state: "visible", timeout: 10000 });
+  const disclosure = summary.locator("xpath=..");
+  if ((await disclosure.getAttribute("open")) === null) await summary.click();
+}
+
 function funnelEndpoint(from: string, to: string, categoryId?: number): string {
   const params = new URLSearchParams({ from, to });
   if (categoryId) params.set("category_id", String(categoryId));
@@ -34,6 +41,7 @@ Then(
   "visualizo las etapas del embudo desde el diagnóstico hasta la reseña con sus volúmenes y la tasa de conversión global",
   async function (this: CustomWorld) {
     const page = this.page;
+    await openStageDetails(page);
     const globalRate = page.getByTestId("global-conversion-rate");
     await globalRate.waitFor({ state: "visible", timeout: 10000 });
     const globalText = await globalRate.textContent();
@@ -57,6 +65,7 @@ Given("que el embudo de contratación muestra las transiciones entre etapas", as
 });
 
 When("inspecciono el paso de solicitudes a propuestas", async function (this: CustomWorld) {
+  await openStageDetails(this.page);
   const stepElement = this.page.getByTestId("funnel-step-proposals_sent");
   await stepElement.waitFor({ state: "visible", timeout: 10000 });
   await stepElement.scrollIntoViewIfNeeded();
@@ -84,7 +93,7 @@ Given("que me encuentro en la consola de métricas", async function (this: Custo
   await this.stubGet(defaultFunnelEndpoint(), mockFunnelData);
   await this.stubGet(defaultFunnelEndpoint("30d"), mockFunnel30Days);
   await this.page.goto(new URL("/metricas", this.appUrl).href);
-  const heading = this.page.getByRole("heading", { name: "Métricas de Conversión Operativa" });
+  const heading = this.page.getByRole("heading", { name: "Métricas" });
   await heading.waitFor({ state: "visible", timeout: 10000 });
 });
 
@@ -100,6 +109,7 @@ When("selecciono el rango temporal {string}", async function (this: CustomWorld,
 Then(
   "los indicadores y el gráfico del embudo se actualizan reflejando exclusivamente el período seleccionado",
   async function (this: CustomWorld) {
+    await openStageDetails(this.page);
     const globalRate = this.page.getByTestId("global-conversion-rate");
     await globalRate.waitFor({ state: "visible", timeout: 10000 });
     await this.page.waitForFunction(
@@ -125,7 +135,7 @@ Given("que el marketplace abarca diversos oficios", async function (this: Custom
   await this.stubGet(defaultFunnelEndpoint(), mockFunnelData);
   await this.stubGet(defaultFunnelEndpoint("7d", 47), mockFunnelPlomeria);
   await this.page.goto(new URL("/metricas", this.appUrl).href);
-  const heading = this.page.getByRole("heading", { name: "Métricas de Conversión Operativa" });
+  const heading = this.page.getByRole("heading", { name: "Métricas" });
   await heading.waitFor({ state: "visible", timeout: 10000 });
 });
 
@@ -141,6 +151,7 @@ When("filtro el embudo por el rubro {string}", async function (this: CustomWorld
 Then(
   "las etapas reflejan las métricas de conversión exclusivas de contrataciones de plomería",
   async function (this: CustomWorld) {
+    await openStageDetails(this.page);
     const globalRate = this.page.getByTestId("global-conversion-rate");
     await globalRate.waitFor({ state: "visible", timeout: 10000 });
     await this.page.waitForFunction(
@@ -164,7 +175,7 @@ Given("que selecciono un rango de fechas sin actividad registrada", async functi
   await this.stubGet(defaultFunnelEndpoint(), mockFunnelData);
   await this.stubGet(funnelEndpoint("2020-01-01", "2020-01-31"), mockEmptyFunnel);
   await this.page.goto(new URL("/metricas", this.appUrl).href);
-  const heading = this.page.getByRole("heading", { name: "Métricas de Conversión Operativa" });
+  const heading = this.page.getByRole("heading", { name: "Métricas" });
   await heading.waitFor({ state: "visible", timeout: 10000 });
 
   const fromInput = this.page.getByLabel(/fecha desde|desde/i).or(this.page.getByTestId("metrics-from-date"));

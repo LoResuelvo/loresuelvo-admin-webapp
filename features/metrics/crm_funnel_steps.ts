@@ -14,6 +14,19 @@ import {
 } from "./crm_funnel_fixtures";
 import { mockCategories } from "./operational_funnel_fixtures";
 
+async function openDisclosure(page: CustomWorld["page"], label: string): Promise<void> {
+  const summary = page.getByText(label, { exact: true });
+  await summary.waitFor({ state: "visible", timeout: 10000 });
+  const disclosure = summary.locator("xpath=..");
+  if ((await disclosure.getAttribute("open")) === null) await summary.click();
+}
+
+async function openStageDetails(page: CustomWorld["page"]): Promise<void> {
+  const summary = page.getByText("Ver detalle por etapa", { exact: true });
+  if ((await summary.count()) === 0) return;
+  await openDisclosure(page, "Ver detalle por etapa");
+}
+
 function funnelEndpoint(from: string, to: string, categoryId?: number): string {
   const params = new URLSearchParams({ from, to });
   if (categoryId) params.set("category_id", String(categoryId));
@@ -71,6 +84,7 @@ When("consulto el recorrido Origen IA", async function (this: CustomWorld) {
 Then(
   "veo 100%, 60% y 30% sobre las evaluaciones iniciales",
   async function (this: CustomWorld) {
+    await openStageDetails(this.page);
     for (const [stepName, percentage] of [
       ["ai_diagnostics", "100%"],
       ["requests_created", "60%"],
@@ -86,6 +100,7 @@ Then(
 Then(
   "veo 60% y 50% de avance desde la etapa anterior con sus denominadores",
   async function (this: CustomWorld) {
+    await openStageDetails(this.page);
     const requests = this.page.getByTestId("funnel-step-requests_created");
     const proposals = this.page.getByTestId("funnel-step-proposals_sent");
     await requests.waitFor({ state: "visible", timeout: 10000 });
@@ -99,6 +114,7 @@ Then(
 Then(
   "las barras usan exclusivamente el porcentaje sobre el inicio",
   async function (this: CustomWorld) {
+    await openStageDetails(this.page);
     for (const [stepName, width] of [
       ["ai_diagnostics", "100%"],
       ["requests_created", "60%"],
@@ -120,6 +136,25 @@ Then(
   },
 );
 
+Then(
+  "la metodología permanece plegada y la base inicial destaca en el resumen global",
+  async function (this: CustomWorld) {
+    const methodology = this.page.getByText("Cómo se calcula", { exact: true });
+    await methodology.waitFor({ state: "visible", timeout: 10000 });
+    assert.equal(await methodology.locator("xpath=..").getAttribute("open"), null);
+
+    const overview = this.page.getByRole("region", {
+      name: "Resumen de conversión global",
+    });
+    const initialCount = overview.getByTestId("global-conversion-count");
+    await initialCount.waitFor({ state: "visible", timeout: 10000 });
+    assert.match(
+      (await initialCount.getAttribute("aria-label")) ?? "",
+      /de 100 evaluaciones profesionales/i,
+    );
+  },
+);
+
 Given(
   "que la respuesta contiene solicitudes manuales y evaluaciones de origen IA",
   async function (this: CustomWorld) {
@@ -137,6 +172,7 @@ When("selecciono el recorrido Manual", async function (this: CustomWorld) {
 Then(
   "veo únicamente las solicitudes manuales y sus hitos desde solicitud hasta reseña",
   async function (this: CustomWorld) {
+    await openStageDetails(this.page);
     assert.equal(
       await this.page.getByTestId("funnel-step-ai_diagnostics").count(),
       0,
@@ -167,6 +203,7 @@ Then(
 Then(
   "sus porcentajes usan sus propias solicitudes como base inicial",
   async function (this: CustomWorld) {
+    await openStageDetails(this.page);
     const requestBar = this.page.getByTestId("funnel-chart-bar-requests_created");
     const proposalBar = this.page.getByTestId("funnel-chart-bar-proposals_sent");
     await requestBar.waitFor({ state: "visible", timeout: 10000 });
@@ -188,10 +225,13 @@ Then(
       name: "Resumen de conversión global",
     });
     await overview.waitFor({ state: "visible", timeout: 10000 });
-
-    const text = await overview.textContent();
-    assert.ok(text?.includes("Finalizaciones reportadas: 1"));
-    assert.ok(text?.includes("Base inicial: 3 solicitudes manuales"));
+    const count = overview.getByTestId("global-conversion-count");
+    await count.waitFor({ state: "visible", timeout: 10000 });
+    assert.equal((await count.textContent())?.trim(), "1 de 3");
+    assert.match(
+      (await count.getAttribute("aria-label")) ?? "",
+      /1 finalización reportada de 3 solicitudes manuales/i,
+    );
   },
 );
 
@@ -230,8 +270,12 @@ Then(
     const manualOverview = manualPanel.getByRole("region", {
       name: "Resumen de conversión global",
     });
-    assert.ok((await aiOverview.textContent())?.includes("Base inicial: 2 solicitudes IA"));
-    assert.ok((await manualOverview.textContent())?.includes("Base inicial: 3 solicitudes manuales"));
+    const aiBase = aiOverview.getByTestId("global-conversion-count");
+    const manualBase = manualOverview.getByTestId("global-conversion-count");
+    await aiBase.waitFor({ state: "visible", timeout: 10000 });
+    await manualBase.waitFor({ state: "visible", timeout: 10000 });
+    assert.match((await aiBase.getAttribute("aria-label")) ?? "", /de 2 solicitudes IA/i);
+    assert.match((await manualBase.getAttribute("aria-label")) ?? "", /de 3 solicitudes manuales/i);
 
     const expectedStages = [
       "requests_created",
@@ -308,6 +352,7 @@ Then(
 Then(
   "se informa que el período selecciona la creación de las solicitudes",
   async function (this: CustomWorld) {
+    await openDisclosure(this.page, "Cómo se interpreta el período");
     const notice = this.page.getByTestId("funnel-comparison-notice");
     await notice.waitFor({ state: "visible", timeout: 10000 });
     assert.match(
@@ -334,6 +379,7 @@ Then(
     const source = this.page.getByRole("combobox", { name: "Origen" });
     await source.waitFor({ state: "visible", timeout: 10000 });
     await source.selectOption("manual");
+    await openStageDetails(this.page);
 
     const emptyState = this.page.getByTestId("funnel-empty-state");
     await emptyState.waitFor({ state: "visible", timeout: 10000 });
@@ -365,6 +411,7 @@ Then(
     const source = this.page.getByRole("combobox", { name: "Origen" });
     await source.waitFor({ state: "visible", timeout: 10000 });
     await source.selectOption("ai");
+    await openStageDetails(this.page);
 
     const initialStep = this.page.getByTestId("funnel-step-ai_diagnostics");
     await initialStep.waitFor({ state: "visible", timeout: 10000 });
@@ -422,6 +469,7 @@ When("consulto el detalle del embudo", async function (this: CustomWorld) {
 Then(
   "veo el período y la fecha de observación",
   async function (this: CustomWorld) {
+    await openDisclosure(this.page, "Período y actualización");
     const period = this.page.getByTestId("funnel-effective-period");
     await period.waitFor({ state: "visible", timeout: 10000 });
     const periodText = await period.textContent();
@@ -441,6 +489,7 @@ Then(
 Then(
   "las demoras disponibles indican su cantidad de observaciones",
   async function (this: CustomWorld) {
+    await openStageDetails(this.page);
     const proposalDuration = this.page.getByTestId("duration-proposals_sent");
     await proposalDuration.waitFor({ state: "visible", timeout: 10000 });
     assert.ok((await proposalDuration.textContent())?.includes("15 min"));
@@ -474,6 +523,7 @@ Then(
 Then(
   "se aclara que son tiempos de transiciones realizadas y no espera de casos pendientes",
   async function (this: CustomWorld) {
+    await openStageDetails(this.page);
     const notice = this.page.getByTestId("funnel-delays-notice");
     await notice.waitFor({ state: "visible", timeout: 10000 });
     assert.match(
@@ -560,18 +610,17 @@ When(
 Then(
   "ambos orígenes usan exactamente esos filtros y muestran su período efectivo",
   async function (this: CustomWorld) {
+    await openDisclosure(this.page, "Período y actualización");
     const periodSelect = this.page.getByRole("combobox", { name: "Rango temporal" });
     assert.equal(await periodSelect.inputValue(), "30d");
 
     const categorySelect = this.page.getByRole("combobox", { name: "Rubro" });
     assert.equal(await categorySelect.inputValue(), "47");
 
-    const aiPeriod = this.page.getByTestId("funnel-effective-period-ai");
-    const manualPeriod = this.page.getByTestId("funnel-effective-period-manual");
+    const effectivePeriod = this.page.getByTestId("funnel-effective-period");
     const aiPanel = this.page.getByTestId("funnel-comparison-panel-ai");
     const manualPanel = this.page.getByTestId("funnel-comparison-panel-manual");
-    await aiPeriod.waitFor({ state: "visible", timeout: 10000 });
-    await manualPeriod.waitFor({ state: "visible", timeout: 10000 });
+    await effectivePeriod.waitFor({ state: "visible", timeout: 10000 });
 
     const categoryStub = (await this.getStubs()).find((stub) => {
       if (
@@ -596,20 +645,16 @@ Then(
     const expectedTo = formatBuenosAiresTimestampForAssertion(response.period.to);
     const [expectedFromDate, expectedFromTime] = expectedFrom.split(", ");
     const [expectedToDate, expectedToTime] = expectedTo.split(", ");
-    const aiText = await aiPeriod.textContent();
-    const manualText = await manualPeriod.textContent();
-    for (const periodText of [aiText, manualText]) {
-      assert.match(periodText ?? "", /Período efectivo:/);
-      assert.match(
-        periodText ?? "",
-        new RegExp(`${expectedFromDate},?\\s+${expectedFromTime}`),
-      );
-      assert.match(
-        periodText ?? "",
-        new RegExp(`${expectedToDate},?\\s+${expectedToTime}`),
-      );
-      assert.ok(periodText?.endsWith("(hasta exclusivo)"));
-    }
+    const periodText = await effectivePeriod.textContent();
+    assert.match(
+      periodText ?? "",
+      new RegExp(`${expectedFromDate},?\\s+${expectedFromTime}`),
+    );
+    assert.match(
+      periodText ?? "",
+      new RegExp(`${expectedToDate},?\\s+${expectedToTime}`),
+    );
+    assert.ok(periodText?.endsWith("(hasta exclusivo)"));
 
     const observed = this.page.getByTestId("funnel-observation-date");
     await observed.waitFor({ state: "visible", timeout: 10000 });

@@ -1,9 +1,9 @@
 export const navigationTranslations = {
   brand: "Lo Resuelvo",
   area: "Administración",
-  users: "Directorio de Usuarios",
-  categories: "Catálogo de Rubros",
-  operations: "Centro de Operaciones",
+  users: "Usuarios",
+  categories: "Rubros",
+  operations: "Operaciones",
   payments: "Pagos",
   metrics: "Métricas",
   claims: "Reclamos",

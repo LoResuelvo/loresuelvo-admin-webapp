@@ -1,5 +1,5 @@
 export const usersTranslations = {
-  title: "Directorio de Usuarios",
+  title: "Usuarios",
   tabs: {
     consumers: "Consumidores",
     providers: "Prestadores",
@@ -11,10 +11,7 @@ export const usersTranslations = {
   table: {
     caption: "Listado de consumidores",
     columns: {
-      photo: "Foto",
-      name: "Nombre",
-      surname: "Apellido",
-      email: "Correo",
+      user: "Usuario",
       createdOn: "Fecha de registro",
     },
   },
@@ -41,10 +38,7 @@ export const usersTranslations = {
     table: {
       caption: "Listado de prestadores",
       columns: {
-        photo: "Foto",
-        name: "Nombre",
-        surname: "Apellido",
-        email: "Correo",
+        user: "Usuario",
         category: "Rubro",
         coverageZones: "Zonas de cobertura",
         verificationStatus: "Estado de verificación",

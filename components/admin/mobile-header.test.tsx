@@ -37,8 +37,8 @@ describe("MobileHeader", () => {
     expect(screen.getByRole("dialog")).toBeVisible();
     expect(screen.getByText("Ana Pérez")).toBeVisible();
     expect(screen.getByText("ana@example.com")).toBeVisible();
-    expect(screen.getByRole("link", { name: "Directorio de Usuarios" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "Catálogo de Rubros" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Usuarios" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Rubros" })).toBeVisible();
 
     const logoutOption = screen.getByRole("button", { name: "Cerrar sesión" });
     expect(logoutOption).toBeVisible();
@@ -73,7 +73,7 @@ describe("MobileHeader", () => {
     await user.click(screen.getByTestId("modal-backdrop"));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     await user.click(trigger);
-    await user.click(screen.getByRole("link", { name: "Directorio de Usuarios" }));
+    await user.click(screen.getByRole("link", { name: "Usuarios" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 

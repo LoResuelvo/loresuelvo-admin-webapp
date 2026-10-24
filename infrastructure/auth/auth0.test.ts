@@ -27,7 +27,7 @@ describe("administrator authentication configuration", () => {
         connection: "admin-users",
         scope: "openid profile email offline_access",
       },
-      signInReturnToPath: "/admin",
+      signInReturnToPath: "/operaciones",
       enableAccessTokenEndpoint: false,
       session: expect.objectContaining({ cookie: expect.objectContaining({ name: "__admin_session" }) }),
       transactionCookie: expect.objectContaining({ prefix: "__admin_transaction_" }),
@@ -68,7 +68,7 @@ describe("administrator authentication configuration", () => {
   });
 });
 
-it("returns callback failures safely and keeps successful callbacks on the administrator route", async () => {
+it("returns callback failures safely and defaults successful callbacks to operations", async () => {
   vi.stubEnv("APP_URL", "https://admin.example.com");
   vi.stubEnv("AUTH0_DOMAIN", "tenant.example.com");
   vi.stubEnv("AUTH0_CLIENT_ID", "admin-client");
@@ -91,6 +91,20 @@ it("returns callback failures safely and keeps successful callbacks on the admin
     tokenSet: { accessToken: "test-access-token", expiresAt: 9999999999 },
     internal: { sid: "session-id", createdAt: 1 },
   });
-  expect(success.headers.get("location")).toBe("https://admin.example.com/admin");
+  expect(success.headers.get("location")).toBe("https://admin.example.com/operaciones");
   expect(success.headers.get("cache-control")).toBe("no-store");
+
+  const returned = await callback(null, { returnTo: "/reclamos?status=open" }, {
+    user: { sub: "auth0|admin" },
+    tokenSet: { accessToken: "test-access-token", expiresAt: 9999999999 },
+    internal: { sid: "session-id", createdAt: 1 },
+  });
+  expect(returned.headers.get("location")).toBe("https://admin.example.com/reclamos?status=open");
+
+  const malformed = await callback(null, { returnTo: "http://[" }, {
+    user: { sub: "auth0|admin" },
+    tokenSet: { accessToken: "test-access-token", expiresAt: 9999999999 },
+    internal: { sid: "session-id", createdAt: 1 },
+  });
+  expect(malformed.headers.get("location")).toBe("https://admin.example.com/operaciones");
 });

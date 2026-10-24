@@ -4,6 +4,12 @@ import { ROUTES } from "@/lib/routes";
 import { CustomWorld } from "../support/world";
 import { anAdminProfile, stubAdminAccess, stubRefreshedAdminAccess } from "../support/admin-access";
 import { observeSignInRedirect } from "../support/login-navigation";
+import { operationPage, sampleOperations } from "../operations/operations_fixtures";
+
+async function stubOperationsForAdminLanding(world: CustomWorld) {
+  await world.stubGet("/admin/operations", operationPage(sampleOperations));
+  await world.stubGet("/operations", operationPage(sampleOperations));
+}
 
 
 Given("que no tengo una sesión activa", async function (this: CustomWorld) {
@@ -71,6 +77,7 @@ Given("que inicié sesión exitosamente en Auth0", async function (this: CustomW
 
 Given("tengo una cuenta de administrador habilitada con nombre {string}, apellido {string} y correo {string}", async function (this: CustomWorld, firstName: string, lastName: string, email: string) {
   await stubAdminAccess(this, anAdminProfile({ firstName, lastName, email }));
+  await stubOperationsForAdminLanding(this);
 });
 
 Then("veo mi nombre {string}, apellido {string} y correo {string}", async function (this: CustomWorld, firstName: string, lastName: string, email: string) {
@@ -79,7 +86,7 @@ Then("veo mi nombre {string}, apellido {string} y correo {string}", async functi
 });
 
 Then("puedo acceder al área de administración", async function (this: CustomWorld) {
-  await this.page.getByRole("region", { name: "Área de administración" }).waitFor();
+  await this.page.getByRole("region", { name: "Operaciones" }).waitFor();
 });
 
 
@@ -102,6 +109,7 @@ Given("que tengo una sesión activa", async function (this: CustomWorld) {
 
 Given("tengo una cuenta de administrador habilitada en Lo Resuelvo", async function (this: CustomWorld) {
   await stubRefreshedAdminAccess(this);
+  await stubOperationsForAdminLanding(this);
 });
 
 Given("estoy en el área de administración", async function (this: CustomWorld) {
@@ -114,7 +122,7 @@ When("recargo la página", async function (this: CustomWorld) {
 });
 
 Then("vuelvo a acceder al área de administración con mi identidad verificada", async function (this: CustomWorld) {
-  await this.page.getByRole("region", { name: "Área de administración" }).waitFor();
+  await this.page.getByRole("region", { name: "Operaciones" }).waitFor();
   await this.page.getByRole("banner").getByText("Ana Pérez García", { exact: true }).waitFor();
   await this.page.getByRole("banner").getByText("ana@example.com", { exact: true }).waitFor();
   assert.equal(this.adminAccessRequestCount, 2);
@@ -184,11 +192,15 @@ Given("el servicio de consulta de mi perfil vuelve a estar disponible", async fu
 });
 
 When("hago clic en {string}", async function (this: CustomWorld, label: string) {
-  await this.page.getByRole("button", { name: label, exact: true }).click();
+  const button = this.page.getByRole("button", { name: label, exact: true });
+  const target = (await button.count()) > 0
+    ? button
+    : this.page.getByRole("link", { name: label, exact: true });
+  await target.click();
 });
 
 Then("accedo al área de administración con mi identidad verificada", async function (this: CustomWorld) {
-  await this.page.getByRole("region", { name: "Área de administración" }).waitFor();
+  await this.page.getByRole("region", { name: "Operaciones" }).waitFor();
   await this.page.getByRole("banner").getByText("Ana Pérez", { exact: true }).waitFor();
   await this.page.getByRole("banner").getByText("ana@example.com", { exact: true }).waitFor();
   assert.equal(this.adminAccessRequestCount, 1);

@@ -36,6 +36,10 @@ When("ingreso al área de administración", async function (this: CustomWorld) {
   await this.page.goto(new URL(ROUTES.admin, this.appUrl).href);
 });
 
+Then("accedo directamente a Operaciones", async function (this: CustomWorld) {
+  await this.page.waitForURL((url) => url.pathname === ROUTES.operations);
+});
+
 When("navego a la sección {string}", async function (this: CustomWorld, sectionName: string) {
   await this.page.getByRole("link", { name: sectionName, exact: true }).click();
 });
@@ -58,7 +62,7 @@ Then(
 
 Then("accedo a la sección de rubros", async function (this: CustomWorld) {
   await this.page.waitForURL((url) => url.pathname === ROUTES.categories);
-  await this.page.getByRole("region", { name: "Catálogo de Rubros" }).waitFor();
+  await this.page.getByRole("region", { name: translations.categories.title }).waitFor();
 });
 
 Then(

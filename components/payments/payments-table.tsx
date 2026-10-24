@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { PaymentIntentSummary } from "./types";
 import { formatMoney } from "./format";
-import { PaymentFinancialDetails } from "./payment-financial-details";
+import { PaymentDetailsDialog } from "./payment-details-dialog";
 import { PaymentPurposeBadge } from "./payment-purpose-badge";
 import { PaymentStatusBadge } from "./payment-status-badge";
 import { translations } from "@/infrastructure/i18n/translations";
@@ -29,31 +29,26 @@ function getAnomalyMessages(payment: PaymentIntentSummary): string[] {
   )))];
 }
 
-function PaymentAmountSummary({ payment }: { payment: PaymentIntentSummary }) {
-  const copy = translations.payments.summary;
-
+function PaymentParticipant({
+  role,
+  name,
+  id,
+  href,
+}: {
+  role: string;
+  name?: string;
+  id: number;
+  href: string;
+}) {
   return (
-    <div className="space-y-1 text-right">
-      {payment.summary.approvedAmounts.length === 0 ? (
-        <p className="text-xs text-[#536176]">{copy.noApprovedAmounts}</p>
-      ) : (
-        payment.summary.approvedAmounts.map((amount, index) => (
-          <p key={`${amount.currency}-${index}`} className="whitespace-nowrap">
-            <span className="text-xs text-[#536176]">{copy.approved}: </span>
-            <span className="text-sm font-medium text-[#147560]">
-              {formatMoney(amount.amountCents, amount.currency)}
-            </span>
-          </p>
-        ))
-      )}
-      {payment.summary.pendingAmount && (
-        <p className="whitespace-nowrap">
-          <span className="text-xs text-[#536176]">{copy.pending}: </span>
-          <span className="text-sm font-medium text-amber-800">
-            {formatMoney(payment.summary.pendingAmount.amountCents, payment.summary.pendingAmount.currency)}
-          </span>
-        </p>
-      )}
+    <div className="min-w-0">
+      <span className="block text-[11px] font-medium text-[#536176]">{role}</span>
+      <Link
+        href={href}
+        className="block truncate font-medium text-[#147560] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]"
+      >
+        {name ?? `${role} #${id}`}
+      </Link>
     </div>
   );
 }
@@ -73,84 +68,49 @@ export function PaymentsTable({ items, className = "" }: PaymentsTableProps) {
 
   return (
     <div className={`overflow-x-auto rounded-xl border border-[#1A2B48]/10 bg-white shadow-sm ${className}`.trim()}>
-      <table className="w-full text-left text-sm text-[#1A2B48]">
+      <table aria-label={table.ariaLabel} className="w-full min-w-[700px] table-fixed text-left text-sm text-[#1A2B48]">
         <thead className="border-b border-[#1A2B48]/10 bg-[#F4F1EE]/50 text-xs font-semibold uppercase tracking-wider text-[#536176]">
           <tr>
-            <th scope="col" className="px-4 py-3.5">{table.reference}</th>
-            <th scope="col" className="px-4 py-3.5">{table.purpose}</th>
-            <th scope="col" className="px-4 py-3.5">{table.consumer}</th>
-            <th scope="col" className="px-4 py-3.5">{table.provider}</th>
-            <th scope="col" className="px-4 py-3.5 text-right">{table.total}</th>
-            <th scope="col" className="px-4 py-3.5 text-right">{table.financialSummary}</th>
-            <th scope="col" className="px-4 py-3.5">{table.status}</th>
-            <th scope="col" className="px-4 py-3.5 whitespace-nowrap">{table.date}</th>
-            <th scope="col" className="px-4 py-3.5">{table.details}</th>
+            <th scope="col" className="px-3 py-3">{table.date}</th>
+            <th scope="col" className="px-3 py-3">{table.participants}</th>
+            <th scope="col" className="px-3 py-3">{table.purpose}</th>
+            <th scope="col" className="px-3 py-3 text-right">{table.total}</th>
+            <th scope="col" className="px-3 py-3">{table.status}</th>
+            <th scope="col" className="px-3 py-3">{table.details}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-[#1A2B48]/5">
           {items.map((item) => (
             <tr key={item.id} className="transition-colors hover:bg-[#F4F1EE]/30">
-              <td className="px-4 py-3.5 font-medium whitespace-nowrap">
-                <span className="block text-sm text-[#1A2B48]">
-                  {table.proposal} #{item.serviceProposalId}
-                </span>
-                <span className="block font-mono text-[11px] text-[#536176]">
-                  {table.intentId}: <span>{item.id}</span>
-                </span>
-                {item.operationId && (
-                  <Link
-                    href={ROUTES.operationDetail(item.operationId)}
-                    className="mt-1 inline-block font-mono text-xs text-[#147560] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]"
-                  >
-                    {table.operation}: {item.operationId}
-                  </Link>
-                )}
+              <td className="px-3 py-3 text-xs text-[#536176]">
+                <time dateTime={item.createdOn}>{formatDate(item.createdOn)}</time>
               </td>
-              <td className="px-4 py-3.5 whitespace-nowrap">
+              <td className="space-y-2 px-3 py-3">
+                <PaymentParticipant
+                  role={table.consumer}
+                  name={item.consumerName}
+                  id={item.consumerId}
+                  href={ROUTES.consumerDetail(item.consumerId)}
+                />
+                <PaymentParticipant
+                  role={table.provider}
+                  name={item.providerName}
+                  id={item.providerId}
+                  href={ROUTES.providerDetail(item.providerId)}
+                />
+              </td>
+              <td className="px-3 py-3">
                 <PaymentPurposeBadge purpose={item.purpose} />
               </td>
-              <td className="px-4 py-3.5 whitespace-nowrap">
-                <Link
-                  href={ROUTES.consumerDetail(item.consumerId)}
-                  className="font-medium text-[#147560] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]"
-                >
-                  {item.consumerName ?? `${table.consumer} #${item.consumerId}`}
-                </Link>
-                {item.consumerName && (
-                  <span className="block text-xs text-[#536176]">#{item.consumerId}</span>
-                )}
-              </td>
-              <td className="px-4 py-3.5 whitespace-nowrap">
-                <Link
-                  href={ROUTES.providerDetail(item.providerId)}
-                  className="font-medium text-[#147560] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]"
-                >
-                  {item.providerName ?? `${table.provider} #${item.providerId}`}
-                </Link>
-                {item.providerName && (
-                  <span className="block text-xs text-[#536176]">#{item.providerId}</span>
-                )}
-              </td>
-              <td className="px-4 py-3.5 text-right font-semibold whitespace-nowrap">
+              <td className="px-3 py-3 text-right font-semibold whitespace-nowrap">
                 {formatMoney(item.totalAmountCents, item.currency)}
               </td>
-              <td className="px-4 py-3.5 text-right">
-                <PaymentAmountSummary payment={item} />
-              </td>
-              <td className="px-4 py-3.5 whitespace-nowrap">
+              <td className="px-3 py-3">
                 <PaymentStatusBadge status={item.status} />
                 <PaymentAnomalyAlert messages={getAnomalyMessages(item)} />
               </td>
-              <td className="px-4 py-3.5 whitespace-nowrap text-xs text-[#536176]">
-                {formatDate(item.createdOn)}
-              </td>
-              <td className="px-4 py-3.5 align-top">
-                <details>
-                  <summary className="cursor-pointer rounded-md font-medium text-[#147560] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]">
-                    {table.showDetails}
-                  </summary>
-                  <PaymentFinancialDetails payment={item} />
-                </details>
+              <td className="px-3 py-3 align-top">
+                <PaymentDetailsDialog payment={item} />
               </td>
             </tr>
           ))}

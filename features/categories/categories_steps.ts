@@ -18,7 +18,7 @@ When("ingreso a la sección de rubros", async function (this: CustomWorld) {
 });
 
 Then(
-  "veo los rubros ordenados alfabéticamente con su identificador y nombre",
+  "veo los rubros ordenados alfabéticamente por nombre, sin identificadores en la lista",
   async function (this: CustomWorld) {
     const table = this.page.getByRole("table");
     await table.waitFor();
@@ -26,17 +26,13 @@ Then(
     await rows.first().waitFor();
     assert.equal(await rows.count(), 3);
 
-    const cells0 = rows.nth(0).locator("td");
-    assert.equal((await cells0.nth(0).innerText()).trim(), "1");
-    assert.equal((await cells0.nth(1).innerText()).trim(), "Albañilería");
-
-    const cells1 = rows.nth(1).locator("td");
-    assert.equal((await cells1.nth(0).innerText()).trim(), "2");
-    assert.equal((await cells1.nth(1).innerText()).trim(), "Electricidad");
-
-    const cells2 = rows.nth(2).locator("td");
-    assert.equal((await cells2.nth(0).innerText()).trim(), "3");
-    assert.equal((await cells2.nth(1).innerText()).trim(), "Plomería");
+    const expectedNames = ["Albañilería", "Electricidad", "Plomería"];
+    for (const [index, expectedName] of expectedNames.entries()) {
+      const row = rows.nth(index);
+      const rowText = await row.innerText();
+      assert.ok(rowText.includes(expectedName));
+      assert.doesNotMatch(rowText, /\b\d+\b/);
+    }
   },
 );
 

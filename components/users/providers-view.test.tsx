@@ -32,21 +32,17 @@ describe("ProvidersView", () => {
     },
   ];
 
-  it("renders providers table with columns, names, rubro, coverage zones and verification badges", () => {
+  it("renders provider identity links, rubro, coverage zones and verification badges", () => {
     render(<ProvidersView providers={sampleProviders} />);
 
-    expect(screen.getByRole("columnheader", { name: "Foto" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "Nombre" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "Apellido" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "Correo" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Usuario" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Rubro" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Zonas de cobertura" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Estado de verificación" })).toBeInTheDocument();
 
     const table = screen.getByRole("table");
     expect(screen.getByAltText("Juan Gómez")).toBeInTheDocument();
-    expect(within(table).getByText("Juan")).toBeInTheDocument();
-    expect(within(table).getByText("Gómez")).toBeInTheDocument();
+    expect(within(table).getByRole("link", { name: "Juan Gómez" })).toHaveAttribute("href", "/usuarios/prestadores/1");
     expect(within(table).getByText("juan@example.com")).toBeInTheDocument();
     expect(within(table).getByText("Plomería")).toBeInTheDocument();
     expect(within(table).getByText("Comuna 6, Comuna 14")).toBeInTheDocument();
@@ -54,8 +50,7 @@ describe("ProvidersView", () => {
 
     // Laura without photo displays initials LD
     expect(screen.getByLabelText("Laura Díaz")).toHaveTextContent("LD");
-    expect(within(table).getByText("Laura")).toBeInTheDocument();
-    expect(within(table).getByText("Díaz")).toBeInTheDocument();
+    expect(within(table).getByRole("link", { name: "Laura Díaz" })).toHaveAttribute("href", "/usuarios/prestadores/2");
     expect(within(table).getByText("laura@example.com")).toBeInTheDocument();
     expect(within(table).getByText("Electricidad")).toBeInTheDocument();
     expect(within(table).getByText("Comuna 1")).toBeInTheDocument();

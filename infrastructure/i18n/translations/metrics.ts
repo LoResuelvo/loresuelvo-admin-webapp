@@ -1,5 +1,5 @@
 export const metricsTranslations = {
-  title: "Métricas de Conversión Operativa",
+  title: "Métricas",
   subtitle: "Embudo de servicios por origen y demoras operativas",
   overview: {
     ariaLabel: "Resumen de conversión global",
@@ -11,6 +11,7 @@ export const metricsTranslations = {
     },
     rate: "Tasa global",
     numerator: "Finalizaciones reportadas",
+    numeratorSingular: "finalización reportada",
     denominator: "Base inicial",
   },
   source: {
@@ -34,9 +35,14 @@ export const metricsTranslations = {
     aiTitle: "Solicitudes de Origen IA",
     manualTitle: "Solicitudes Manuales",
     periodNotice: "El período selecciona la creación de las solicitudes. Los avances posteriores observados se reflejan al consultar.",
+    periodDetailsSummary: "Cómo se interpreta el período",
     categoryCriterion: "Criterio de rubro: Rubro actual del prestador",
   },
   initialUnitLabel: "Unidad inicial",
+  methodologySummary: "Cómo se calcula",
+  periodDetailsSummary: "Período y actualización",
+  timezoneLabel: "Zona horaria",
+  stepsDetailsSummary: "Ver detalle por etapa",
   effectivePeriod: "Período efectivo",
   effectivePeriodExclusiveSuffix: "(hasta exclusivo)",
   observedAt: "Fecha de observación",

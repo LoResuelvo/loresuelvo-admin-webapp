@@ -364,7 +364,7 @@ Then(
     const headerText = await header.innerText();
     assert.ok(headerText.includes("Ana") && headerText.includes("Martínez"));
     assert.ok(!headerText.includes("ana.martinez@example.com"));
-    assert.ok(headerText.includes("Información no disponible"));
+    assert.ok(!headerText.includes("Información no disponible"));
     assert.ok(headerText.includes("Carlos") && headerText.includes("López"));
     assert.ok(!headerText.includes("carlos.lopez@example.com"));
     assert.ok(headerText.includes("Plomería"));
@@ -500,8 +500,17 @@ Then(
         orderText.includes("2026") ||
         orderText.includes("09:00"),
     );
+
   },
 );
+
+Then("la advertencia muestra la fecha programada registrada", async function (this: CustomWorld) {
+  const scheduleWarning = this.page.getByRole("alert").filter({ hasText: /programad|vencid|fecha/i });
+  await scheduleWarning.waitFor({ state: "visible", timeout: 5000 });
+  const warningText = await scheduleWarning.innerText();
+  assert.ok(warningText.includes("25/09/2026") || (warningText.includes("25") && warningText.includes("2026")));
+  assert.match(warningText, /programada|en progreso/i);
+});
 
 
 Given(

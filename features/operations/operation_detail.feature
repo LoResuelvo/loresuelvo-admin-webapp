@@ -25,6 +25,7 @@ Feature: Ficha unificada de contratación y trazabilidad operativa
     Given que la contratación posee un presupuesto acordado y una orden programada
     When reviso la sección de presupuesto y orden en la ficha
     Then visualizo el valor total acordado, el porcentaje de seña, las fechas comprometidas y el estado de la orden
+    And la advertencia muestra la fecha programada registrada
 
   Scenario: 05-FCH Visualizar reporte de cierre del prestador y reseña del cliente
     Given que el prestador concluyó el trabajo y el cliente dejó su valoración

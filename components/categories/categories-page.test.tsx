@@ -10,11 +10,11 @@ describe("CategoriesPage", () => {
     { id: 3, name: "Plomería", enabled: true, version: 1 },
   ];
 
-  it("renders category catalog with ID and Name columns and rows", () => {
+  it("renders category names and status without exposing IDs in the main table", () => {
     render(<CategoriesPage categories={sampleCategories} />);
 
-    expect(screen.getByRole("heading", { name: "Catálogo de Rubros", level: 1 })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "ID" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Rubros", level: 1 })).toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "ID" })).not.toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Nombre" })).toBeInTheDocument();
 
     const rows = screen.getAllByRole("row");

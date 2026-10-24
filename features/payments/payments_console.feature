@@ -6,10 +6,10 @@ Feature: Consola de pagos y desglose económico
   Background:
     Given que he iniciado sesión en el panel de administración
 
-  Scenario: 01-PAY Visualizar pagos e IDs disponibles con desglose económico
+  Scenario: 01-PAY Visualizar datos principales de pagos y su desglose económico
     Given que existen transacciones registradas de señas y saldos en el sistema
     When accedo a la sección de pagos
-    Then visualizo el propósito, IDs de cliente y prestador, total del pago, neto del prestador, comisión de plataforma y estado de intención
+    Then visualizo el propósito, total y estado de intención en el listado, y consulto en el detalle los IDs, neto, comisión y desglose económico
 
   Scenario: 02-PAY Diferenciar visualmente intención de checkout de pago acreditado
     Given que existe una transacción con checkout iniciado pero pendiente de cobro

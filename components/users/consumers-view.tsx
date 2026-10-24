@@ -118,32 +118,33 @@ function ConsumerRow({ consumer }: { consumer: Consumer }) {
 
   return (
     <tr className="transition-colors hover:bg-[#F4F1EE]/30">
-      <td className="px-6 py-4 whitespace-nowrap">
-        {consumer.profilePhotoUrl ? (
-          <img
-            src={consumer.profilePhotoUrl}
-            alt={`${consumer.name} ${consumer.surname}`}
-            className="size-10 rounded-full object-cover border border-[#1A2B48]/10"
-          />
-        ) : (
-          <div
-            aria-label={`${consumer.name} ${consumer.surname}`}
-            className="flex size-10 items-center justify-center rounded-full bg-[#1A2B48]/10 font-semibold text-xs text-[#1A2B48]"
-          >
-            {initials}
+      <td className="px-6 py-4">
+        <div className="flex min-w-0 items-center gap-3">
+          {consumer.profilePhotoUrl ? (
+            <img
+              src={consumer.profilePhotoUrl}
+              alt={`${consumer.name} ${consumer.surname}`}
+              className="size-10 shrink-0 rounded-full border border-[#1A2B48]/10 object-cover"
+            />
+          ) : (
+            <div
+              aria-label={`${consumer.name} ${consumer.surname}`}
+              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#1A2B48]/10 font-semibold text-xs text-[#1A2B48]"
+            >
+              {initials}
+            </div>
+          )}
+          <div className="min-w-0">
+            <Link
+              href={ROUTES.consumerDetail(consumer.id)}
+              className="block truncate font-semibold text-[#147560] hover:underline"
+            >
+              {consumer.name} {consumer.surname}
+            </Link>
+            <p className="mt-0.5 break-all text-xs text-[#536176]">{consumer.email}</p>
           </div>
-        )}
+        </div>
       </td>
-      <td className="px-6 py-4 font-medium text-[#1A2B48]">
-        <Link
-          href={ROUTES.consumerDetail(consumer.id)}
-          className="hover:underline text-[#147560] font-semibold"
-        >
-          {consumer.name}
-        </Link>
-      </td>
-      <td className="px-6 py-4 font-medium text-[#1A2B48]">{consumer.surname}</td>
-      <td className="px-6 py-4 text-[#536176]">{consumer.email}</td>
       <td className="px-6 py-4 text-[#536176]">{formatDate(consumer.createdOn)}</td>
     </tr>
   );
@@ -153,14 +154,11 @@ function ConsumersTable({ consumers }: { consumers: readonly Consumer[] }) {
   const { columns } = translations.users.table;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#1A2B48]/10 bg-white shadow-xs">
+    <div className="overflow-x-auto rounded-2xl border border-[#1A2B48]/10 bg-white shadow-xs">
       <table aria-label={translations.users.table.caption} className="w-full text-left text-sm text-[#1A2B48]">
         <thead className="border-b border-[#1A2B48]/10 bg-[#F4F1EE]/50 text-xs font-semibold uppercase tracking-wider text-[#1A2B48]/60">
           <tr>
-            <th scope="col" className="px-6 py-4 w-20">{columns.photo}</th>
-            <th scope="col" className="px-6 py-4">{columns.name}</th>
-            <th scope="col" className="px-6 py-4">{columns.surname}</th>
-            <th scope="col" className="px-6 py-4">{columns.email}</th>
+            <th scope="col" className="px-6 py-4">{columns.user}</th>
             <th scope="col" className="px-6 py-4">{columns.createdOn}</th>
           </tr>
         </thead>

@@ -13,11 +13,11 @@ describe("NavLink", () => {
     mockPathname = "/rubros";
     render(
       <NavLink href="/rubros" activeClassName="bg-amber-100 font-bold" className="text-gray-700">
-        Catálogo de Rubros
+        Rubros
       </NavLink>,
     );
 
-    const link = screen.getByRole("link", { name: "Catálogo de Rubros" });
+    const link = screen.getByRole("link", { name: "Rubros" });
     expect(link).toHaveAttribute("aria-current", "page");
     expect(link).toHaveAttribute("href", "/rubros");
     expect(link.className).toContain("bg-amber-100 font-bold");
@@ -27,11 +27,11 @@ describe("NavLink", () => {
     mockPathname = "/admin";
     render(
       <NavLink href="/rubros" activeClassName="bg-amber-100 font-bold" className="text-gray-700">
-        Catálogo de Rubros
+        Rubros
       </NavLink>,
     );
 
-    const link = screen.getByRole("link", { name: "Catálogo de Rubros" });
+    const link = screen.getByRole("link", { name: "Rubros" });
     expect(link).not.toHaveAttribute("aria-current");
     expect(link.className).not.toContain("bg-amber-100");
   });

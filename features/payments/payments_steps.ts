@@ -23,7 +23,7 @@ When("accedo a la sección de pagos", async function (this: CustomWorld) {
 });
 
 Then(
-  "visualizo el propósito, IDs de cliente y prestador, total del pago, neto del prestador, comisión de plataforma y estado de intención",
+  "visualizo el propósito, total y estado de intención en el listado, y consulto en el detalle los IDs, neto, comisión y desglose económico",
   async function (this: CustomWorld) {
     const table = this.page.getByRole("table");
     await table.waitFor();
@@ -32,9 +32,17 @@ Then(
     assert.equal(await rows.count(), 2);
 
     const row0 = rows.nth(0);
-    await row0.getByText("Ver desglose y referencias").click();
-    const text0 = await row0.innerText();
-    assert.ok(text0.includes("Seña"));
+    const summary0 = await row0.innerText();
+    assert.ok(summary0.includes("Seña"));
+    assert.ok(summary0.includes("20.000") || summary0.includes("20000"));
+    assert.ok(summary0.includes("Pagado"));
+    await row0.getByRole("link", { name: "Cliente #1", exact: true }).waitFor();
+    await row0.getByRole("link", { name: "Prestador #2", exact: true }).waitFor();
+    await row0.getByRole("button", { name: "Ver desglose y referencias" }).click();
+    const detail0 = this.page.getByRole("dialog");
+    await detail0.waitFor({ state: "visible" });
+    await detail0.getByRole("heading", { name: "Detalle del pago" }).waitFor();
+    const text0 = await detail0.innerText();
     assert.ok(text0.includes("#1"));
     assert.ok(text0.includes("#2"));
     assert.ok(text0.includes("20.000") || text0.includes("20000"));
@@ -42,12 +50,21 @@ Then(
     assert.ok(text0.includes("No representa una liquidación confirmada."));
     assert.ok(text0.includes("17.000") || text0.includes("17000"));
     assert.ok(text0.includes("3.000") || text0.includes("3000"));
-    assert.ok(text0.includes("Pagado"));
+    await this.page.keyboard.press("Escape");
+    await detail0.waitFor({ state: "hidden" });
 
     const row1 = rows.nth(1);
-    await row1.getByText("Ver desglose y referencias").click();
-    const text1 = await row1.innerText();
-    assert.ok(text1.includes("Saldo del servicio"));
+    const summary1 = await row1.innerText();
+    assert.ok(summary1.includes("Saldo del servicio"));
+    assert.ok(summary1.includes("50.000") || summary1.includes("50000"));
+    assert.ok(summary1.includes("Pagado"));
+    await row1.getByRole("link", { name: "Cliente #3", exact: true }).waitFor();
+    await row1.getByRole("link", { name: "Prestador #4", exact: true }).waitFor();
+    await row1.getByRole("button", { name: "Ver desglose y referencias" }).click();
+    const detail1 = this.page.getByRole("dialog");
+    await detail1.waitFor({ state: "visible" });
+    await detail1.getByRole("heading", { name: "Detalle del pago" }).waitFor();
+    const text1 = await detail1.innerText();
     assert.ok(text1.includes("#3"));
     assert.ok(text1.includes("#4"));
     assert.ok(text1.includes("50.000") || text1.includes("50000"));
@@ -55,7 +72,8 @@ Then(
     assert.ok(text1.includes("No representa una liquidación confirmada."));
     assert.ok(text1.includes("42.500") || text1.includes("42500"));
     assert.ok(text1.includes("7.500") || text1.includes("7500"));
-    assert.ok(text1.includes("Pagado"));
+    await this.page.keyboard.press("Escape");
+    await detail1.waitFor({ state: "hidden" });
   },
 );
 
@@ -133,10 +151,12 @@ Then(
     await this.page.waitForFunction(() => document.querySelectorAll("tbody tr").length === 1);
     const rows = this.page.locator("tbody tr");
     assert.equal(await rows.count(), 1);
-    const text = await rows.first().innerText();
-    assert.ok(text.includes("d9428888-122b-11e1-b85c-61cd3cbb3210"));
-    assert.ok(text.includes("#3"));
-    assert.ok(!text.includes("0f8fad5b-d9cb-469f-a165-70867728950e"));
+    await rows.first().getByRole("link", { name: "Cliente #3", exact: true }).waitFor();
+    await rows.first().getByRole("button", { name: "Ver desglose y referencias" }).click();
+    const detail = this.page.getByRole("dialog");
+    await detail.waitFor({ state: "visible" });
+    await detail.getByText("d9428888-122b-11e1-b85c-61cd3cbb3210", { exact: true }).waitFor();
+    assert.equal(await detail.getByText("0f8fad5b-d9cb-469f-a165-70867728950e", { exact: true }).count(), 0);
   },
 );
 

@@ -5,8 +5,8 @@ export const claimsTranslations = {
   nextPage: "Página siguiente",
   page: "Página",
   paginationLabel: "Páginas de reclamos",
-  title: "Expediente de Reclamos",
-  subtitle: "Gestión de controversias operativas, evidencias y dictámenes de mediación",
+  title: "Reclamos",
+  subtitle: "Revisá los reclamos y su estado de resolución.",
   table: {
     ariaLabel: "Listado de reclamos e incidentes operativos",
     date: "Fecha",

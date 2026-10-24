@@ -1,6 +1,7 @@
 import "server-only";
 import { NextRequest, NextResponse } from "next/server";
 import { ROUTES } from "@/lib/routes";
+import { getSafeReturnToPath } from "@/lib/safe-return-to";
 import { Auth0Client } from "@auth0/nextjs-auth0/server";
 
 let client: Auth0Client | undefined;
@@ -35,9 +36,11 @@ export function getAuth0(): Auth0Client {
       connection: getAuth0Connection(),
       scope: "openid profile email offline_access",
     },
-    signInReturnToPath: ROUTES.admin,
-    onCallback: async (error) => {
-      const destination = new URL(error ? ROUTES.home : ROUTES.admin, APP_URL);
+    signInReturnToPath: ROUTES.operations,
+    onCallback: async (error, { returnTo }) => {
+      const appUrl = new URL(APP_URL);
+      const safeReturnTo = error ? null : getSafeReturnToPath(returnTo, APP_URL);
+      const destination = new URL(safeReturnTo ?? (error ? ROUTES.home : ROUTES.operations), appUrl);
       if (error) destination.searchParams.set("auth", "incomplete");
       const response = NextResponse.redirect(destination);
       response.headers.set("Cache-Control", "no-store");

@@ -107,6 +107,37 @@ function useOperationDetail(id: string) {
   return { operation, isLoading, error, isNotFound, isForbidden, retry: loadOperation };
 }
 
+function getOverdueSchedule(
+  order: UnifiedOperationDetail["order"],
+  now = Date.now(),
+): { date: string; status: string } | undefined {
+  if (
+    !order?.scheduledFor ||
+    (order.status !== "scheduled" && order.status !== "in_progress")
+  ) {
+    return undefined;
+  }
+
+  const scheduledTimestamp = Date.parse(order.scheduledFor);
+  if (!Number.isFinite(scheduledTimestamp) || scheduledTimestamp >= now) return undefined;
+
+  return {
+    date: new Intl.DateTimeFormat("es-AR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+      timeZone: "America/Argentina/Buenos_Aires",
+    }).format(scheduledTimestamp),
+    status:
+      translations.operations.order.status[
+        order.status as keyof typeof translations.operations.order.status
+      ] ?? order.status,
+  };
+}
+
 function OperationDetailContent({
   operation,
 }: {
@@ -131,6 +162,7 @@ function OperationDetailContent({
 
   const consumerFullName = `${operation.consumer.name} ${operation.consumer.surname}`.trim();
   const providerFullName = `${operation.provider.name} ${operation.provider.surname}`.trim();
+  const overdueSchedule = getOverdueSchedule(operation.order);
 
   return (
     <div className="space-y-6">
@@ -141,6 +173,8 @@ function OperationDetailContent({
         consumer={operation.consumer}
         provider={operation.provider}
         currentAddress={operation.currentAddress}
+        overdueScheduledDate={overdueSchedule?.date}
+        overdueOrderStatus={overdueSchedule?.status}
         onInspectChat={() => setIsChatDialogOpen(true)}
       />
       {operation.request && <OperationRequestCard request={operation.request} />}

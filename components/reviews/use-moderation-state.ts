@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   applyModerationResult,
+  matchesReviewFilter,
   updateModeratedReviews,
   type InfractionCategory,
   type ReviewModerationCommand,
@@ -40,9 +41,11 @@ interface ModerationState {
 }
 
 function defaultState(reviews?: ReviewModerationItem[], status?: ReviewListFilter): ModerationState {
+  const statusFilter = status ?? "reported";
+
   return {
-    reviews: reviews ?? [],
-    statusFilter: status,
+    reviews: reviews?.filter((review) => matchesReviewFilter(review, statusFilter)) ?? [],
+    statusFilter,
     isLoading: !reviews,
     error: null,
     isForbidden: false,

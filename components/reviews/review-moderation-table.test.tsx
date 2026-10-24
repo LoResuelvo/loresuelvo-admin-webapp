@@ -33,28 +33,30 @@ describe("ReviewModerationTable", () => {
     render(<ReviewModerationTable reviews={mockReviews} />);
 
     expect(screen.getByRole("table", { name: "Listado de reseñas para moderación" })).toBeInTheDocument();
-    for (const heading of ["Consumidor", "Prestador", "Contratación", "Calificación", "Reportes pendientes", "Visibilidad", "Fecha", "Acciones"]) {
+    for (const heading of ["Participantes", "Calificación", "Reportes pendientes", "Visibilidad", "Acciones"]) {
       expect(screen.getByText(heading)).toBeInTheDocument();
     }
 
-    const reportedRow = screen.getByText("work_order-101").closest("tr")!;
+    const reportedRow = screen.getByText("Ana Pérez").closest("tr")!;
     expect(within(reportedRow).getByRole("link", { name: "Ana Pérez" })).toHaveAttribute("href", ROUTES.consumerDetail(10));
     expect(within(reportedRow).getByRole("link", { name: "José García" })).toHaveAttribute("href", ROUTES.providerDetail(20));
-    expect(within(reportedRow).getByText("ID: 10")).toBeInTheDocument();
-    expect(within(reportedRow).getByText("ID: 20")).toBeInTheDocument();
-    expect(within(reportedRow).getAllByText("1")).toHaveLength(2);
+    expect(within(reportedRow).getByText("1 reporte pendiente")).toBeInTheDocument();
     expect(within(reportedRow).getByText("Visible")).toBeInTheDocument();
+    expect(within(reportedRow).getByText("Último reporte:")).toBeInTheDocument();
     expect(within(reportedRow).getByText("25/09/2026")).toBeInTheDocument();
+    expect(within(reportedRow).queryByText("10")).not.toBeInTheDocument();
+    expect(within(reportedRow).queryByText("20")).not.toBeInTheDocument();
+    expect(within(reportedRow).queryByText("work_order-101")).not.toBeInTheDocument();
 
-    const hiddenRow = screen.getByText("work_order-102").closest("tr")!;
-    expect(within(hiddenRow).getByRole("link", { name: "11" })).toHaveAttribute("href", ROUTES.consumerDetail(11));
-    expect(within(hiddenRow).getByRole("link", { name: "21" })).toHaveAttribute("href", ROUTES.providerDetail(21));
+    const hiddenRow = screen.getByRole("button", { name: "Restablecer visibilidad" }).closest("tr")!;
+    expect(within(hiddenRow).getByRole("link", { name: "Consumidor #11" })).toHaveAttribute("href", ROUTES.consumerDetail(11));
+    expect(within(hiddenRow).getByRole("link", { name: "Prestador #21" })).toHaveAttribute("href", ROUTES.providerDetail(21));
     expect(within(hiddenRow).getByText("Ocultada")).toBeInTheDocument();
-    expect(within(hiddenRow).getByText("Restablecer visibilidad")).toBeInTheDocument();
+    expect(within(hiddenRow).getByText("Sin reportes pendientes")).toBeInTheDocument();
 
-    const visibleRow = screen.getByText("work_order-103").closest("tr")!;
+    const visibleRow = screen.getByRole("link", { name: "Consumidor #12" }).closest("tr")!;
     expect(within(visibleRow).getByText("Visible")).toBeInTheDocument();
-    expect(within(visibleRow).getByText("—")).toBeInTheDocument();
+    expect(within(visibleRow).getByText("Sin reportes pendientes")).toBeInTheDocument();
   });
 
   it("renders empty state when no reviews exist", () => {
@@ -72,11 +74,11 @@ describe("ReviewModerationTable", () => {
     const user = userEvent.setup();
     render(<ReviewModerationTable reviews={mockReviews} onSelectReview={handleSelect} />);
 
-    const reportedRow = screen.getByText("work_order-101").closest("tr")!;
+    const reportedRow = screen.getByText("Ana Pérez").closest("tr")!;
     await user.click(reportedRow);
     expect(handleSelect).toHaveBeenLastCalledWith(mockReviews[0]);
 
-    const hiddenRow = screen.getByText("work_order-102").closest("tr")!;
+    const hiddenRow = screen.getByRole("button", { name: "Restablecer visibilidad" }).closest("tr")!;
     hiddenRow.focus();
     await user.keyboard("{Enter}");
     expect(handleSelect).toHaveBeenLastCalledWith(mockReviews[1]);
@@ -102,11 +104,11 @@ describe("ReviewModerationTable", () => {
     const user = userEvent.setup();
     render(<ReviewModerationTable reviews={mockReviews} onHideReview={handleHide} onRestoreReview={handleRestore} />);
 
-    const reportedRow = screen.getByText("work_order-101").closest("tr")!;
+    const reportedRow = screen.getByText("Ana Pérez").closest("tr")!;
     await user.click(within(reportedRow).getByRole("button", { name: "Ocultar reseña" }));
     expect(handleHide).toHaveBeenCalledWith(mockReviews[0]);
 
-    const hiddenRow = screen.getByText("work_order-102").closest("tr")!;
+    const hiddenRow = screen.getByRole("button", { name: "Restablecer visibilidad" }).closest("tr")!;
     await user.click(within(hiddenRow).getByRole("button", { name: "Restablecer visibilidad" }));
     expect(handleRestore).toHaveBeenCalledWith(mockReviews[1]);
   });
@@ -123,7 +125,7 @@ describe("ReviewModerationTable", () => {
       />,
     );
 
-    const row = screen.getByText("work_order-101").closest("tr")!;
+    const row = screen.getByText("Ana Pérez").closest("tr")!;
     await user.click(within(row).getByRole("button", { name: "Ver detalle" }));
 
     expect(handleView).toHaveBeenCalledWith(mockReviews[0]);

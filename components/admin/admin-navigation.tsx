@@ -64,7 +64,7 @@ export function AdminNavigation({ onNavigate }: { onNavigate?: () => void }) {
   const activeLinkClass = "aria-[current=page]:bg-[#1A2B48] aria-[current=page]:text-[#F4F1EE] aria-[current=page]:hover:bg-[#1A2B48] aria-[current=page]:hover:text-[#F4F1EE]";
 
   return (
-    <nav aria-label={copy.mainNav} className="flex-1 p-4 space-y-1">
+    <nav aria-label={copy.mainNav} className="flex-1 p-3 space-y-1">
       <NavLink href={ROUTES.users} className={linkClass} activeClassName={activeLinkClass} onClick={onNavigate}>
         <UsersIcon />
         <span>{copy.users}</span>

@@ -13,6 +13,7 @@ Feature: Lectura y comparación de embudos de contratación
     And veo 60% y 50% de avance desde la etapa anterior con sus denominadores
     And las barras usan exclusivamente el porcentaje sobre el inicio
     And se identifica que la unidad contada es la evaluación profesional
+    And la metodología permanece plegada y la base inicial destaca en el resumen global
 
   Scenario: 10-MET Consultar el recorrido manual de forma independiente
     Given que la respuesta contiene solicitudes manuales y evaluaciones de origen IA

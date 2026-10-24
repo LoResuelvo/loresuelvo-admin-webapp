@@ -97,6 +97,20 @@ describe("OperationsTable", () => {
     expect(row2.getByText("Cliente")).toBeInTheDocument();
   });
 
+  it("renders API operational alerts as distinct warning badges", () => {
+    render(
+      <OperationsTable
+        operations={[{
+          ...mockOperations[0],
+          alerts: ["delayed", "stalled"],
+        }]}
+      />,
+    );
+
+    expect(screen.getByText("Servicio demorado")).toHaveClass("bg-rose-50");
+    expect(screen.getByText("Estancada > 72h")).toHaveClass("bg-red-50");
+  });
+
   it("calls onSelectOperation when row is clicked", async () => {
     const user = userEvent.setup();
     const handleSelect = vi.fn();

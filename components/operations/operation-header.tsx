@@ -19,10 +19,20 @@ export interface OperationHeaderProps {
   readonly consumer: OperationPartyHeaderInfo;
   readonly provider: OperationPartyHeaderInfo;
   readonly currentAddress: string | null;
+  readonly overdueScheduledDate?: string;
+  readonly overdueOrderStatus?: string;
   readonly onInspectChat?: () => void;
 }
 
 const statusStyles: Partial<Record<OperationStatus, string>> = {
+  request_pending: "bg-blue-50 text-blue-700 border-blue-200",
+  request_accepted: "bg-cyan-50 text-cyan-800 border-cyan-200",
+  proposal_pending: "bg-amber-50 text-amber-700 border-amber-200",
+  proposal_accepted: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  proposal_rejected: "bg-rose-50 text-rose-700 border-rose-200",
+  work_order_scheduled: "bg-blue-50 text-blue-700 border-blue-200",
+  work_order_awaiting_payment: "bg-amber-50 text-amber-700 border-amber-200",
+  work_order_paid: "bg-emerald-50 text-emerald-700 border-emerald-200",
   requested: "bg-blue-50 text-blue-700 border-blue-200",
   quoted: "bg-amber-50 text-amber-700 border-amber-200",
   in_progress: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -61,7 +71,7 @@ function PartyCard({
           {roleLabel}
         </span>
         <Link href={href} className="block truncate text-base font-semibold text-[#147560] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147560]">{fullName}</Link>
-        <p className="truncate text-sm text-[#536176]">{party.email ?? translations.operations.unavailable}</p>
+        {party.email && <p className="truncate text-sm text-[#536176]">{party.email}</p>}
       </div>
     </div>
   );
@@ -161,6 +171,8 @@ export function OperationHeader({
   consumer,
   provider,
   currentAddress,
+  overdueScheduledDate,
+  overdueOrderStatus,
   onInspectChat,
 }: OperationHeaderProps) {
   return (
@@ -175,6 +187,22 @@ export function OperationHeader({
         status={status}
         onInspectChat={onInspectChat}
       />
+      {overdueScheduledDate && overdueOrderStatus && (
+        <div
+          role="alert"
+          className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900"
+        >
+          <span aria-hidden="true" className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold">!</span>
+          <div>
+            <p className="text-sm font-semibold">{translations.operations.detail.scheduleWarningTitle}</p>
+            <p className="mt-0.5 text-sm">
+              {translations.operations.detail.scheduleWarning
+                .replace("{date}", overdueScheduledDate)
+                .replace("{status}", overdueOrderStatus)}
+            </p>
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <PartyCard roleLabel={translations.operations.responsible.consumer} party={consumer} href={ROUTES.consumerDetail(consumer.id)} />
         <PartyCard roleLabel={translations.operations.responsible.provider} party={provider} href={ROUTES.providerDetail(provider.id)} />

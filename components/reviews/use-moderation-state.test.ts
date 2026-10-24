@@ -65,12 +65,7 @@ it.each<ReviewListFilter | undefined>(["reported", "visible", undefined])(
 
     await act(async () => result.current.openModerateModal(item));
     await act(async () => result.current.submitModerate({ category: "spam_advertising", }));
-    expect(result.current.reviews).toEqual(status ? [] : [{
-      ...item,
-      visibility: "hidden",
-      version: 4,
-      pendingReportCount: 0,
-    }]);
+    expect(result.current.reviews).toEqual([]);
     expect(moderateReviewAction).toHaveBeenCalledWith("101", {
       action: "hide",
       category: "spam_advertising",
@@ -79,6 +74,14 @@ it.each<ReviewListFilter | undefined>(["reported", "visible", undefined])(
     });
   },
 );
+
+it("prioritizes pending reports and filters hydrated summaries", () => {
+  const unreported = { ...review, id: "102", pendingReportCount: 0, reportedOn: null };
+  const { result } = renderHook(() => useModerationState({ initialReviews: [review, unreported] }));
+
+  expect(result.current.statusFilter).toBe("reported");
+  expect(result.current.reviews).toEqual([review]);
+});
 
 it("removes a restored review from the hidden filter after confirmation", async () => {
   const hidden = { ...review, visibility: "hidden" as const, pendingReportCount: 0, version: 4 };

@@ -18,9 +18,10 @@ describe("FunnelOverviewCard", () => {
       screen.getByRole("heading", { name: "Tasa de conversión global" }),
     ).toBeInTheDocument();
     expect(screen.getByTestId("global-conversion-rate")).toHaveTextContent("32%");
-    expect(screen.getByText("80")).toBeInTheDocument();
-    expect(screen.getByText(/Finalizaciones reportadas:/)).toBeInTheDocument();
-    expect(screen.getByText(/Base inicial:/)).toHaveTextContent("250 evaluaciones profesionales");
+    expect(screen.getByTestId("global-conversion-count")).toHaveTextContent("80 de 250");
+    expect(screen.getByTestId("global-conversion-count")).toHaveAccessibleName(
+      "80 finalizaciones reportadas de 250 evaluaciones profesionales",
+    );
     expect(screen.queryByText(/hasta la reseña del servicio/)).not.toBeInTheDocument();
   });
 });

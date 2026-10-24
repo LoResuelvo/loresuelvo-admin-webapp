@@ -39,12 +39,16 @@ function ReviewSummary({ review }: { review: ReviewModerationDetail }) {
     <section aria-label={copy.reviewSummary}>
       <dl className="grid gap-x-4 gap-y-2 rounded-xl bg-[#F4F1EE]/60 p-3 text-xs text-[#536176] sm:grid-cols-2">
         <div>
+          <dt className="inline font-semibold text-[#1A2B48]">{copy.reviewId}: </dt>
+          <dd className="inline">{item.id}</dd>
+        </div>
+        <div>
           <dt className="inline font-semibold text-[#1A2B48]">{copy.consumer}: </dt>
           <dd className="inline">
             <Link className="text-[#147560] underline underline-offset-2" href={ROUTES.consumerDetail(item.consumerId)}>
               {item.consumerName ?? item.consumerId}
             </Link>
-            {item.consumerName && <span className="ml-2 text-[#536176]">{copy.consumerId}: {item.consumerId}</span>}
+          <span className="ml-2 text-[#536176]">{copy.consumerId}: {item.consumerId}</span>
           </dd>
         </div>
         <div>
@@ -53,7 +57,7 @@ function ReviewSummary({ review }: { review: ReviewModerationDetail }) {
             <Link className="text-[#147560] underline underline-offset-2" href={ROUTES.providerDetail(item.providerId)}>
               {item.providerName ?? item.providerId}
             </Link>
-            {item.providerName && <span className="ml-2 text-[#536176]">{copy.providerId}: {item.providerId}</span>}
+          <span className="ml-2 text-[#536176]">{copy.providerId}: {item.providerId}</span>
           </dd>
         </div>
         <div>

@@ -98,7 +98,11 @@ export function ModerationPage(props: ModerationPageProps = {}) {
       ) : (
         <ReviewModerationTable
           reviews={state.reviews}
-          emptyMessage={state.statusFilter ? copy.table.emptyFiltered : copy.table.empty}
+          emptyMessage={state.statusFilter === "reported"
+            ? copy.table.emptyReported
+            : state.statusFilter
+              ? copy.table.emptyFiltered
+              : copy.table.empty}
           onViewReview={state.openReviewDetails}
           onHideReview={state.openModerateModal}
           onRestoreReview={state.openRestoreModal}

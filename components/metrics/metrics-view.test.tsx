@@ -102,7 +102,7 @@ describe("MetricsView", () => {
     render(<MetricsView data={mockFunnel} />);
 
     expect(
-      screen.getByRole("heading", { name: "Métricas de Conversión Operativa" }),
+      screen.getByRole("heading", { name: "Métricas" }),
     ).toBeInTheDocument();
     expect(screen.getByTestId("global-conversion-rate")).toHaveTextContent("32%");
     expect(
@@ -111,6 +111,35 @@ describe("MetricsView", () => {
     expect(
       screen.getByTestId("funnel-step-requests_created"),
     ).toBeInTheDocument();
+  });
+
+  it("keeps methodology, period metadata and stage details in native disclosures", () => {
+    const data: ConversionFunnel = {
+      ...mockFunnel,
+      metadata: {
+        timezone: "America/Argentina/Buenos_Aires",
+        observedAt: "2026-09-24T20:00:00Z",
+      },
+    };
+    render(<MetricsView data={data} />);
+
+    const methodologySummary = screen.getByText("Cómo se calcula");
+    expect(methodologySummary.closest("details")).not.toHaveAttribute("open");
+    fireEvent.click(methodologySummary);
+    expect(screen.getByText(/La tasa compara las finalizaciones reportadas/)).toBeVisible();
+
+    const periodSummary = screen.getByText("Período y actualización");
+    expect(periodSummary.closest("details")).not.toHaveAttribute("open");
+    fireEvent.click(periodSummary);
+    expect(screen.getByTestId("funnel-timezone")).toHaveTextContent("America/Argentina/Buenos_Aires");
+    expect(screen.getByTestId("funnel-effective-period")).toBeVisible();
+    expect(screen.getByTestId("funnel-observation-date")).toBeVisible();
+
+    const stagesSummary = screen.getByText("Ver detalle por etapa");
+    expect(stagesSummary.closest("details")).not.toHaveAttribute("open");
+    fireEvent.click(stagesSummary);
+    expect(screen.getByTestId("funnel-delays-notice")).toBeVisible();
+    expect(screen.getByTestId("retention-requests_created")).toBeVisible();
   });
 
   it("renders forbidden alert when isForbidden is true", () => {
@@ -248,6 +277,8 @@ it("uses completed orders rather than reviews for the API completion conversion"
   );
   render(<MetricsView data={data} />);
   const overview = screen.getByRole("region", { name: "Resumen de conversión global" });
-  expect(overview).toHaveTextContent("Finalizaciones reportadas: 2");
-  expect(overview).toHaveTextContent("Base inicial: 3 evaluaciones profesionales");
+  expect(overview).toHaveTextContent("2 de 3");
+  expect(screen.getByTestId("global-conversion-count")).toHaveAccessibleName(
+    "2 finalizaciones reportadas de 3 evaluaciones profesionales",
+  );
 });

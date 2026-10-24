@@ -45,39 +45,52 @@ export function FunnelMetadataBar({
   const observation = formatObservationDate(metadata?.observedAt, metadata?.timezone);
 
   return (
-    <div
+    <details
       data-testid="funnel-metadata-bar"
-      className="flex flex-wrap items-center gap-4 text-xs text-[#536176] bg-white border border-[#1A2B48]/10 rounded-xl px-4 py-2.5 shadow-xs"
+      className="rounded-xl border border-[#1A2B48]/10 bg-white px-4 py-2.5 text-xs text-[#536176] shadow-xs"
     >
-      <div>
-        <span className="font-semibold text-[#1A2B48]">{t.effectivePeriod}: </span>
-        <span data-testid="funnel-effective-period">{effectivePeriod}</span>
-      </div>
-      {observation ? (
+      <summary className="w-fit cursor-pointer rounded-sm font-medium text-[#1A2B48] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#147560]">
+        {t.periodDetailsSummary}
+      </summary>
+      <div className="flex flex-wrap gap-x-5 gap-y-2 pt-3">
         <div>
-          <span className="font-semibold text-[#1A2B48]">{t.observedAt}: </span>
-          <span data-testid="funnel-observation-date">{observation}</span>
+          <span className="font-semibold text-[#1A2B48]">{t.effectivePeriod}: </span>
+          <span data-testid="funnel-effective-period">{effectivePeriod}</span>
         </div>
-      ) : null}
-    </div>
+        {observation ? (
+          <div>
+            <span className="font-semibold text-[#1A2B48]">{t.observedAt}: </span>
+            <span data-testid="funnel-observation-date">{observation}</span>
+          </div>
+        ) : null}
+        <div>
+          <span className="font-semibold text-[#1A2B48]">{t.timezoneLabel}: </span>
+          <span data-testid="funnel-timezone">{metadata?.timezone ?? t.unavailable}</span>
+        </div>
+      </div>
+    </details>
   );
 }
 
 export function MetricsStepsGrid({ steps }: { steps: FunnelCohort["steps"] }) {
   const t = translations.metrics;
   return (
-    <section aria-label="Detalle de etapas del embudo" className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-base font-semibold text-[#1A2B48]">Etapas del Embudo y Conversión Relativa</h2>
-        <p data-testid="funnel-delays-notice" className="text-xs text-[#536176]">
-          ℹ {t.delays.notice}
-        </p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {steps.map((step, index) => (
-          <FunnelStepCard key={step.stepName} step={step} index={index} totalSteps={steps.length} />
-        ))}
-      </div>
+    <section aria-label="Detalle de etapas del embudo">
+      <details className="rounded-2xl border border-[#1A2B48]/10 bg-white p-4 shadow-xs sm:p-5">
+        <summary className="w-fit cursor-pointer rounded-sm font-semibold text-[#1A2B48] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#147560]">
+          {t.stepsDetailsSummary}
+        </summary>
+        <div className="space-y-4 pt-4">
+          <p data-testid="funnel-delays-notice" className="text-xs text-[#536176]">
+            ℹ {t.delays.notice}
+          </p>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {steps.map((step, index) => (
+              <FunnelStepCard key={step.stepName} step={step} index={index} totalSteps={steps.length} />
+            ))}
+          </div>
+        </div>
+      </details>
     </section>
   );
 }
@@ -152,6 +165,11 @@ export function MetricsFunnelContent({
 
   return (
     <div className="space-y-6">
+      <CohortOverview
+        data={data}
+        source={source}
+        hasInsufficientVolume={hasInsufficientVolume}
+      />
       <FunnelFiltersBar
         availableViews={availableViews}
         selectedView={selectedView}
@@ -171,11 +189,6 @@ export function MetricsFunnelContent({
       <p data-testid="funnel-initial-unit" className="text-xs text-[#536176]">
         {t.initialUnitLabel}: {t.source.initialUnit[data.initialUnit]}
       </p>
-      <CohortOverview
-        data={data}
-        source={source}
-        hasInsufficientVolume={hasInsufficientVolume}
-      />
       {data.steps.length > 0 && (
         <>
           <FunnelChart steps={data.steps} />

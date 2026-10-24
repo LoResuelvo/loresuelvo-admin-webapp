@@ -61,40 +61,38 @@ function ReviewModerationTableHeader() {
   return (
     <thead className="border-b border-[#1A2B48]/10 bg-[#F4F1EE]/50 text-xs font-semibold uppercase tracking-wider text-[#1A2B48]/60">
       <tr>
-        <th scope="col" className="px-6 py-4 text-left">{copy.author}</th>
-        <th scope="col" className="px-6 py-4 text-left">{copy.provider}</th>
-        <th scope="col" className="px-6 py-4 text-left">{copy.operation}</th>
-        <th scope="col" className="px-6 py-4 text-left">{copy.rating}</th>
-        <th scope="col" className="px-6 py-4 text-left">{copy.pendingReports}</th>
-        <th scope="col" className="px-6 py-4 text-left">{copy.status}</th>
-        <th scope="col" className="px-6 py-4 text-left">{copy.date}</th>
-        <th scope="col" className="px-6 py-4 text-left">{copy.actions}</th>
+        <th scope="col" className="px-3 py-3 text-left">{copy.participants}</th>
+        <th scope="col" className="px-3 py-3 text-left">{copy.rating}</th>
+        <th scope="col" className="px-3 py-3 text-left">{copy.pendingReports}</th>
+        <th scope="col" className="px-3 py-3 text-left">{copy.status}</th>
+        <th scope="col" className="px-3 py-3 text-left">{copy.actions}</th>
       </tr>
     </thead>
   );
 }
 
 interface ReviewProfileLinkProps {
+  role: string;
   name?: string;
   id: number;
   href: string;
 }
 
-function ReviewProfileLink({ name, id, href }: ReviewProfileLinkProps) {
+function ReviewProfileLink({ role, name, id, href }: ReviewProfileLinkProps) {
   const copy = translations.moderation.table;
 
   return (
-    <span className="flex flex-col">
+    <div className="min-w-0">
+      <span className="block text-[11px] font-medium text-[#536176]">{role}</span>
       <Link
         href={href}
         onClick={(event) => event.stopPropagation()}
         onKeyDown={(event) => event.stopPropagation()}
-        className="font-medium text-[#147560] underline underline-offset-2"
+        className="block truncate font-medium text-[#147560] underline underline-offset-2"
       >
-        {name ?? id}
+        {name ?? `${role} #${id}`}
       </Link>
-      {name && <span className="text-xs font-normal text-[#536176]">{copy.profileId}: {id}</span>}
-    </span>
+    </div>
   );
 }
 
@@ -110,6 +108,7 @@ function ReviewActionButtons({ review, onView, onHide, onRestore }: ReviewAction
   const moderationAction = review.visibility === "hidden" ? (
     <button
       type="button"
+      onKeyDown={(event) => event.stopPropagation()}
       onClick={(event) => {
         event.stopPropagation();
         onRestore?.(review);
@@ -121,6 +120,7 @@ function ReviewActionButtons({ review, onView, onHide, onRestore }: ReviewAction
   ) : (
     <button
       type="button"
+      onKeyDown={(event) => event.stopPropagation()}
       onClick={(event) => {
         event.stopPropagation();
         onHide?.(review);
@@ -135,6 +135,7 @@ function ReviewActionButtons({ review, onView, onHide, onRestore }: ReviewAction
     <div className="flex flex-wrap gap-2">
       <button
         type="button"
+        onKeyDown={(event) => event.stopPropagation()}
         onClick={(event) => {
           event.stopPropagation();
           onView?.(review);
@@ -165,6 +166,9 @@ function ReviewModerationTableRow({
 }: ReviewModerationTableRowProps) {
   const copy = translations.moderation.table;
   const reportedOn = review.reportedOn ? formatDate(review.reportedOn) : "—";
+  const reportCountLabel = review.pendingReportCount === 1
+    ? copy.pendingReportSingular
+    : copy.pendingReportPlural;
 
   return (
     <tr
@@ -180,33 +184,49 @@ function ReviewModerationTableRow({
         onSelectReview ? "cursor-pointer focus:bg-[#F4F1EE]/50 focus:outline-none focus:ring-1 focus:ring-[#147560]" : ""
       }`.trim()}
     >
-      <td className="px-6 py-4 text-sm text-[#1A2B48]">
+      <td className="space-y-2 px-3 py-3 text-sm text-[#1A2B48]">
         <ReviewProfileLink
+          role={copy.author}
           name={review.consumerName}
           id={review.consumerId}
           href={ROUTES.consumerDetail(review.consumerId)}
         />
-      </td>
-      <td className="px-6 py-4 text-sm text-[#536176]">
         <ReviewProfileLink
+          role={copy.provider}
           name={review.providerName}
           id={review.providerId}
           href={ROUTES.providerDetail(review.providerId)}
         />
       </td>
-      <td className="px-6 py-4 text-sm text-[#536176] whitespace-nowrap">{review.operationId}</td>
-      <td className="px-6 py-4 text-sm">
+      <td className="px-3 py-3 text-sm">
         <div className="flex items-center gap-1.5" aria-label={`Calificación: ${review.rating} de 5`}>
           <StarIcon />
           <span className="font-semibold text-[#1A2B48]">{review.rating}</span>
         </div>
       </td>
-      <td className="px-6 py-4 text-sm text-[#536176]">{review.pendingReportCount}</td>
-      <td className="px-6 py-4 text-sm">
+      <td className="px-3 py-3 text-sm">
+        <div className="space-y-1">
+          {review.pendingReportCount > 0 ? (
+            <span
+              aria-label={`${review.pendingReportCount} ${reportCountLabel}`}
+              className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-900"
+            >
+              {review.pendingReportCount} {reportCountLabel}
+            </span>
+          ) : (
+            <span className="text-xs text-[#536176]">{copy.noReason}</span>
+          )}
+          {reportedOn !== "—" && (
+            <p className="text-xs text-[#536176]">
+              {copy.reportedOn} <time dateTime={review.reportedOn ?? undefined}>{reportedOn}</time>
+            </p>
+          )}
+        </div>
+      </td>
+      <td className="px-3 py-3 text-sm">
         <ReviewStatusBadge status={review.visibility} />
       </td>
-      <td className="px-6 py-4 text-sm text-[#536176] whitespace-nowrap">{reportedOn}</td>
-      <td className="px-6 py-4 text-sm whitespace-nowrap">
+      <td className="px-3 py-3 text-sm">
         <ReviewActionButtons review={review} onView={onViewReview} onHide={onHideReview} onRestore={onRestoreReview} />
       </td>
     </tr>
@@ -235,7 +255,7 @@ export function ReviewModerationTable({
   return (
     <div className={`overflow-hidden rounded-2xl border border-[#1A2B48]/10 bg-white shadow-xs ${className}`.trim()}>
       <div className="overflow-x-auto">
-        <table aria-label={copy.ariaLabel} className="w-full border-collapse text-left">
+        <table aria-label={copy.ariaLabel} className="w-full min-w-[680px] table-fixed border-collapse text-left">
           <ReviewModerationTableHeader />
           <tbody className="divide-y divide-[#1A2B48]/5">
             {reviews.map((review) => (

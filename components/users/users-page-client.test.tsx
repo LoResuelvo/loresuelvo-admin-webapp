@@ -61,10 +61,10 @@ describe("UsersPageClient", () => {
       if (outcome === "rejection") rejectOld(new Error("stale failure"));
       else resolveOld(outcome === "forbidden" ? { success: false, error: "stale forbidden", isForbidden: true } : { success: true, data: [] });
     });
-    expect(screen.getByText("Latest")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Latest Provider" })).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: "Consumidores" }));
-    await waitFor(() => { expect(screen.queryByText("Latest")).not.toBeInTheDocument(); });
+    await waitFor(() => { expect(screen.queryByRole("link", { name: "Latest Provider" })).not.toBeInTheDocument(); });
   });
 
   it("ignores rejection from an unmounted request", async () => {
@@ -99,8 +99,8 @@ describe("UsersPageClient", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Cargando consumidores...");
 
     await waitFor(() => {
-      expect(screen.getByText("Ana")).toBeInTheDocument();
-      expect(screen.getByText("Pérez")).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Ana Pérez" })).toBeInTheDocument();
+      expect(screen.getByText("ana@example.com")).toBeInTheDocument();
     });
   });
 
@@ -163,8 +163,8 @@ describe("UsersPageClient", () => {
     await waitFor(() => {
       expect(actions.getProvidersAction).toHaveBeenCalled();
       const table = screen.getByRole("table");
-      expect(within(table).getByText("Juan")).toBeInTheDocument();
-      expect(within(table).getByText("Gómez")).toBeInTheDocument();
+      expect(within(table).getByRole("link", { name: "Juan Gómez" })).toBeInTheDocument();
+      expect(within(table).getByText("juan@example.com")).toBeInTheDocument();
       expect(within(table).getByText("Plomería")).toBeInTheDocument();
     });
   });

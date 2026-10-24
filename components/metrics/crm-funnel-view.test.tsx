@@ -136,8 +136,10 @@ describe("CRM funnel source selection", () => {
     expect(screen.queryByTestId("funnel-step-ai_diagnostics")).not.toBeInTheDocument();
     expect(screen.getByTestId("funnel-step-requests_created")).toBeInTheDocument();
     const overview = screen.getByRole("region", { name: "Resumen de conversión global" });
-    expect(overview).toHaveTextContent("Finalizaciones reportadas: 1");
-    expect(overview).toHaveTextContent("Base inicial: 3 solicitudes manuales");
+    expect(overview).toHaveTextContent("1 de 3");
+    expect(screen.getByTestId("global-conversion-count")).toHaveAccessibleName(
+      "1 finalización reportada de 3 solicitudes manuales",
+    );
     expect(screen.getByTestId("funnel-initial-unit")).toHaveTextContent("solicitud manual");
     expect(screen.getByTestId("retention-proposals_sent")).toHaveTextContent("2 de 3");
   });
@@ -221,8 +223,10 @@ describe("CRM funnel source selection", () => {
     expect(aiPanel).toBeInTheDocument();
     expect(manualPanel).toBeInTheDocument();
 
-    expect(aiPanel).toHaveTextContent("Base inicial: 2 solicitudes IA");
-    expect(manualPanel).toHaveTextContent("Base inicial: 3 solicitudes manuales");
+    expect(aiPanel).toHaveTextContent("1 de 2");
+    expect(aiPanel).toHaveTextContent("solicitudes IA");
+    expect(manualPanel).toHaveTextContent("1 de 3");
+    expect(manualPanel).toHaveTextContent("solicitudes manuales");
 
     expect(aiPanel.querySelector('[data-testid="funnel-step-ai_diagnostics"]')).toBeNull();
     expect(manualPanel.querySelector('[data-testid="funnel-step-ai_diagnostics"]')).toBeNull();

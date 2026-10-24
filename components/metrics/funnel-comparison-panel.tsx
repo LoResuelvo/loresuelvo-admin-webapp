@@ -11,7 +11,6 @@ export interface FunnelComparisonPanelProps {
   title: string;
   criterionText: string;
   initialUnitText: string;
-  effectivePeriod?: string;
   cohort: FunnelCohort;
   panelTestId: string;
   criterionTestId: string;
@@ -49,7 +48,6 @@ export function FunnelComparisonPanel({
   title,
   criterionText,
   initialUnitText,
-  effectivePeriod,
   cohort,
   panelTestId,
   criterionTestId,
@@ -73,19 +71,9 @@ export function FunnelComparisonPanel({
             {criterionText}
           </span>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p data-testid={initialUnitTestId} className="text-xs text-[#536176]">
-            {t.initialUnitLabel}: {initialUnitText}
-          </p>
-          {effectivePeriod ? (
-            <span
-              data-testid={`funnel-effective-period-${source}`}
-              className="text-xs text-[#536176]"
-            >
-              {t.effectivePeriod}: {effectivePeriod}
-            </span>
-          ) : null}
-        </div>
+        <p data-testid={initialUnitTestId} className="text-xs text-[#536176]">
+          {t.initialUnitLabel}: {initialUnitText}
+        </p>
       </div>
 
       <FunnelOverviewCard

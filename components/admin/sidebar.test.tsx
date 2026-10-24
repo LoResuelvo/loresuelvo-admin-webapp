@@ -25,12 +25,12 @@ describe("Sidebar", () => {
     expect(within(banner).getByText("ana@example.com")).toBeVisible();
   });
 
-  it("renders navigation links to Users Directory, Categories Catalog, and Operations Center", () => {
+  it("renders the compact navigation links", () => {
     render(<Sidebar profile={profile} />);
 
-    const usersLink = screen.getByRole("link", { name: "Directorio de Usuarios" });
-    const categoriesLink = screen.getByRole("link", { name: "Catálogo de Rubros" });
-    const operationsLink = screen.getByRole("link", { name: "Centro de Operaciones" });
+    const usersLink = screen.getByRole("link", { name: "Usuarios" });
+    const categoriesLink = screen.getByRole("link", { name: "Rubros" });
+    const operationsLink = screen.getByRole("link", { name: "Operaciones" });
     const paymentsLink = screen.getByRole("link", { name: "Pagos" });
     const moderationLink = screen.getByRole("link", { name: "Moderación" });
 
@@ -50,7 +50,7 @@ describe("Sidebar", () => {
   it("renders the logout option pointing to the logout route", () => {
     render(<Sidebar profile={profile} />);
 
-    const logoutOption = screen.getByRole("button", { name: "Cerrar sesión" });
+    const logoutOption = screen.getByRole("link", { name: "Cerrar sesión" });
     expect(logoutOption).toBeVisible();
     expect(logoutOption).toHaveAttribute("href", "/auth/logout");
   });

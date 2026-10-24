@@ -22,8 +22,8 @@ export function ReviewStatusTabs({
   const copy = translations.moderation.filters;
 
   const tabs: TabOption[] = [
-    { value: undefined, label: copy.all },
     { value: "reported", label: copy.reported },
+    { value: undefined, label: copy.all },
     { value: "hidden", label: copy.hidden },
     { value: "visible", label: copy.visible },
   ];

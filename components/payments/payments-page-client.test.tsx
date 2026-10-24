@@ -22,9 +22,10 @@ describe("PaymentsPageClient", () => {
     expect(screen.getByTestId("payments-skeleton")).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText("0f8fad5b-d9cb-469f-a165-70867728950e")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Ver desglose y referencias" })).toBeInTheDocument();
       expect(actions.getPaymentsAction).toHaveBeenLastCalledWith({ limit: 20 });
     });
+    expect(screen.queryByText("0f8fad5b-d9cb-469f-a165-70867728950e")).not.toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Buscar por" })).toHaveValue("consumerEmail");
   });
 
@@ -36,7 +37,7 @@ describe("PaymentsPageClient", () => {
 
     const user = userEvent.setup();
     render(<PaymentsPageClient />);
-    await screen.findByText("0f8fad5b-d9cb-469f-a165-70867728950e");
+    await screen.findAllByRole("button", { name: "Ver desglose y referencias" });
 
     await user.selectOptions(screen.getByRole("combobox", { name: "Filtrar por propósito" }), "booking_deposit");
     await user.selectOptions(screen.getByRole("combobox", { name: "Filtrar por estado" }), "paid");
@@ -58,7 +59,7 @@ describe("PaymentsPageClient", () => {
 
     const user = userEvent.setup();
     render(<PaymentsPageClient />);
-    await screen.findByText("0f8fad5b-d9cb-469f-a165-70867728950e");
+    await screen.findByRole("button", { name: "Ver desglose y referencias" });
     await user.selectOptions(screen.getByRole("combobox", { name: "Buscar por" }), "externalPaymentId");
     await user.type(screen.getByRole("searchbox", { name: "Buscar pagos" }), "pay_1001");
     await user.click(screen.getByRole("button", { name: "Buscar" }));
@@ -79,7 +80,7 @@ describe("PaymentsPageClient", () => {
 
     const user = userEvent.setup();
     render(<PaymentsPageClient />);
-    await screen.findByText("0f8fad5b-d9cb-469f-a165-70867728950e");
+    await screen.findByRole("button", { name: "Ver desglose y referencias" });
     await user.selectOptions(screen.getByRole("combobox", { name: "Buscar por" }), "paymentIntentId");
     await user.type(screen.getByRole("searchbox", { name: "Buscar pagos" }), "not-a-uuid");
     await user.click(screen.getByRole("button", { name: "Buscar" }));
@@ -91,18 +92,23 @@ describe("PaymentsPageClient", () => {
   it("loads the next cursor page without repeating existing payment IDs", async () => {
     vi.mocked(actions.getPaymentsAction)
       .mockResolvedValueOnce({ success: true, data: paymentListFixture([multiplePaymentFixtures[0]], "next-page") })
-      .mockResolvedValueOnce({ success: true, data: paymentListFixture([multiplePaymentFixtures[1]]) });
+      .mockResolvedValueOnce({
+        success: true,
+        data: paymentListFixture([multiplePaymentFixtures[0], multiplePaymentFixtures[1]]),
+      });
 
     const user = userEvent.setup();
     render(<PaymentsPageClient />);
-    await screen.findByText("0f8fad5b-d9cb-469f-a165-70867728950e");
+    await screen.findByRole("button", { name: "Ver desglose y referencias" });
     await user.click(screen.getByRole("button", { name: "Cargar más pagos" }));
 
     await waitFor(() => {
-      expect(screen.getByText("d9428888-122b-11e1-b85c-61cd3cbb3210")).toBeInTheDocument();
+      expect(screen.getAllByRole("button", { name: "Ver desglose y referencias" })).toHaveLength(2);
+      expect(screen.getByRole("link", { name: "Cliente #3" })).toBeInTheDocument();
       expect(actions.getPaymentsAction).toHaveBeenLastCalledWith({ limit: 20, cursor: "next-page" });
     });
-    expect(screen.getAllByText("0f8fad5b-d9cb-469f-a165-70867728950e")).toHaveLength(1);
+    expect(screen.getAllByRole("link", { name: "Cliente #1" })).toHaveLength(1);
+    expect(screen.queryByText("0f8fad5b-d9cb-469f-a165-70867728950e")).not.toBeInTheDocument();
   });
 
   it("handles error state and allows retry", async () => {

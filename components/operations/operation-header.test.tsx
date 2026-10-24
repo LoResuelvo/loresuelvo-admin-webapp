@@ -34,6 +34,20 @@ describe("OperationHeader", () => {
     expect(screen.getByRole("link", { name: "Ana Martínez" })).toHaveAttribute("href", "/usuarios/consumidores/10");
   });
 
+  it("omits an unavailable email while keeping the profile link", () => {
+    render(<OperationHeader {...defaultProps} consumer={{ ...defaultProps.consumer, email: null }} />);
+
+    expect(screen.getByRole("link", { name: "Ana Martínez" })).toHaveAttribute("href", "/usuarios/consumidores/10");
+    expect(screen.queryByText("Información no disponible")).not.toBeInTheDocument();
+  });
+
+  it("shows an overdue schedule warning when the detail provides one", () => {
+    render(<OperationHeader {...defaultProps} overdueScheduledDate="25/09/2026, 06:00" overdueOrderStatus="Programada" />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Revisar fecha programada");
+    expect(screen.getByRole("alert")).toHaveTextContent("La fecha prevista 25/09/2026, 06:00 ya pasó. Estado actual de la orden: Programada.");
+  });
+
   it("renders provider contact information and photo", () => {
     render(<OperationHeader {...defaultProps} />);
     expect(screen.getByText("Carlos López")).toBeInTheDocument();

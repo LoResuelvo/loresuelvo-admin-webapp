@@ -1,7 +1,9 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import type { PaymentIntentSummary } from "./types";
 import { formatMoney } from "./format";
 import { translations } from "@/infrastructure/i18n/translations";
+import { ROUTES } from "@/lib/routes";
 
 interface PaymentFinancialDetailsProps {
   payment: PaymentIntentSummary;
@@ -104,6 +106,21 @@ export function PaymentFinancialDetails({ payment }: PaymentFinancialDetailsProp
       <section aria-label={copy.references}>
         <h3 className="mb-2 text-sm font-semibold text-[#1A2B48]">{copy.references}</h3>
         <dl>
+          <DetailRow label={copy.paymentIntentId}>
+            <span className="font-mono text-xs">{payment.id}</span>
+          </DetailRow>
+          <DetailRow label={copy.consumerId}>#{payment.consumerId}</DetailRow>
+          <DetailRow label={copy.providerId}>#{payment.providerId}</DetailRow>
+          {payment.operationId && (
+            <DetailRow label={copy.operationId}>
+              <Link
+                href={ROUTES.operationDetail(payment.operationId)}
+                className="text-[#147560] underline underline-offset-2"
+              >
+                {payment.operationId}
+              </Link>
+            </DetailRow>
+          )}
           <DetailRow label={copy.serviceProposalId}>#{payment.serviceProposalId}</DetailRow>
           <DetailRow label={copy.workOrderId}>
             {payment.workOrderId === null ? copy.noWorkOrder : `#${payment.workOrderId}`}

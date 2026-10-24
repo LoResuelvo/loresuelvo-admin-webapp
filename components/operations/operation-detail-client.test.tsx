@@ -191,6 +191,50 @@ describe("OperationDetailClient", () => {
     expect(screen.getByTestId("operation-order-card")).toBeInTheDocument();
   });
 
+  it("highlights a past schedule while the work order remains active", async () => {
+    vi.mocked(getOperationDetailAction).mockResolvedValueOnce({
+      success: true,
+      data: {
+        ...mockDetail,
+        order: {
+          id: 301,
+          status: "scheduled",
+          scheduledFor: "2020-09-25T09:00:00Z",
+          completionReport: null,
+          review: null,
+        },
+      },
+    });
+
+    render(<OperationDetailClient id="op-101" />);
+
+    const warning = await screen.findByRole("alert");
+    expect(warning).toHaveTextContent("Revisar fecha programada");
+    expect(warning).toHaveTextContent("25/09/2020");
+    expect(warning).toHaveTextContent("Programada");
+  });
+
+  it("does not flag a past schedule after the work order is complete", async () => {
+    vi.mocked(getOperationDetailAction).mockResolvedValueOnce({
+      success: true,
+      data: {
+        ...mockDetail,
+        order: {
+          id: 301,
+          status: "completed",
+          scheduledFor: "2020-09-25T09:00:00Z",
+          completionReport: null,
+          review: null,
+        },
+      },
+    });
+
+    render(<OperationDetailClient id="op-101" />);
+
+    await screen.findByTestId("operation-header");
+    expect(screen.queryByText("Revisar fecha programada")).not.toBeInTheDocument();
+  });
+
   it("renders completion card when completion report and review are present", async () => {
     const detailWithCompletion: UnifiedOperationDetail = {
       ...mockDetail,

@@ -13,7 +13,7 @@ Feature: Gestión de rubros
       | 2  | Electricidad |
       | 3  | Plomería     |
     When ingreso a la sección de rubros
-    Then veo los rubros ordenados alfabéticamente con su identificador y nombre
+    Then veo los rubros ordenados alfabéticamente por nombre, sin identificadores en la lista
 
   Scenario: 02-RUB Mostrar estado de carga al consultar rubros
     Given que la consulta de rubros tarda en responder

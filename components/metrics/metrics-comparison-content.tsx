@@ -2,7 +2,6 @@
 
 import type { ConversionFunnel, FunnelCohort, FunnelSource } from "@/domain/metrics/funnel";
 import { translations } from "@/infrastructure/i18n/translations";
-import { formatEffectivePeriod } from "./formatters";
 import { FunnelMetadataBar } from "./metrics-cohort-content";
 import { FunnelComparisonPanel } from "./funnel-comparison-panel";
 import {
@@ -15,25 +14,24 @@ import type { MetricsViewProps } from "./metrics-view";
 import type { useMetricsFunnel } from "./use-metrics-funnel";
 
 function ComparisonNotice({ notice }: { notice: string }) {
+  const t = translations.metrics;
   return (
-    <div
+    <details
       data-testid="funnel-comparison-notice"
-      role="status"
-      aria-label="Aviso de período sobre solicitudes"
-      className="rounded-2xl border border-[#147560]/20 bg-[#147560]/5 p-4 text-sm text-[#1A2B48] flex items-center gap-3"
+      className="rounded-xl border border-[#147560]/20 bg-[#147560]/5 p-4 text-sm text-[#1A2B48]"
     >
-      <span className="text-[#147560] font-bold text-base" aria-hidden="true">ℹ</span>
-      <p>{notice}</p>
-    </div>
+      <summary className="w-fit cursor-pointer rounded-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#147560]">
+        {t.comparison.periodDetailsSummary}
+      </summary>
+      <p className="pt-2 leading-relaxed">{notice}</p>
+    </details>
   );
 }
 
 function ComparisonPanels({
   comparison,
-  effectivePeriod,
 }: {
   comparison: Readonly<Record<FunnelSource, FunnelCohort>>;
-  effectivePeriod?: string;
 }) {
   const t = translations.metrics;
   return (
@@ -43,7 +41,6 @@ function ComparisonPanels({
         title={t.comparison.aiTitle}
         criterionText={t.comparison.categoryCriterion}
         initialUnitText={t.source.initialUnits.ai_request}
-        effectivePeriod={effectivePeriod}
         cohort={comparison.ai}
         panelTestId="funnel-comparison-panel-ai"
         criterionTestId="funnel-category-criterion-ai"
@@ -54,7 +51,6 @@ function ComparisonPanels({
         title={t.comparison.manualTitle}
         criterionText={t.comparison.categoryCriterion}
         initialUnitText={t.source.initialUnits.request}
-        effectivePeriod={effectivePeriod}
         cohort={comparison.manual}
         panelTestId="funnel-comparison-panel-manual"
         criterionTestId="funnel-category-criterion-manual"
@@ -104,15 +100,9 @@ export function MetricsComparisonContent({
   onApplyFilters,
 }: MetricsComparisonContentProps) {
   const t = translations.metrics;
-  const effectivePeriod = formatEffectivePeriod(
-    effectiveFrom,
-    effectiveTo,
-    metadata?.timezone,
-    t.effectivePeriodExclusiveSuffix,
-  );
-
   return (
     <div className="space-y-6">
+      <ComparisonPanels comparison={comparison} />
       <FunnelFiltersBar
         availableViews={availableViews}
         selectedView={selectedView}
@@ -130,7 +120,6 @@ export function MetricsComparisonContent({
       />
       <FunnelMetadataBar from={effectiveFrom} to={effectiveTo} metadata={metadata} />
       <ComparisonNotice notice={t.comparison.periodNotice} />
-      <ComparisonPanels comparison={comparison} effectivePeriod={effectivePeriod} />
     </div>
   );
 }

@@ -16,6 +16,7 @@ Given(
   "que existen reseñas denunciadas por usuarios en el marketplace",
   async function (this: CustomWorld) {
     await this.stubGet("/admin/reviews", sampleReportedReviewsListResponse);
+    await this.stubGet("/admin/reviews/101", sampleReportedReviewDetail);
   },
 );
 
@@ -26,29 +27,51 @@ When("accedo a la sección de moderación", async function (this: CustomWorld) {
 });
 
 Then(
-  "visualizo el listado con los IDs de consumidor y prestador, contratación, calificación, reportes pendientes y fecha del reporte",
+  "se priorizan las reseñas con reportes pendientes y visualizo su calificación, fecha y acciones; consulto IDs y comentarios disponibles en el detalle",
   async function (this: CustomWorld) {
     const table = this.page.getByRole("table");
     await table.waitFor();
+    const pendingFilter = this.page.getByRole("tab", { name: /reportes pendientes/i });
+    await pendingFilter.waitFor({ state: "visible" });
+    assert.equal(await pendingFilter.getAttribute("aria-selected"), "true");
     const rows = this.page.locator("tbody tr");
     await rows.first().waitFor();
     assert.equal(await rows.count(), 2);
 
     const row0 = rows.nth(0);
     const text0 = await row0.innerText();
-    assert.ok(text0.includes("10"));
-    assert.ok(text0.includes("20"));
-    assert.ok(text0.includes("work_order-101"));
-    assert.ok(text0.includes("1"));
     assert.ok(text0.includes("25/09/2026"));
+    assert.ok(!text0.includes("work_order-101"));
+    await row0.getByRole("link", { name: "Consumidor #10", exact: true }).waitFor();
+    await row0.getByRole("link", { name: "Prestador #20", exact: true }).waitFor();
+    const headers = await table.getByRole("columnheader").allInnerTexts();
+    const pendingReportsColumn = headers.findIndex((header) => /reportes pendientes/i.test(header));
+    assert.notEqual(pendingReportsColumn, -1);
+    assert.match(
+      (await row0.locator("td").nth(pendingReportsColumn).innerText()).trim(),
+      /^1 reporte pendiente/i,
+    );
+    await row0.getByRole("button", { name: "Ver detalle" }).waitFor({ state: "visible" });
+    await row0.getByRole("button", { name: "Ocultar reseña" }).waitFor({ state: "visible" });
 
     const row1 = rows.nth(1);
     const text1 = await row1.innerText();
-    assert.ok(text1.includes("11"));
-    assert.ok(text1.includes("21"));
-    assert.ok(text1.includes("work_order-102"));
-    assert.ok(text1.includes("2"));
     assert.ok(text1.includes("24/09/2026"));
+    assert.ok(!text1.includes("work_order-102"));
+    await row1.getByRole("link", { name: "Consumidor #11", exact: true }).waitFor();
+    await row1.getByRole("link", { name: "Prestador #21", exact: true }).waitFor();
+    assert.match(
+      (await row1.locator("td").nth(pendingReportsColumn).innerText()).trim(),
+      /^1 reporte pendiente/i,
+    );
+
+    await row0.getByRole("button", { name: "Ver detalle" }).click();
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor({ state: "visible" });
+    await dialog.getByText("ID de consumidor: 10", { exact: true }).waitFor();
+    await dialog.getByText("ID de prestador: 20", { exact: true }).waitFor();
+    await dialog.getByText("work_order-101", { exact: true }).waitFor();
+    await dialog.getByText(sampleReportedReviewDetail.description, { exact: true }).waitFor();
   },
 );
 
@@ -56,6 +79,7 @@ Given(
   "que existen reseñas visibles, reportadas y ocultadas",
   async function (this: CustomWorld) {
     await this.stubGet("/admin/reviews", sampleMixedReviewsListResponse);
+    await this.stubGet("/admin/reviews/203", sampleHiddenReviewDetail);
   },
 );
 
@@ -90,12 +114,16 @@ Then(
     assert.equal(await rows.count(), 1);
 
     const rowText = await rows.first().innerText();
-    assert.ok(rowText.includes("13"));
-    assert.ok(rowText.includes("23"));
-    assert.ok(rowText.includes("work_order-203"));
     assert.ok(rowText.includes("Ocultada"));
-    assert.ok(!rowText.includes("Gonzalo Arias"));
-    assert.ok(!rowText.includes("Mariana Paz"));
+    assert.ok(!rowText.includes("work_order-203"));
+    await rows.first().getByRole("link", { name: "Consumidor #13", exact: true }).waitFor();
+    await rows.first().getByRole("link", { name: "Prestador #23", exact: true }).waitFor();
+    await rows.first().getByRole("button", { name: "Ver detalle" }).click();
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor({ state: "visible" });
+    await dialog.getByText("ID de consumidor: 13", { exact: true }).waitFor();
+    await dialog.getByText("ID de prestador: 23", { exact: true }).waitFor();
+    await dialog.getByText("work_order-203", { exact: true }).waitFor();
   },
 );
 
@@ -112,6 +140,11 @@ Given(
     const moderationPath =
       (ROUTES as unknown as Record<string, string>).moderation ?? "/moderacion";
     await this.page.goto(new URL(moderationPath, this.appUrl).href);
+    const allReviewsTab = this.page.getByRole("tab", { name: /^todas$/i }).or(
+      this.page.getByRole("button", { name: /^todas$/i }),
+    );
+    await allReviewsTab.waitFor({ state: "visible" });
+    await allReviewsTab.click();
   },
 );
 
@@ -167,7 +200,7 @@ Then(
 );
 
 Given(
-  'que existe una reseña en estado "Ocultada"',
+  'que existe una reseña en estado "Ocultada" y estoy viendo todas las reseñas',
   async function (this: CustomWorld) {
     await this.stubGet("/admin/reviews", sampleHiddenReviewListResponse);
     await this.stubGet("/admin/reviews/203", sampleHiddenReviewDetail);
@@ -179,6 +212,11 @@ Given(
     const moderationPath =
       (ROUTES as unknown as Record<string, string>).moderation ?? "/moderacion";
     await this.page.goto(new URL(moderationPath, this.appUrl).href);
+    const allReviewsTab = this.page.getByRole("tab", { name: /^todas$/i }).or(
+      this.page.getByRole("button", { name: /^todas$/i }),
+    );
+    await allReviewsTab.waitFor({ state: "visible" });
+    await allReviewsTab.click();
   },
 );
 

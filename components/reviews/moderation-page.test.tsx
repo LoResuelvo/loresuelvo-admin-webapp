@@ -21,7 +21,7 @@ import {
 } from "@/app/(dashboard)/moderacion/actions";
 
 const reportedReview: ReviewModerationItem = {
-  id: "101", consumerId: 10, providerId: 20, operationId: "work_order-101", rating: 1,
+  id: "101", consumerId: 10, consumerName: "Ana Pérez", providerId: 20, providerName: "José García", operationId: "work_order-101", rating: 1,
   visibility: "visible", version: 3, pendingReportCount: 1,
   reportedOn: "2026-09-25T14:00:00Z",
 };
@@ -60,8 +60,12 @@ describe("ModerationPage", () => {
 
     expect(screen.getByTestId("moderation-skeleton")).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");
-    await waitFor(() => expect(screen.getByText("work_order-101")).toBeInTheDocument());
-    expect(screen.getByText("10")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("link", { name: "Ana Pérez" })).toBeInTheDocument());
+    expect(getReviewsAction).toHaveBeenCalledWith("reported");
+    expect(screen.getByRole("tab", { name: "Con reportes pendientes" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByText("10")).not.toBeInTheDocument();
+    expect(screen.queryByText("20")).not.toBeInTheDocument();
+    expect(screen.queryByText("work_order-101")).not.toBeInTheDocument();
     expect(screen.queryByText("El comentario disponible en el detalle de la reseña.")).not.toBeInTheDocument();
   });
 
@@ -70,12 +74,12 @@ describe("ModerationPage", () => {
       .mockResolvedValueOnce({ success: true, data: [reportedReview] })
       .mockResolvedValueOnce({ success: true, data: [hiddenReview] });
     render(<ModerationPage />);
-    await waitFor(() => expect(screen.getByText("work_order-101")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("link", { name: "Ana Pérez" })).toBeInTheDocument());
 
     await userEvent.setup().click(screen.getByRole("tab", { name: "Ocultadas" }));
     await waitFor(() => expect(screen.getByText("Ocultada")).toBeInTheDocument());
     expect(getReviewsAction).toHaveBeenCalledWith("hidden");
-    expect(screen.getByText("20")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ana Pérez" })).toBeInTheDocument();
   });
 
   it("displays load errors and allows retry", async () => {
@@ -86,13 +90,13 @@ describe("ModerationPage", () => {
     await waitFor(() => expect(screen.getByText("Error de red al cargar reseñas")).toBeInTheDocument());
 
     await userEvent.setup().click(screen.getByRole("button", { name: "Reintentar" }));
-    await waitFor(() => expect(screen.getByText("work_order-101")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("link", { name: "Ana Pérez" })).toBeInTheDocument());
   });
 
   it("renders initial API summaries without the loading skeleton", () => {
     render(<ModerationPage initialReviews={[reportedReview]} />);
     expect(screen.queryByLabelText("Cargando reseñas")).not.toBeInTheDocument();
-    expect(screen.getByText("work_order-101")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ana Pérez" })).toBeInTheDocument();
   });
 
   it("loads a report detail and sends a versioned hide command", async () => {
@@ -101,7 +105,7 @@ describe("ModerationPage", () => {
     const moderationResult: ReviewModerationResult = { id: "101", visibility: "hidden", version: 4, decisionId: 89 };
     vi.mocked(moderateReviewAction).mockResolvedValue({ success: true, data: moderationResult });
     render(<ModerationPage />);
-    await waitFor(() => expect(screen.getByText("work_order-101")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("link", { name: "Ana Pérez" })).toBeInTheDocument());
 
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "Ocultar reseña" }));
@@ -119,7 +123,7 @@ describe("ModerationPage", () => {
       reportId: 501,
     });
     expect(screen.getByTestId("moderation-feedback")).toHaveTextContent("La reseña ha sido ocultada correctamente");
-    expect(screen.getByText("Ocultada")).toBeInTheDocument();
+    expect(screen.getByText("No hay reportes pendientes para revisar. Podés ver todas las reseñas en la pestaña Todas.")).toBeInTheDocument();
   });
 
   it("opens a neutral detail view without presenting or submitting a moderation form", async () => {
@@ -137,12 +141,15 @@ describe("ModerationPage", () => {
     vi.mocked(getReviewsAction).mockResolvedValue({ success: true, data: [reportedReview] });
     vi.mocked(getReviewDetailAction).mockResolvedValue({ success: true, data: historyDetail });
     render(<ModerationPage />);
-    await waitFor(() => expect(screen.getByText("work_order-101")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("link", { name: "Ana Pérez" })).toBeInTheDocument());
 
     await userEvent.setup().click(screen.getByRole("button", { name: "Ver detalle" }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("heading", { name: "Detalle de la reseña" })).toBeInTheDocument();
     expect(within(dialog).getByText(historyDetail.description)).toBeInTheDocument();
+    expect(within(dialog).getByText("ID de reseña:")).toBeInTheDocument();
+    expect(within(dialog).getByText("101")).toBeInTheDocument();
+    expect(within(dialog).getByText("work_order-101")).toBeInTheDocument();
     expect(within(dialog).getByText(historyDetail.report!.explanation)).toBeInTheDocument();
     expect(within(dialog).getByText("7", { exact: true })).toBeInTheDocument();
     expect(within(dialog).queryByLabelText("Motivo detallado")).not.toBeInTheDocument();
@@ -161,8 +168,8 @@ describe("ModerationPage", () => {
     });
     const moderationResult: ReviewModerationResult = { id: "101", visibility: "visible", version: 5, decisionId: 90 };
     vi.mocked(moderateReviewAction).mockResolvedValue({ success: true, data: moderationResult });
-    render(<ModerationPage />);
-    await waitFor(() => expect(screen.getByText("work_order-101")).toBeInTheDocument());
+    render(<ModerationPage initialReviews={[hiddenReview]} initialStatus="hidden" />);
+    await waitFor(() => expect(screen.getByRole("link", { name: "Ana Pérez" })).toBeInTheDocument());
 
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "Restablecer visibilidad" }));
@@ -175,7 +182,7 @@ describe("ModerationPage", () => {
       expectedVersion: 4,
     }));
     expect(await screen.findByTestId("moderation-feedback")).toHaveTextContent("La visibilidad de la reseña ha sido restablecida");
-    expect(screen.getByText("Visible")).toBeInTheDocument();
+    expect(screen.getByText("No se encontraron reseñas con los filtros aplicados")).toBeInTheDocument();
   });
 
   it("displays forbidden access without retry when review access is restricted", async () => {

@@ -1,5 +1,6 @@
-import { AdminWelcome } from "@/components/auth/admin-welcome";
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/lib/routes";
 
 export default function AdminPage() {
-  return <AdminWelcome />;
+  redirect(ROUTES.operations);
 }

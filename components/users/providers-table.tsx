@@ -10,32 +10,33 @@ function ProviderRow({ provider }: { provider: Provider }) {
 
   return (
     <tr className="transition-colors hover:bg-[#F4F1EE]/30">
-      <td className="px-6 py-4 whitespace-nowrap">
-        {provider.profilePhotoUrl ? (
-          <img
-            src={provider.profilePhotoUrl}
-            alt={`${provider.name} ${provider.surname}`}
-            className="size-10 rounded-full object-cover border border-[#1A2B48]/10"
-          />
-        ) : (
-          <div
-            aria-label={`${provider.name} ${provider.surname}`}
-            className="flex size-10 items-center justify-center rounded-full bg-[#1A2B48]/10 font-semibold text-xs text-[#1A2B48]"
-          >
-            {initials}
+      <td className="px-6 py-4">
+        <div className="flex min-w-0 items-center gap-3">
+          {provider.profilePhotoUrl ? (
+            <img
+              src={provider.profilePhotoUrl}
+              alt={`${provider.name} ${provider.surname}`}
+              className="size-10 shrink-0 rounded-full border border-[#1A2B48]/10 object-cover"
+            />
+          ) : (
+            <div
+              aria-label={`${provider.name} ${provider.surname}`}
+              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#1A2B48]/10 font-semibold text-xs text-[#1A2B48]"
+            >
+              {initials}
+            </div>
+          )}
+          <div className="min-w-0">
+            <Link
+              href={ROUTES.providerDetail(provider.id)}
+              className="block truncate font-semibold text-[#147560] hover:underline"
+            >
+              {provider.name} {provider.surname}
+            </Link>
+            <p className="mt-0.5 break-all text-xs text-[#536176]">{provider.email}</p>
           </div>
-        )}
+        </div>
       </td>
-      <td className="px-6 py-4 font-medium text-[#1A2B48]">
-        <Link
-          href={ROUTES.providerDetail(provider.id)}
-          className="hover:underline text-[#147560] font-semibold"
-        >
-          {provider.name}
-        </Link>
-      </td>
-      <td className="px-6 py-4 font-medium text-[#1A2B48]">{provider.surname}</td>
-      <td className="px-6 py-4 text-[#536176]">{provider.email}</td>
       <td className="px-6 py-4 text-[#1A2B48] font-medium">{provider.category.name}</td>
       <td className="px-6 py-4 text-[#536176]">{zonesText}</td>
       <td className="px-6 py-4 whitespace-nowrap">
@@ -49,14 +50,11 @@ export function ProvidersTable({ providers }: { providers: readonly Provider[] }
   const { columns } = translations.users.providers.table;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#1A2B48]/10 bg-white shadow-xs">
-      <table aria-label={translations.users.providers.table.caption} className="w-full text-left text-sm text-[#1A2B48]">
+    <div className="overflow-x-auto rounded-2xl border border-[#1A2B48]/10 bg-white shadow-xs">
+      <table aria-label={translations.users.providers.table.caption} className="w-full min-w-[720px] text-left text-sm text-[#1A2B48]">
         <thead className="border-b border-[#1A2B48]/10 bg-[#F4F1EE]/50 text-xs font-semibold uppercase tracking-wider text-[#1A2B48]/60">
           <tr>
-            <th scope="col" className="px-6 py-4 w-20">{columns.photo}</th>
-            <th scope="col" className="px-6 py-4">{columns.name}</th>
-            <th scope="col" className="px-6 py-4">{columns.surname}</th>
-            <th scope="col" className="px-6 py-4">{columns.email}</th>
+            <th scope="col" className="px-6 py-4">{columns.user}</th>
             <th scope="col" className="px-6 py-4">{columns.category}</th>
             <th scope="col" className="px-6 py-4">{columns.coverageZones}</th>
             <th scope="col" className="px-6 py-4">{columns.verificationStatus}</th>
