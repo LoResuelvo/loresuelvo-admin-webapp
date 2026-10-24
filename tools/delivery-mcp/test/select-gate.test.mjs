@@ -443,11 +443,19 @@ test("selectGate: modificar features/support/hooks.ts selecciona Gate C", () => 
 });
 
 test("selectGate: step definition utilizado por una única feature selecciona Gate B", () => {
-  // operations_steps.ts is used ONLY by operations_inbox.feature
+  // Keep gate selection independent of the application step index.
   const result = selectGate({
     intent: "prepare_commit",
     snapshot: {
-      stagedFiles: ["features/operations/operations_steps.ts"],
+      stagedFiles: ["features/payments/payments_steps.ts"],
+    },
+    cucumberImpact: {
+      gate: "B",
+      reasonCodes: ["SINGLE_FEATURE_STEP_CONSUMER"],
+      confidence: "high",
+      affectedFeatures: 1,
+      consumerCount: 1,
+      parameters: { featureFile: "features/payments/payments_console.feature" },
     },
   });
 
@@ -461,10 +469,10 @@ test("selectGate: step definition utilizado por una única feature selecciona Ga
   assert.ok(result.impact.consumerCount > 0);
   assert.strictEqual(
     result.gate.parameters.featureFile,
-    "features/operations/operations_inbox.feature"
+    "features/payments/payments_console.feature"
   );
   assert.deepStrictEqual(result.gate.checks, [
-    "make test-e2e-managed E2E_FILE=features/operations/operations_inbox.feature",
+    "make test-e2e-managed E2E_FILE=features/payments/payments_console.feature",
   ]);
 });
 

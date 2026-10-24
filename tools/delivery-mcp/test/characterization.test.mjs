@@ -269,7 +269,7 @@ test("characterization: nuevos campos de receipt, invalidación por policyHash, 
 });
 
 
-test("characterization: selección de gate por impacto Cucumber sobre steps existentes y hooks (patrón 5d0a34d)", async () => {
+test("characterization: selección de gate por impacto Cucumber sobre steps existentes y hooks (patrón 5d0a34d)", async (t) => {
   const policy = await loadDeliveryPolicy();
 
   // 1. Patrón del commit 5d0a34d: cambio en hooks.ts y step existente
@@ -291,12 +291,20 @@ test("characterization: selección de gate por impacto Cucumber sobre steps exis
   assert.strictEqual(result5d0a34d.impact.gate, "C");
   assert.ok(result5d0a34d.gate.checks.includes("make test-e2e-managed"));
 
+  // Use a dedicated repository so application step changes cannot alter this case.
+  const repoRoot = await createTempGitRepo(t);
+  await fs.mkdir(path.join(repoRoot, "features/payments"), { recursive: true });
+  await fs.writeFile(path.join(repoRoot, "features/payments/payments_console.feature"),
+    "Feature: Isolated payment\n  Scenario: One consumer\n    Given an isolated payment example\n");
+  await fs.writeFile(path.join(repoRoot, "features/payments/payments_steps.ts"),
+    'import { Given } from "@cucumber/cucumber";\nGiven("an isolated payment example", function () {});\n');
   // 2. Step existente utilizado por una sola feature -> Gate B (no Gate 0 estático)
   const resultSingle = selectGate({
+    repoRoot,
     intent: "prepare_commit",
     snapshot: {
       stagedFiles: [
-        "features/operations/operations_steps.ts",
+        "features/payments/payments_steps.ts",
       ],
     },
     policy,
@@ -308,7 +316,7 @@ test("characterization: selección de gate por impacto Cucumber sobre steps exis
   assert.strictEqual(resultSingle.impact.gate, "B");
   assert.strictEqual(
     resultSingle.gate.parameters.featureFile,
-    "features/operations/operations_inbox.feature"
+    "features/payments/payments_console.feature"
   );
 
   // 4. Step nuevo sin consumidores -> Gate 0

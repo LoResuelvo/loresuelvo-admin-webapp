@@ -2,21 +2,27 @@ import { isValidElement } from "react";
 import { render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import Home from "./page";
+import { translations } from "@/infrastructure/i18n/translations";
 
-const { getSession, redirect } = vi.hoisted(() => ({
+const { getSession, redirect, getAuth0Mock } = vi.hoisted(() => ({
   getSession: vi.fn().mockResolvedValue(null),
+  getAuth0Mock: vi.fn(),
   redirect: vi.fn((destination: string): never => {
     throw new Error(`REDIRECT:${destination}`);
   }),
 }));
 
 vi.mock("@/infrastructure/auth/auth0", () => ({
-  getAuth0: () => ({ getSession }),
+  getAuth0: () => {
+    getAuth0Mock();
+    return { getSession };
+  },
 }));
 
 vi.mock("next/navigation", () => ({ redirect }));
 
 afterEach(() => {
+  getAuth0Mock.mockReset();
   getSession.mockReset();
   getSession.mockResolvedValue(null);
   redirect.mockClear();
@@ -60,3 +66,16 @@ it.each([undefined, "sensitive-error-token", ["incomplete", "sensitive-error-tok
     expect(screen.queryByText(/sensitive-error-token/)).not.toBeInTheDocument();
   },
 );
+
+it.each(["configuration", "session"])("renders the public entry when authentication fails at %s", async (failure) => {
+  if (failure === "configuration") {
+    getAuth0Mock.mockImplementationOnce(() => { throw new Error("Authentication is not configured"); });
+  } else {
+    getSession.mockRejectedValueOnce(new Error("Session unavailable"));
+  }
+
+  render(await Home({ searchParams: Promise.resolve({}) }));
+  expect(screen.getByRole("alert")).toHaveTextContent(translations.auth.unavailable);
+  expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeEnabled();
+  expect(redirect).not.toHaveBeenCalled();
+});

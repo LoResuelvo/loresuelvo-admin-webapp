@@ -9,9 +9,17 @@ type HomeProps = {
   searchParams: Promise<{ auth?: string | string[]; returnTo?: string | string[] }>;
 };
 
+async function readSession() {
+  try {
+    return { session: await getAuth0().getSession(), unavailable: false };
+  } catch {
+    return { session: null, unavailable: true };
+  }
+}
+
 export default async function Home({ searchParams }: HomeProps) {
   const { auth, returnTo: requestedReturnTo } = await searchParams;
-  const session = await getAuth0().getSession();
+  const { session, unavailable } = await readSession();
   const returnTo = typeof requestedReturnTo === "string"
     ? getSafeReturnToPath(requestedReturnTo, process.env.APP_URL ?? "http://localhost")
     : null;
@@ -20,6 +28,8 @@ export default async function Home({ searchParams }: HomeProps) {
     redirect(returnTo ?? ROUTES.operations);
   }
 
-  const notice = auth === "incomplete" ? translations.auth.incomplete : undefined;
+  const notice = unavailable
+    ? translations.auth.unavailable
+    : auth === "incomplete" ? translations.auth.incomplete : undefined;
   return <LoginEntry notice={notice} returnTo={returnTo ?? undefined} />;
 }
