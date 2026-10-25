@@ -44,8 +44,6 @@ describe("ClaimsInboxPage", () => {
 
     render(<ClaimsInboxPage />);
 
-    expect(screen.getByRole("heading", { name: "Reclamos", level: 1 })).toBeInTheDocument();
-    expect(screen.getByText("Revisá los reclamos y su estado de resolución.")).toBeInTheDocument();
     expect(screen.getByLabelText("Cargando reclamos")).toBeInTheDocument();
 
     await waitFor(() => {

@@ -43,19 +43,21 @@ function ClaimsSkeleton() {
   );
 }
 
-export function ClaimsInboxPage() {
-  const router = useRouter();
+interface ClaimsState {
+  loading: boolean;
+  error: string | null;
+  forbidden: boolean;
+}
+
+function useClaims(filters: ClaimsFiltersState, page: number) {
   const copy = translations.claims;
   const generation = useRef(0);
-  const [page, setPage] = useState(1);
   const [resultPage, setResultPage] = useState<ClaimPage | null>(null);
-  const claims = resultPage?.items ?? [];
-  const totalPages = resultPage ? Math.max(1, Math.ceil(resultPage.total / resultPage.limit)) : 1;
-  const [filters, setFilters] = useState<ClaimsFiltersState>({ status: "", q: "" });
-  const [status, setStatus] = useState<{ loading: boolean; error: string | null; forbidden: boolean }>({
-    loading: true, error: null, forbidden: false,
+  const [status, setStatus] = useState<ClaimsState>({
+    loading: true,
+    error: null,
+    forbidden: false,
   });
-  const { loading: isLoading, error, forbidden: isForbidden } = status;
 
   const loadClaims = useCallback(async () => {
     const requestId = ++generation.current;
@@ -77,8 +79,52 @@ export function ClaimsInboxPage() {
 
   useEffect(() => {
     void loadClaims();
-    return () => { generation.current += 1; };
+    return () => {
+      generation.current += 1;
+    };
   }, [loadClaims]);
+
+  const claims = resultPage?.items ?? [];
+  const totalPages = resultPage ? Math.max(1, Math.ceil(resultPage.total / resultPage.limit)) : 1;
+
+  return {
+    claims,
+    totalPages,
+    status,
+    loadClaims,
+  };
+}
+
+interface ClaimsPaginationProps {
+  page: number;
+  totalPages: number;
+  onPageChange: (newPage: number) => void;
+}
+
+function ClaimsPagination({ page, totalPages, onPageChange }: ClaimsPaginationProps) {
+  const copy = translations.claims;
+  return (
+    <nav aria-label={copy.paginationLabel} className="flex items-center gap-3">
+      <button type="button" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
+        {copy.previousPage}
+      </button>
+      <span>
+        {copy.page} {page} / {totalPages}
+      </span>
+      <button type="button" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}>
+        {copy.nextPage}
+      </button>
+    </nav>
+  );
+}
+
+export function ClaimsInboxPage() {
+  const router = useRouter();
+  const copy = translations.claims;
+  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState<ClaimsFiltersState>({ status: "", q: "" });
+  const { claims, totalPages, status, loadClaims } = useClaims(filters, page);
+  const { loading: isLoading, error, forbidden: isForbidden } = status;
 
   const handleSelectClaim = (claim: Claim) => {
     router.push(ROUTES.claimDetail(claim.id));
@@ -88,11 +134,13 @@ export function ClaimsInboxPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-[#1A2B48]">{copy.title}</h1>
-        <p className="mt-1 text-sm text-[#536176]">{copy.subtitle}</p>
-      </header>
-      <ClaimsFilters filters={filters} onChange={next => { setFilters(next); setPage(1); }} />
+      <ClaimsFilters
+        filters={filters}
+        onChange={(next) => {
+          setFilters(next);
+          setPage(1);
+        }}
+      />
 
       {isForbidden ? (
         <ClaimsForbidden message={error ?? copy.forbidden} />
@@ -108,11 +156,7 @@ export function ClaimsInboxPage() {
         />
       )}
       {!isLoading && !error && !isForbidden && totalPages > 1 && (
-        <nav aria-label={copy.paginationLabel} className="flex items-center gap-3">
-          <button type="button" disabled={page <= 1} onClick={() => setPage(value => value - 1)}>{copy.previousPage}</button>
-          <span>{copy.page} {page} / {totalPages}</span>
-          <button type="button" disabled={page >= totalPages} onClick={() => setPage(value => value + 1)}>{copy.nextPage}</button>
-        </nav>
+        <ClaimsPagination page={page} totalPages={totalPages} onPageChange={setPage} />
       )}
     </div>
   );
