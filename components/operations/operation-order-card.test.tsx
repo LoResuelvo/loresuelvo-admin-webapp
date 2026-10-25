@@ -28,4 +28,20 @@ describe("OperationOrderCard", () => {
 
     expect(screen.getByText(/25.*2026/i)).toBeInTheDocument();
   });
+
+  it("renders translated status label for paid orders", () => {
+    render(<OperationOrderCard order={{ ...sampleOrder, status: "paid" }} />);
+
+    const statusBadges = screen.getAllByText("Pagada");
+    expect(statusBadges.length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText("paid")).not.toBeInTheDocument();
+  });
+
+  it("renders translated status label for awaiting_payment orders", () => {
+    render(<OperationOrderCard order={{ ...sampleOrder, status: "awaiting_payment" }} />);
+
+    const statusBadges = screen.getAllByText("Pago final pendiente");
+    expect(statusBadges.length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText("awaiting_payment")).not.toBeInTheDocument();
+  });
 });

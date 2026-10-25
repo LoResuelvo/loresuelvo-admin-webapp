@@ -102,6 +102,8 @@ export const operationsTranslations = {
     subtitle: "Estado de ejecución y fecha programada",
     status: {
       scheduled: "Programada",
+      awaiting_payment: "Pago final pendiente",
+      paid: "Pagada",
       in_progress: "En progreso",
       completed: "Completada",
       cancelled: "Cancelada",
