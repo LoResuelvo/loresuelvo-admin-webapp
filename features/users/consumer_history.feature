@@ -9,12 +9,12 @@ Feature: Ficha e historial de contrataciones de consumidores
   Scenario: 01-CSM Visualizar perfil del consumidor y domicilio actual
     Given que existe un consumidor registrado en el marketplace
     When consulto la ficha del consumidor
-    Then visualizo sus datos de contacto, fecha de registro y la dirección habitual registrada
+    Then visualizo su correo electrónico, fecha de registro y la dirección habitual registrada, sin mostrar teléfono
 
   Scenario: 02-CSM Visualizar historial cronológico de contrataciones con acceso a operaciones
     Given que el consumidor registra actividad de contrataciones en la plataforma
     When consulto el historial en la ficha del consumidor
-    Then visualizo la lista cronológica de servicios con fecha, rubro, prestador asignado, estado y acceso al detalle operativo
+    Then visualizo la lista cronológica de servicios con fecha, prestador asignado, estado y acceso al detalle operativo, sin mostrar rubro ni importe
 
   Scenario: 03-CSM Filtrar historial por tipo de interacción y estado
     Given que el consumidor posee múltiples interacciones registradas

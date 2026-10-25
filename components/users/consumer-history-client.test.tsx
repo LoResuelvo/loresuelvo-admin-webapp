@@ -163,14 +163,14 @@ describe("ConsumerHistoryClient", () => {
 
     render(<ConsumerHistoryClient id={301} />);
 
-    await screen.findByText("Rubro 20");
+    await screen.findByText("Prestador 20");
     await userEvent.click(
       screen.getByRole("button", { name: "Cargar más interacciones" }),
     );
 
-    await screen.findByText("Rubro 21");
-    expect(screen.getByText("Rubro 1")).toBeInTheDocument();
-    expect(screen.queryByText("Duplicada 20")).not.toBeInTheDocument();
+    await screen.findByText("Prestador 21");
+    expect(screen.getByText("Prestador 1")).toBeInTheDocument();
+    expect(screen.queryByText("Prestador duplicado")).not.toBeInTheDocument();
     expect(actionSpy).toHaveBeenNthCalledWith(2, 301, {
       limit: 20,
       cursor: "opaque-cursor-page-2",
@@ -210,7 +210,7 @@ describe("ConsumerHistoryClient", () => {
       );
 
     render(<ConsumerHistoryClient id={301} />);
-    await screen.findByText("Rubro 20");
+    await screen.findByText("Prestador 20");
     const loadMoreButton = screen.getByRole("button", {
       name: "Cargar más interacciones",
     });
@@ -229,7 +229,7 @@ describe("ConsumerHistoryClient", () => {
     await act(async () => {
       resolveNextPage?.({ success: true, data: nextPage });
     });
-    expect(screen.getByText("Rubro 20")).toBeInTheDocument();
+    expect(screen.getByText("Prestador 20")).toBeInTheDocument();
   });
 
   it("keeps loaded interactions visible and retries a failed next page", async () => {
@@ -272,7 +272,7 @@ describe("ConsumerHistoryClient", () => {
       .mockResolvedValueOnce({ success: true, data: nextPage });
 
     render(<ConsumerHistoryClient id={301} />);
-    await screen.findByText("Rubro 20");
+    await screen.findByText("Prestador 20");
     await userEvent.click(screen.getByRole("button", {
       name: "Cargar más interacciones",
     }));
@@ -280,11 +280,11 @@ describe("ConsumerHistoryClient", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "No se pudo cargar la siguiente página",
     );
-    expect(screen.getByText("Rubro 20")).toBeInTheDocument();
+    expect(screen.getByText("Prestador 20")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Reintentar" }));
 
-    expect(await screen.findByText("Rubro 21")).toBeInTheDocument();
-    expect(screen.getByText("Rubro 20")).toBeInTheDocument();
+    expect(await screen.findByText("Prestador 21")).toBeInTheDocument();
+    expect(screen.getByText("Prestador 20")).toBeInTheDocument();
     expect(actionSpy).toHaveBeenNthCalledWith(2, 301, {
       limit: 20,
       cursor: "retry-cursor",
@@ -326,7 +326,7 @@ describe("ConsumerHistoryClient", () => {
 
     render(<ConsumerHistoryClient id={301} />);
 
-    await screen.findByText("Plomería");
+    await screen.findByText("Juan Gómez");
     const typeFilter = screen.getByRole("combobox", { name: "Tipo de interacción" });
     await userEvent.selectOptions(typeFilter, "work_order");
     await waitFor(() => {
@@ -358,7 +358,7 @@ describe("ConsumerHistoryClient", () => {
     await waitFor(() => {
       expect(actionSpy).toHaveBeenNthCalledWith(4, 301, { limit: 20 });
     });
-    await screen.findByText("Plomería");
+    await screen.findByText("Juan Gómez");
   });
 
   it("renders default translation error when action throws", async () => {

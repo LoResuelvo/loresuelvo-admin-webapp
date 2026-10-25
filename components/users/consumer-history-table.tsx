@@ -32,18 +32,6 @@ function formatDate(isoOrDate: string): string {
   }
 }
 
-function formatAmount(cents: number): string {
-  try {
-    return new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      maximumFractionDigits: 0,
-    }).format(cents / 100);
-  } catch {
-    return `$${cents / 100}`;
-  }
-}
-
 function ConsumerHistoryRow({ item }: { item: ConsumerHistoryItem }) {
   const copy = translations.users.consumerDetail.history;
   const statusClass =
@@ -55,9 +43,6 @@ function ConsumerHistoryRow({ item }: { item: ConsumerHistoryItem }) {
     <tr className="transition-colors hover:bg-[#F4F1EE]/30">
       <td className="px-6 py-4 whitespace-nowrap text-[#536176]">
         {formatDate(item.createdAt)}
-      </td>
-      <td className="px-6 py-4 font-medium text-[#1A2B48]">
-        {item.categoryName ?? copy.notAvailable}
       </td>
       <td className="px-6 py-4">
         <div className="flex items-center gap-2">
@@ -85,11 +70,6 @@ function ConsumerHistoryRow({ item }: { item: ConsumerHistoryItem }) {
           {statusLabel}
         </span>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap font-medium text-[#1A2B48]">
-        {item.totalAmountCents === undefined
-          ? copy.notAvailable
-          : formatAmount(item.totalAmountCents)}
-      </td>
       <td className="px-6 py-4 whitespace-nowrap text-right">
         <Link
           href={ROUTES.operationDetail(item.operationId)}
@@ -111,10 +91,8 @@ export function ConsumerHistoryTable({ history }: ConsumerHistoryTableProps) {
         <thead className="border-b border-[#1A2B48]/10 bg-[#F4F1EE]/50 text-xs font-semibold uppercase tracking-wider text-[#1A2B48]/60">
           <tr>
             <th scope="col" className="px-6 py-4">{columns.date}</th>
-            <th scope="col" className="px-6 py-4">{columns.category}</th>
             <th scope="col" className="px-6 py-4">{columns.provider}</th>
             <th scope="col" className="px-6 py-4">{columns.status}</th>
-            <th scope="col" className="px-6 py-4">{columns.amount}</th>
             <th scope="col" className="px-6 py-4 text-right">{columns.actions}</th>
           </tr>
         </thead>

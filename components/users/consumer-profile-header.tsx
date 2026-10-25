@@ -9,7 +9,6 @@ export interface ConsumerProfileHeaderProps {
   name: string;
   surname: string;
   email: string;
-  phone?: string;
   profilePhotoUrl?: string;
   registeredAt: string;
   currentAddress?: string;
@@ -65,11 +64,9 @@ function ConsumerAvatar({
 
 function ConsumerContactInfo({
   email,
-  phone,
   registeredAt,
 }: {
   email: string;
-  phone?: string;
   registeredAt: string;
 }) {
   const copy = translations.users.consumerDetail.profile;
@@ -78,10 +75,6 @@ function ConsumerContactInfo({
     <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[#536176]">
       <span>
         <strong className="font-medium text-[#1A2B48]/70">{copy.emailLabel}:</strong> {email}
-      </span>
-      <span aria-hidden="true" className="text-[#1A2B48]/20">•</span>
-      <span>
-        <strong className="font-medium text-[#1A2B48]/70">{copy.phoneLabel}:</strong> {phone ?? copy.notAvailable}
       </span>
       <span aria-hidden="true" className="text-[#1A2B48]/20">•</span>
       <span>
@@ -119,7 +112,6 @@ export function ConsumerProfileHeader({
   name,
   surname,
   email,
-  phone,
   profilePhotoUrl,
   registeredAt,
   currentAddress,
@@ -138,7 +130,7 @@ export function ConsumerProfileHeader({
           <h1 className="text-xl font-bold tracking-tight text-[#1A2B48] sm:text-2xl">
             {fullName}
           </h1>
-          <ConsumerContactInfo email={email} phone={phone} registeredAt={registeredAt} />
+          <ConsumerContactInfo email={email} registeredAt={registeredAt} />
         </div>
       </div>
 

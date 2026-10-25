@@ -40,7 +40,6 @@ export function ConsumerHistoryView({
         name={consumer.name}
         surname={consumer.surname}
         email={consumer.email}
-        phone={consumer.phone}
         profilePhotoUrl={consumer.profilePhotoUrl}
         registeredAt={consumer.registeredAt}
         currentAddress={consumer.currentAddress}

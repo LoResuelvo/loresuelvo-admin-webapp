@@ -40,7 +40,6 @@ describe("ConsumerHistoryList", () => {
     expect(screen.getByTestId("consumer-history-list")).toBeInTheDocument();
     const table = screen.getByRole("table");
     expect(within(table).getByText("20/09/2026")).toBeInTheDocument();
-    expect(within(table).getByText("Plomería")).toBeInTheDocument();
     expect(within(table).getByText("Juan Gómez")).toBeInTheDocument();
     expect(within(table).getByText("Completada")).toBeInTheDocument();
 
@@ -106,8 +105,8 @@ describe("ConsumerHistoryList", () => {
       />,
     );
     const table = screen.getByRole("table");
-    expect(within(table).getByText("Plomería")).toBeInTheDocument();
-    expect(within(table).queryByText("Gas")).not.toBeInTheDocument();
+    expect(within(table).getByText("Juan Gómez")).toBeInTheDocument();
+    expect(within(table).queryByText("Pedro Gasista")).not.toBeInTheDocument();
 
     fireEvent.change(screen.getByRole("combobox", { name: "Estado" }), {
       target: { value: "paid" },
@@ -132,7 +131,7 @@ describe("ConsumerHistoryList", () => {
     expect(screen.getByTestId("consumer-history-filters")).toBeInTheDocument();
   });
 
-  it("shows unavailable category and amount when the API does not provide them", () => {
+  it("omits category and amount columns unsupported by the API", () => {
     const itemWithoutCategoryOrAmount = {
       ...sampleHistory[0],
       categoryName: undefined,
@@ -141,6 +140,8 @@ describe("ConsumerHistoryList", () => {
     render(<ConsumerHistoryList history={[itemWithoutCategoryOrAmount]} />);
 
     const table = screen.getByRole("table");
-    expect(within(table).getAllByText("No disponible")).toHaveLength(2);
+    expect(within(table).queryByRole("columnheader", { name: "Rubro" })).not.toBeInTheDocument();
+    expect(within(table).queryByRole("columnheader", { name: "Importe" })).not.toBeInTheDocument();
+    expect(within(table).getAllByRole("columnheader")).toHaveLength(4);
   });
 });

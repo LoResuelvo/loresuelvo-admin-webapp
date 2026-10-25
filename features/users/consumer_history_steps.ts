@@ -18,7 +18,7 @@ When("consulto la ficha del consumidor", async function (this: CustomWorld) {
 });
 
 Then(
-  "visualizo sus datos de contacto, fecha de registro y la dirección habitual registrada",
+  "visualizo su correo electrónico, fecha de registro y la dirección habitual registrada, sin mostrar teléfono",
   async function (this: CustomWorld) {
     const header = this.page.getByTestId("consumer-profile-header");
     await header.waitFor({ state: "visible" });
@@ -26,7 +26,7 @@ Then(
     const text = await this.page.locator("body").innerText();
     assert.ok(text.includes("Carlos López"), "Debe mostrar el nombre completo");
     assert.ok(text.includes("carlos@example.com"), "Debe mostrar el correo electrónico");
-    assert.ok(text.includes("No disponible"), "Debe indicar que el teléfono no está disponible en la API");
+    assert.equal(await header.getByText(/teléfono/i).count(), 0, "No debe mostrar teléfono");
     assert.ok(text.includes("Av. Rivadavia 4500"), "Debe mostrar la dirección habitual");
     assert.ok(text.includes("Comuna 6"), "Debe mostrar la zona de cobertura");
     assert.ok(text.includes("01/09/2026"), "Debe mostrar la fecha de registro formateada");
@@ -45,14 +45,15 @@ When("consulto el historial en la ficha del consumidor", async function (this: C
 });
 
 Then(
-  "visualizo la lista cronológica de servicios con fecha, rubro, prestador asignado, estado y acceso al detalle operativo",
+  "visualizo la lista cronológica de servicios con fecha, prestador asignado, estado y acceso al detalle operativo, sin mostrar rubro ni importe",
   async function (this: CustomWorld) {
     const list = this.page.getByTestId("consumer-history-list");
     await list.waitFor({ state: "visible" });
 
     const text = await list.innerText();
     assert.ok(text.includes("20/09/2026"), "Debe mostrar la fecha de la orden");
-    assert.ok(text.includes("No disponible"), "Debe indicar que el rubro histórico no está disponible en la API");
+    assert.equal(await list.getByRole("columnheader", { name: "Rubro" }).count(), 0, "No debe mostrar rubro");
+    assert.equal(await list.getByRole("columnheader", { name: "Importe" }).count(), 0, "No debe mostrar importe");
     assert.ok(text.includes("Juan Gómez"), "Debe mostrar el nombre del prestador");
     assert.ok(text.toLowerCase().includes("completad"), "Debe mostrar el estado");
 
